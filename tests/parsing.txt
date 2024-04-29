@@ -1,0 +1,14 @@
+toplevel the_top root \
+	title		= Test_External_Definition	\
+	requested_size	= {320 240}			\
+	color		= {200 200 200 255}		\
+	border_width	= 4				\
+	closable	= 1				\
+	resizable	= both				\
+	min_size	= {320 240}
+
+place the_top rel_x=.5 rel_y=.5 anchor=center
+
+toplevel within the_top	title = {A top within} requested_size = {160 120}
+
+place within rel_x=.8 rel_y=.7 anchor=center
