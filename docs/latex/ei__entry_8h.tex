@@ -1,0 +1,92 @@
+\hypertarget{ei__entry_8h}{}\doxysection{ei\+\_\+entry.\+h File Reference}
+\label{ei__entry_8h}\index{ei\_entry.h@{ei\_entry.h}}
+{\ttfamily \#include \char`\"{}ei\+\_\+types.\+h\char`\"{}}\newline
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{ei__entry_8h_aad296693f8ef6300796157aa7186173b}{ei\+\_\+entry\+\_\+configure}} (\mbox{\hyperlink{ei__types_8h_a35b52beecc62073de9c4c23e686686b8}{ei\+\_\+widget\+\_\+t}} widget, int $\ast$requested\+\_\+char\+\_\+size, const \mbox{\hyperlink{structei__color__t}{ei\+\_\+color\+\_\+t}} $\ast$color, int $\ast$border\+\_\+width, \mbox{\hyperlink{ei__types_8h_a22c8198e4d641e4bc67bb17f9c6bcda7}{ei\+\_\+font\+\_\+t}} $\ast$text\+\_\+font, \mbox{\hyperlink{structei__color__t}{ei\+\_\+color\+\_\+t}} $\ast$text\+\_\+color)
+\begin{DoxyCompactList}\small\item\em Configures the attributes of widgets of the class \char`\"{}entry\char`\"{}. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{ei__entry_8h_a6ff3ed84781b45d3138c79f947116852}{ei\+\_\+entry\+\_\+set\+\_\+text}} (\mbox{\hyperlink{ei__types_8h_a35b52beecc62073de9c4c23e686686b8}{ei\+\_\+widget\+\_\+t}} widget, \mbox{\hyperlink{ei__types_8h_a54e9efab809a177e0b5df09529a6d32c}{ei\+\_\+const\+\_\+string\+\_\+t}} text)
+\begin{DoxyCompactList}\small\item\em Sets the text displayed in the entry widget. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{ei__types_8h_a54e9efab809a177e0b5df09529a6d32c}{ei\+\_\+const\+\_\+string\+\_\+t}} \mbox{\hyperlink{ei__entry_8h_abb2a637756446fb57a4df39798f0758f}{ei\+\_\+entry\+\_\+get\+\_\+text}} (\mbox{\hyperlink{ei__types_8h_a35b52beecc62073de9c4c23e686686b8}{ei\+\_\+widget\+\_\+t}} widget)
+\begin{DoxyCompactList}\small\item\em Gets the text that is displayed in the entry widget. \end{DoxyCompactList}\item 
+void \mbox{\hyperlink{ei__entry_8h_aed636d114406a850f6629e6e3074567b}{ei\+\_\+entry\+\_\+give\+\_\+focus}} (\mbox{\hyperlink{ei__types_8h_a35b52beecc62073de9c4c23e686686b8}{ei\+\_\+widget\+\_\+t}} widget)
+\begin{DoxyCompactList}\small\item\em Gives the keyboard input focus to the entry widget. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{ei__entry_8h_aad296693f8ef6300796157aa7186173b}\label{ei__entry_8h_aad296693f8ef6300796157aa7186173b}} 
+\index{ei\_entry.h@{ei\_entry.h}!ei\_entry\_configure@{ei\_entry\_configure}}
+\index{ei\_entry\_configure@{ei\_entry\_configure}!ei\_entry.h@{ei\_entry.h}}
+\doxysubsubsection{\texorpdfstring{ei\_entry\_configure()}{ei\_entry\_configure()}}
+{\footnotesize\ttfamily void ei\+\_\+entry\+\_\+configure (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{ei__types_8h_a35b52beecc62073de9c4c23e686686b8}{ei\+\_\+widget\+\_\+t}}}]{widget,  }\item[{int $\ast$}]{requested\+\_\+char\+\_\+size,  }\item[{const \mbox{\hyperlink{structei__color__t}{ei\+\_\+color\+\_\+t}} $\ast$}]{color,  }\item[{int $\ast$}]{border\+\_\+width,  }\item[{\mbox{\hyperlink{ei__types_8h_a22c8198e4d641e4bc67bb17f9c6bcda7}{ei\+\_\+font\+\_\+t}} $\ast$}]{text\+\_\+font,  }\item[{\mbox{\hyperlink{structei__color__t}{ei\+\_\+color\+\_\+t}} $\ast$}]{text\+\_\+color }\end{DoxyParamCaption})}
+
+
+
+Configures the attributes of widgets of the class \char`\"{}entry\char`\"{}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em widget} & The widget to configure. \\
+\hline
+{\em requested\+\_\+char\+\_\+size} & The size requested for this widget in \char`\"{}chars\char`\"{}. If provided, the requested size of the widget must be just large enough to show this amount of \textquotesingle{}m\textquotesingle{} characters (the largest character). Defaults to 10. \\
+\hline
+{\em color} & The color of the background of the widget. Defaults to \mbox{\hyperlink{ei__types_8h_a00dfca48550b7224f2d8011497b9fd8c}{ei\+\_\+default\+\_\+background\+\_\+color}}. \\
+\hline
+{\em border\+\_\+width} & The width in pixel of the border of the widget. Defaults to 2. Minimum is 2. When the widget does not have the focus, its border is shown with a width of $<$border\+\_\+width$>$ -\/ 1, but the content is enlarged so that the widget has the same size as when in focus. \\
+\hline
+{\em text\+\_\+font} & The font used to display the text. Defaults to \mbox{\hyperlink{ei__types_8h_a722bfa1a8a9a4202fb2d4abce2f06a8c}{ei\+\_\+default\+\_\+font}}. \\
+\hline
+{\em text\+\_\+color} & The color used to display the text. Defaults to \mbox{\hyperlink{ei__types_8h_adc5dd1241a145ff097f2c01dd6ab13af}{ei\+\_\+font\+\_\+default\+\_\+color}}. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{ei__entry_8h_abb2a637756446fb57a4df39798f0758f}\label{ei__entry_8h_abb2a637756446fb57a4df39798f0758f}} 
+\index{ei\_entry.h@{ei\_entry.h}!ei\_entry\_get\_text@{ei\_entry\_get\_text}}
+\index{ei\_entry\_get\_text@{ei\_entry\_get\_text}!ei\_entry.h@{ei\_entry.h}}
+\doxysubsubsection{\texorpdfstring{ei\_entry\_get\_text()}{ei\_entry\_get\_text()}}
+{\footnotesize\ttfamily \mbox{\hyperlink{ei__types_8h_a54e9efab809a177e0b5df09529a6d32c}{ei\+\_\+const\+\_\+string\+\_\+t}} ei\+\_\+entry\+\_\+get\+\_\+text (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{ei__types_8h_a35b52beecc62073de9c4c23e686686b8}{ei\+\_\+widget\+\_\+t}}}]{widget }\end{DoxyParamCaption})}
+
+
+
+Gets the text that is displayed in the entry widget. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em widget} & The widget to get the text from.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The text currently shown in the widget. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{ei__entry_8h_aed636d114406a850f6629e6e3074567b}\label{ei__entry_8h_aed636d114406a850f6629e6e3074567b}} 
+\index{ei\_entry.h@{ei\_entry.h}!ei\_entry\_give\_focus@{ei\_entry\_give\_focus}}
+\index{ei\_entry\_give\_focus@{ei\_entry\_give\_focus}!ei\_entry.h@{ei\_entry.h}}
+\doxysubsubsection{\texorpdfstring{ei\_entry\_give\_focus()}{ei\_entry\_give\_focus()}}
+{\footnotesize\ttfamily void ei\+\_\+entry\+\_\+give\+\_\+focus (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{ei__types_8h_a35b52beecc62073de9c4c23e686686b8}{ei\+\_\+widget\+\_\+t}}}]{widget }\end{DoxyParamCaption})}
+
+
+
+Gives the keyboard input focus to the entry widget. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em widget} & The widget to receive the keyboard input focus. \\
+\hline
+\end{DoxyParams}
+\mbox{\Hypertarget{ei__entry_8h_a6ff3ed84781b45d3138c79f947116852}\label{ei__entry_8h_a6ff3ed84781b45d3138c79f947116852}} 
+\index{ei\_entry.h@{ei\_entry.h}!ei\_entry\_set\_text@{ei\_entry\_set\_text}}
+\index{ei\_entry\_set\_text@{ei\_entry\_set\_text}!ei\_entry.h@{ei\_entry.h}}
+\doxysubsubsection{\texorpdfstring{ei\_entry\_set\_text()}{ei\_entry\_set\_text()}}
+{\footnotesize\ttfamily void ei\+\_\+entry\+\_\+set\+\_\+text (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{ei__types_8h_a35b52beecc62073de9c4c23e686686b8}{ei\+\_\+widget\+\_\+t}}}]{widget,  }\item[{\mbox{\hyperlink{ei__types_8h_a54e9efab809a177e0b5df09529a6d32c}{ei\+\_\+const\+\_\+string\+\_\+t}}}]{text }\end{DoxyParamCaption})}
+
+
+
+Sets the text displayed in the entry widget. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em widget} & The widget to set. \\
+\hline
+{\em text} & The text to show in the widget. \\
+\hline
+\end{DoxyParams}
