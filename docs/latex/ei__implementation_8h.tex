@@ -1,0 +1,104 @@
+\hypertarget{ei__implementation_8h}{}\doxysection{ei\+\_\+implementation.\+h File Reference}
+\label{ei__implementation_8h}\index{ei\_implementation.h@{ei\_implementation.h}}
+
+
+Private definitions.  
+
+
+{\ttfamily \#include \char`\"{}hw\+\_\+interface.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}ei\+\_\+types.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}ei\+\_\+widget.\+h\char`\"{}}\newline
+{\ttfamily \#include \char`\"{}ei\+\_\+geometrymanager.\+h\char`\"{}}\newline
+\doxysubsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \mbox{\hyperlink{structei__impl__widget__t}{ei\+\_\+impl\+\_\+widget\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Fields common to all types of widget. Every widget classes specializes this base class by adding its own fields. \end{DoxyCompactList}\item 
+struct \mbox{\hyperlink{structei__impl__geom__param__t}{ei\+\_\+impl\+\_\+geom\+\_\+param\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Fields common to all geometry managers. Every geometry manager specializes this by adding its own fields. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef struct \mbox{\hyperlink{structei__impl__widget__t}{ei\+\_\+impl\+\_\+widget\+\_\+t}} \mbox{\hyperlink{ei__implementation_8h_a7a7ec3346b52818a027f0f8c61241ae0}{ei\+\_\+impl\+\_\+widget\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Fields common to all types of widget. Every widget classes specializes this base class by adding its own fields. \end{DoxyCompactList}\item 
+typedef struct \mbox{\hyperlink{structei__impl__geom__param__t}{ei\+\_\+impl\+\_\+geom\+\_\+param\+\_\+t}} \mbox{\hyperlink{ei__implementation_8h_a8f60c6963cb736582c6949c03fd40fb7}{ei\+\_\+impl\+\_\+geom\+\_\+param\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Fields common to all geometry managers. Every geometry manager specializes this by adding its own fields. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{ei__implementation_8h_a857f4be2cbfb1be5aed407cc001ccccb}{ei\+\_\+impl\+\_\+widget\+\_\+draw\+\_\+children}} (\mbox{\hyperlink{ei__types_8h_a35b52beecc62073de9c4c23e686686b8}{ei\+\_\+widget\+\_\+t}} widget, \mbox{\hyperlink{hw__interface_8h_ad9970ae727c438faaf09c58c5defb796}{ei\+\_\+surface\+\_\+t}} surface, \mbox{\hyperlink{hw__interface_8h_ad9970ae727c438faaf09c58c5defb796}{ei\+\_\+surface\+\_\+t}} pick\+\_\+surface, \mbox{\hyperlink{structei__rect__t}{ei\+\_\+rect\+\_\+t}} $\ast$clipper)
+\begin{DoxyCompactList}\small\item\em Draws the children of a widget. The children are draw withing the limits of the clipper and the widget\textquotesingle{}s content\+\_\+rect. \end{DoxyCompactList}\item 
+uint32\+\_\+t \mbox{\hyperlink{ei__implementation_8h_a433225c2e2c4ef4fdb5cab0a043383e6}{ei\+\_\+impl\+\_\+map\+\_\+rgba}} (\mbox{\hyperlink{hw__interface_8h_ad9970ae727c438faaf09c58c5defb796}{ei\+\_\+surface\+\_\+t}} surface, \mbox{\hyperlink{structei__color__t}{ei\+\_\+color\+\_\+t}} color)
+\begin{DoxyCompactList}\small\item\em Converts the red, green, blue and alpha components of a color into a 32 bits integer than can be written directly in the memory returned by \mbox{\hyperlink{hw__interface_8h_a8942e332c58a06edd0e639e6743532d1}{hw\+\_\+surface\+\_\+get\+\_\+buffer}}. The surface parameter provides the channel order. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Private definitions. 
+
+
+
+\doxysubsection{Typedef Documentation}
+\mbox{\Hypertarget{ei__implementation_8h_a8f60c6963cb736582c6949c03fd40fb7}\label{ei__implementation_8h_a8f60c6963cb736582c6949c03fd40fb7}} 
+\index{ei\_implementation.h@{ei\_implementation.h}!ei\_impl\_geom\_param\_t@{ei\_impl\_geom\_param\_t}}
+\index{ei\_impl\_geom\_param\_t@{ei\_impl\_geom\_param\_t}!ei\_implementation.h@{ei\_implementation.h}}
+\doxysubsubsection{\texorpdfstring{ei\_impl\_geom\_param\_t}{ei\_impl\_geom\_param\_t}}
+{\footnotesize\ttfamily typedef struct \mbox{\hyperlink{structei__impl__geom__param__t}{ei\+\_\+impl\+\_\+geom\+\_\+param\+\_\+t}} \mbox{\hyperlink{structei__impl__geom__param__t}{ei\+\_\+impl\+\_\+geom\+\_\+param\+\_\+t}}}
+
+
+
+Fields common to all geometry managers. Every geometry manager specializes this by adding its own fields. 
+
+\mbox{\Hypertarget{ei__implementation_8h_a7a7ec3346b52818a027f0f8c61241ae0}\label{ei__implementation_8h_a7a7ec3346b52818a027f0f8c61241ae0}} 
+\index{ei\_implementation.h@{ei\_implementation.h}!ei\_impl\_widget\_t@{ei\_impl\_widget\_t}}
+\index{ei\_impl\_widget\_t@{ei\_impl\_widget\_t}!ei\_implementation.h@{ei\_implementation.h}}
+\doxysubsubsection{\texorpdfstring{ei\_impl\_widget\_t}{ei\_impl\_widget\_t}}
+{\footnotesize\ttfamily typedef struct \mbox{\hyperlink{structei__impl__widget__t}{ei\+\_\+impl\+\_\+widget\+\_\+t}} \mbox{\hyperlink{structei__impl__widget__t}{ei\+\_\+impl\+\_\+widget\+\_\+t}}}
+
+
+
+Fields common to all types of widget. Every widget classes specializes this base class by adding its own fields. 
+
+
+
+\doxysubsection{Function Documentation}
+\mbox{\Hypertarget{ei__implementation_8h_a433225c2e2c4ef4fdb5cab0a043383e6}\label{ei__implementation_8h_a433225c2e2c4ef4fdb5cab0a043383e6}} 
+\index{ei\_implementation.h@{ei\_implementation.h}!ei\_impl\_map\_rgba@{ei\_impl\_map\_rgba}}
+\index{ei\_impl\_map\_rgba@{ei\_impl\_map\_rgba}!ei\_implementation.h@{ei\_implementation.h}}
+\doxysubsubsection{\texorpdfstring{ei\_impl\_map\_rgba()}{ei\_impl\_map\_rgba()}}
+{\footnotesize\ttfamily uint32\+\_\+t ei\+\_\+impl\+\_\+map\+\_\+rgba (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{hw__interface_8h_ad9970ae727c438faaf09c58c5defb796}{ei\+\_\+surface\+\_\+t}}}]{surface,  }\item[{\mbox{\hyperlink{structei__color__t}{ei\+\_\+color\+\_\+t}}}]{color }\end{DoxyParamCaption})}
+
+
+
+Converts the red, green, blue and alpha components of a color into a 32 bits integer than can be written directly in the memory returned by \mbox{\hyperlink{hw__interface_8h_a8942e332c58a06edd0e639e6743532d1}{hw\+\_\+surface\+\_\+get\+\_\+buffer}}. The surface parameter provides the channel order. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em surface} & The surface where to store this pixel, provides the channels order. \\
+\hline
+{\em color} & The color to convert.\\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+The 32 bit integer corresponding to the color. The alpha component of the color is ignored in the case of surfaces that don\textquotesingle{}t have an alpha channel. 
+\end{DoxyReturn}
+\mbox{\Hypertarget{ei__implementation_8h_a857f4be2cbfb1be5aed407cc001ccccb}\label{ei__implementation_8h_a857f4be2cbfb1be5aed407cc001ccccb}} 
+\index{ei\_implementation.h@{ei\_implementation.h}!ei\_impl\_widget\_draw\_children@{ei\_impl\_widget\_draw\_children}}
+\index{ei\_impl\_widget\_draw\_children@{ei\_impl\_widget\_draw\_children}!ei\_implementation.h@{ei\_implementation.h}}
+\doxysubsubsection{\texorpdfstring{ei\_impl\_widget\_draw\_children()}{ei\_impl\_widget\_draw\_children()}}
+{\footnotesize\ttfamily void ei\+\_\+impl\+\_\+widget\+\_\+draw\+\_\+children (\begin{DoxyParamCaption}\item[{\mbox{\hyperlink{ei__types_8h_a35b52beecc62073de9c4c23e686686b8}{ei\+\_\+widget\+\_\+t}}}]{widget,  }\item[{\mbox{\hyperlink{hw__interface_8h_ad9970ae727c438faaf09c58c5defb796}{ei\+\_\+surface\+\_\+t}}}]{surface,  }\item[{\mbox{\hyperlink{hw__interface_8h_ad9970ae727c438faaf09c58c5defb796}{ei\+\_\+surface\+\_\+t}}}]{pick\+\_\+surface,  }\item[{\mbox{\hyperlink{structei__rect__t}{ei\+\_\+rect\+\_\+t}} $\ast$}]{clipper }\end{DoxyParamCaption})}
+
+
+
+Draws the children of a widget. The children are draw withing the limits of the clipper and the widget\textquotesingle{}s content\+\_\+rect. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em widget} & The widget which children are drawn. \\
+\hline
+{\em surface} & A locked surface where to draw the widget\textquotesingle{}s children. \\
+\hline
+{\em pick\+\_\+surface} & The picking offscreen. \\
+\hline
+{\em clipper} & If not NULL, the drawing is restricted within this rectangle (expressed in the surface reference frame). \\
+\hline
+\end{DoxyParams}

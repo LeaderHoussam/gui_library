@@ -1,0 +1,137 @@
+\hypertarget{structei__event__t}{}\doxysection{ei\+\_\+event\+\_\+t Struct Reference}
+\label{structei__event__t}\index{ei\_event\_t@{ei\_event\_t}}
+
+
+Describes an event.  
+
+
+
+
+{\ttfamily \#include $<$ei\+\_\+event.\+h$>$}
+
+\doxysubsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{ei__event_8h_a132dde064150d861ad24e9d839cbe007}{ei\+\_\+eventtype\+\_\+t}} \mbox{\hyperlink{structei__event__t_aee18f11986ed603959de628558812c58}{type}}
+\begin{DoxyCompactList}\small\item\em The type of the event. \end{DoxyCompactList}\item 
+\mbox{\hyperlink{ei__event_8h_abcdd2ef0f39179463f17a06be9bdf949}{ei\+\_\+modifier\+\_\+mask\+\_\+t}} \mbox{\hyperlink{structei__event__t_a99ffbdf64fbe420f9e01725e8c50fa13}{modifier\+\_\+mask}}
+\begin{DoxyCompactList}\small\item\em which of the modifier keys where pressed at the time of the event. \end{DoxyCompactList}\item 
+\begin{tabbing}
+xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=xx\=\kill
+union \{\\
+\>char \mbox{\hyperlink{structei__event__t_a7583e5b768300c8f2d1543122149bde7}{text}}\\
+\>\>{\em Event parameter for \mbox{\hyperlink{ei__event_8h_a132dde064150d861ad24e9d839cbe007a4052c91c33e26ab1b1e3dda29ce3ce8d}{ei\_ev\_text\_input}} events. }\\
+\>SDL\_Keycode \mbox{\hyperlink{structei__event__t_a3871890d4f0849d55cf2c5f444af7e1d}{key\_code}}\\
+\>\>{\em Event parameters for \mbox{\hyperlink{ei__event_8h_a132dde064150d861ad24e9d839cbe007aa5fcf0b8e2fdda85acdde99bdd089cd3}{ei\_ev\_keydown}} and \mbox{\hyperlink{ei__event_8h_a132dde064150d861ad24e9d839cbe007af556498fd29604b3770b8fc2969cd3f1}{ei\_ev\_keyup}} event. }\\
+\>\mbox{\hyperlink{structei__mouse__event__t}{ei\_mouse\_event\_t}} \mbox{\hyperlink{structei__event__t_a7f0b0d0cf765a822aca7a435510d9d85}{mouse}}\\
+\>\>{\em Event parameters for mouse-\/related events (see \mbox{\hyperlink{structei__mouse__event__t}{ei\_mouse\_event\_t}}). }\\
+\>\mbox{\hyperlink{structei__app__event__t}{ei\_app\_event\_t}} \mbox{\hyperlink{structei__event__t_ab93b7dc04597613a3bd0195e74a9f7bb}{application}}\\
+\>\>{\em Event parameters for application-\/related events (see \mbox{\hyperlink{structei__app__event__t}{ei\_app\_event\_t}}). }\\
+\} \mbox{\hyperlink{structei__event__t_a4672a7bfde55275174a723359a0487ab}{param}}\\
+
+\end{tabbing}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Describes an event. 
+
+Definition at line 103 of file ei\+\_\+event.\+h.
+
+
+
+\doxysubsection{Field Documentation}
+\mbox{\Hypertarget{structei__event__t_ab93b7dc04597613a3bd0195e74a9f7bb}\label{structei__event__t_ab93b7dc04597613a3bd0195e74a9f7bb}} 
+\index{ei\_event\_t@{ei\_event\_t}!application@{application}}
+\index{application@{application}!ei\_event\_t@{ei\_event\_t}}
+\doxysubsubsection{\texorpdfstring{application}{application}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structei__app__event__t}{ei\+\_\+app\+\_\+event\+\_\+t}} ei\+\_\+event\+\_\+t\+::application}
+
+
+
+Event parameters for application-\/related events (see \mbox{\hyperlink{structei__app__event__t}{ei\+\_\+app\+\_\+event\+\_\+t}}). 
+
+
+
+Definition at line 110 of file ei\+\_\+event.\+h.
+
+\mbox{\Hypertarget{structei__event__t_a3871890d4f0849d55cf2c5f444af7e1d}\label{structei__event__t_a3871890d4f0849d55cf2c5f444af7e1d}} 
+\index{ei\_event\_t@{ei\_event\_t}!key\_code@{key\_code}}
+\index{key\_code@{key\_code}!ei\_event\_t@{ei\_event\_t}}
+\doxysubsubsection{\texorpdfstring{key\_code}{key\_code}}
+{\footnotesize\ttfamily SDL\+\_\+\+Keycode ei\+\_\+event\+\_\+t\+::key\+\_\+code}
+
+
+
+Event parameters for \mbox{\hyperlink{ei__event_8h_a132dde064150d861ad24e9d839cbe007aa5fcf0b8e2fdda85acdde99bdd089cd3}{ei\+\_\+ev\+\_\+keydown}} and \mbox{\hyperlink{ei__event_8h_a132dde064150d861ad24e9d839cbe007af556498fd29604b3770b8fc2969cd3f1}{ei\+\_\+ev\+\_\+keyup}} event. 
+
+
+
+Definition at line 108 of file ei\+\_\+event.\+h.
+
+\mbox{\Hypertarget{structei__event__t_a99ffbdf64fbe420f9e01725e8c50fa13}\label{structei__event__t_a99ffbdf64fbe420f9e01725e8c50fa13}} 
+\index{ei\_event\_t@{ei\_event\_t}!modifier\_mask@{modifier\_mask}}
+\index{modifier\_mask@{modifier\_mask}!ei\_event\_t@{ei\_event\_t}}
+\doxysubsubsection{\texorpdfstring{modifier\_mask}{modifier\_mask}}
+{\footnotesize\ttfamily \mbox{\hyperlink{ei__event_8h_abcdd2ef0f39179463f17a06be9bdf949}{ei\+\_\+modifier\+\_\+mask\+\_\+t}} ei\+\_\+event\+\_\+t\+::modifier\+\_\+mask}
+
+
+
+which of the modifier keys where pressed at the time of the event. 
+
+
+
+Definition at line 105 of file ei\+\_\+event.\+h.
+
+\mbox{\Hypertarget{structei__event__t_a7f0b0d0cf765a822aca7a435510d9d85}\label{structei__event__t_a7f0b0d0cf765a822aca7a435510d9d85}} 
+\index{ei\_event\_t@{ei\_event\_t}!mouse@{mouse}}
+\index{mouse@{mouse}!ei\_event\_t@{ei\_event\_t}}
+\doxysubsubsection{\texorpdfstring{mouse}{mouse}}
+{\footnotesize\ttfamily \mbox{\hyperlink{structei__mouse__event__t}{ei\+\_\+mouse\+\_\+event\+\_\+t}} ei\+\_\+event\+\_\+t\+::mouse}
+
+
+
+Event parameters for mouse-\/related events (see \mbox{\hyperlink{structei__mouse__event__t}{ei\+\_\+mouse\+\_\+event\+\_\+t}}). 
+
+
+
+Definition at line 109 of file ei\+\_\+event.\+h.
+
+\mbox{\Hypertarget{structei__event__t_a4672a7bfde55275174a723359a0487ab}\label{structei__event__t_a4672a7bfde55275174a723359a0487ab}} 
+\index{ei\_event\_t@{ei\_event\_t}!param@{param}}
+\index{param@{param}!ei\_event\_t@{ei\_event\_t}}
+\doxysubsubsection{\texorpdfstring{}{}}
+{\footnotesize\ttfamily union \{ ... \}  ei\+\_\+event\+\_\+t\+::param}
+
+\mbox{\Hypertarget{structei__event__t_a7583e5b768300c8f2d1543122149bde7}\label{structei__event__t_a7583e5b768300c8f2d1543122149bde7}} 
+\index{ei\_event\_t@{ei\_event\_t}!text@{text}}
+\index{text@{text}!ei\_event\_t@{ei\_event\_t}}
+\doxysubsubsection{\texorpdfstring{text}{text}}
+{\footnotesize\ttfamily char ei\+\_\+event\+\_\+t\+::text}
+
+
+
+Event parameter for \mbox{\hyperlink{ei__event_8h_a132dde064150d861ad24e9d839cbe007a4052c91c33e26ab1b1e3dda29ce3ce8d}{ei\+\_\+ev\+\_\+text\+\_\+input}} events. 
+
+
+
+Definition at line 107 of file ei\+\_\+event.\+h.
+
+\mbox{\Hypertarget{structei__event__t_aee18f11986ed603959de628558812c58}\label{structei__event__t_aee18f11986ed603959de628558812c58}} 
+\index{ei\_event\_t@{ei\_event\_t}!type@{type}}
+\index{type@{type}!ei\_event\_t@{ei\_event\_t}}
+\doxysubsubsection{\texorpdfstring{type}{type}}
+{\footnotesize\ttfamily \mbox{\hyperlink{ei__event_8h_a132dde064150d861ad24e9d839cbe007}{ei\+\_\+eventtype\+\_\+t}} ei\+\_\+event\+\_\+t\+::type}
+
+
+
+The type of the event. 
+
+
+
+Definition at line 104 of file ei\+\_\+event.\+h.
+
+
+
+The documentation for this struct was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{ei__event_8h}{ei\+\_\+event.\+h}}\end{DoxyCompactItemize}
