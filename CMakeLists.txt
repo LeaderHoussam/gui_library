@@ -67,12 +67,15 @@ link_directories(${PLATFORM_DIR})
 
 # target ei (libei)
 
-#set(LIB_EI_SOURCES
-#     ${SRC}/un_fichier_source.c
-#     ${SRC}/un_autre_fichier_source.c
-#)
-#
-#add_library(ei STATIC			${LIB_EI_SOURCES})
+set(LIB_EI_SOURCES
+     ${SRC}/ei_application.c
+	 ${SRC}/ei_widget_configure.c
+	 ${SRC}/ei_widget.c
+	 ${SRC}/ei_widgetclass.c
+	 ${SRC}/ei_placer.c
+)
+
+add_library(ei STATIC			${LIB_EI_SOURCES})
 
 # target minimal
 

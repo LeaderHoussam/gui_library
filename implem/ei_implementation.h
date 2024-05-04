@@ -82,4 +82,28 @@ typedef struct ei_impl_geom_param_t {
 } ei_impl_geom_param_t;
 
 
+typedef struct ei_impl_frame_t{
+    ei_impl_widget_t widget;
+    ei_color_t   color;
+    int  	border_width;
+    ei_relief_t  	relief;
+    ei_string_t  	text;
+    ei_font_t  	text_font;
+    ei_color_t 	text_color;
+    ei_anchor_t  	text_anchor;
+    ei_surface_t  	img;
+    ei_rect_ptr_t  	img_rect;
+    ei_anchor_t 	img_anchor;
+
+    // il faut ajouter ici l'attribut image,
+    // mais je ne sais pas encore comment le faire
+    // j'ai trouver en regardant dans ei_frame_configure
+
+}ei_impl_frame_t;
+
+
+// on va ajouter dans ce fichier, l'instanciation  de nos classes
+ei_widgetclass_t* init_frame_classe (void );
+extern ei_widgetclass_t* liste_des_classe;
+
 #endif

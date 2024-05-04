@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/entry.dir/tests/entry.c.o -o entry   -L/user/5/traorefv/Desktop/ig_houssam_victor_nelson/_x11  -Wl,-rpath,/user/5/traorefv/Desktop/ig_houssam_victor_nelson/_x11 -lei -leibase -lfreeimage -lSDL2 -lSDL2_ttf -lSDL2_gfx -lm 
