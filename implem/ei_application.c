@@ -14,8 +14,8 @@
 #include "ei_widgetclass.h"
 #include "ei_implementation.h"
 
-ei_surface_t root_window;
-ei_widget_t root_widget;
+ei_surface_t root_window = NULL;
+ei_widget_t root_widget = NULL;
 extern ei_widgetclass_t* liste_des_classe;
 void ei_app_create(ei_size_t main_window_size, bool fullscreen){
     hw_init();
@@ -54,7 +54,7 @@ void ei_app_run(void){
     // afficher, mais je ne la comprend pas bien encore,
     // on affihce donc notre seul frame root  d'abord pour voir
     (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, NULL);
-
+    hw_surface_update_rects(surface_principale, NULL);
     getchar();
 }
 

@@ -40,16 +40,23 @@ void drawfunc_frame(ei_widget_t		widget,
 
     hw_surface_lock(surface);
     //hw_surface_lock(pick_surface);
-    ei_point_t debut_surface[4] = {{0,0}, {0,widget->requested_size.width}, {widget->requested_size.width,widget->requested_size.height }, {widget->requested_size.height, 0} };
+    ei_point_t debut_surface[4] = {{0,0}, {widget->requested_size.width,0}, {widget->requested_size.width,widget->requested_size.height }, {0,widget->requested_size.height} };
     //ei_point_t debut_surface[4] = {{0,0}, {0,600}, {600,600 }, {600, 0} };
 
     // transformation du widget en frame
     ei_impl_frame_t* frame = (ei_impl_frame_t*) widget;
     ei_draw_polygon(surface,debut_surface, 4, frame->color, clipper);
+
+    ei_impl_widget_draw_children(widget, surface, pick_surface, clipper);
+
+    if (widget->next_sibling != NULL) {
+        widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
+    }
+
     hw_surface_unlock(surface);
     //hw_surface_unlock(pick_surface);
-    ei_linked_rect_t* clipp = (ei_linked_rect_t*) clipper;
-    hw_surface_update_rects(surface, clipp);
+   // ei_linked_rect_t* clipp = (ei_linked_rect_t*) clipper;
+
 
     printf("\nAH AH, fonction draw_frame appélee");
 
@@ -62,30 +69,32 @@ void setdefaultsfunc_frame(ei_widget_t widget) {
     widget = (ei_widget_t) widget;
     widget->wclass = ei_widgetclass_from_name("frame");
 
-    // ce bloc est à revoir
-    /*widget->pick_id = 0;
+    //ce bloc est à revoir
+    widget->pick_id = 0;
     widget->pick_color = NULL;
     widget->user_data = NULL;
-    widget->parent = NULL;
+    if (widget != root_widget) {
+        widget->parent = root_widget ;
+    }
     widget->destructor = NULL;
 
-    *//* Widget Hierachy Management *//*
+    //Widget Hierachy Management *//*
     widget->children_head = NULL;
     widget->children_tail = NULL;
     widget->next_sibling = NULL;
 
-    *//* Geometry Management *//*
+    // Geometry Management *//*
     // je dois revenir sur cette fonction pour la comprendre et l'initialiser sinon rien ne s'affiche à l'écran
     widget->geom_params = NULL;
-
-    widget->requested_size.width = 10;
-    widget->requested_size.height = 10;
+    if (widget->parent != NULL) {
+        widget->requested_size = widget->parent->requested_size;
+    }
 
     widget->screen_location.size = widget->requested_size;
     widget->screen_location.top_left.x = 0;
     widget->screen_location.top_left.y = 0;
 
-    widget->content_rect = &(widget->screen_location);*/
+    widget->content_rect = &(widget->screen_location);
 
     // les autres parametres non commun aux autres:
     // on fait d'abord un transcriptage avant de les utiliser
