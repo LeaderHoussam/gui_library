@@ -65,7 +65,7 @@ include_directories(${HEADER_DIRS})
 link_directories(${PLATFORM_DIR})
 
 
-# target ei (libei)
+#target ei (libei)
 
 set(LIB_EI_SOURCES
      ${SRC}/ei_application.c
