@@ -8,12 +8,13 @@
 #include "ei_implementation.h"
 #include "ei_draw.h"
 
-
-
+//extern ei_widgetclass_t* liste_des_classe =calloc(sizeof(ei_widgetclass_t), 1);
+ei_widgetclass_t* liste_des_classe = NULL;
 // fonction d'allocation mémoire pour une classe frame
 ei_widget_t allocfunc_frame() {
-    ei_widget_t espace_pour_frame = calloc(sizeof(ei_impl_frame_t),1);
-    return espace_pour_frame;
+    ei_impl_frame_t* espace_pour_frame = calloc(sizeof(ei_impl_frame_t),1);
+    ei_widget_t espace = (ei_widget_t) espace_pour_frame;
+    return espace;
 
 }
 // cette fonction va supprimer toute les mémoire allouer par des instance de la classe classe frame
@@ -35,14 +36,21 @@ void drawfunc_frame(ei_widget_t		widget,
                     ei_surface_t		pick_surface,
                     ei_rect_t*		clipper){
 // cette fonction est chargée de dessiner sur notre frame:
-// on y reviendre
+// on y reviendra
+
     hw_surface_lock(surface);
     //hw_surface_lock(pick_surface);
-    uint8_t* adresse_surface = hw_surface_get_buffer(surface);
-    site_t taille = (size_t) widget->
+    ei_point_t* debut_surface = (ei_point_t*) hw_surface_get_buffer(surface);
+    size_t taille = hw_surface_get_size(surface).height * hw_surface_get_size(surface).width;
+    // transformation du widget en frame
+    ei_impl_frame_t* frame = (ei_impl_frame_t*) widget;
+    ei_draw_polygon(surface,debut_surface, taille, frame->color, clipper);
     hw_surface_unlock(surface);
     //hw_surface_unlock(pick_surface);
-    hw_surface_update_rects(surface, clipper);
+    ei_linked_rect_t* clipp = (ei_linked_rect_t*) clipper;
+    hw_surface_update_rects(surface, clipp);
+
+    printf("\nAH AH, fonction draw_frame appélee");
 
 }
 
@@ -105,14 +113,16 @@ void geomnotifyfunc_frame(ei_widget_t widget) {
 ei_widgetclass_t* init_frame_classe () {
     ei_widgetclass_t* classe_frame = calloc(sizeof(ei_widgetclass_t), 1);
     strcpy(classe_frame->name, "frame");
-    classe_frame->allocfunc = allocfunc_frame;
-    classe_frame->drawfunc = drawfunc_frame;
+    classe_frame->allocfunc = &(allocfunc_frame);
+    classe_frame->drawfunc = &(drawfunc_frame);
     classe_frame->releasefunc = releasefunc_frame;
     classe_frame->setdefaultsfunc = setdefaultsfunc_frame;
     classe_frame->geomnotifyfunc = geomnotifyfunc_frame;
     classe_frame->next = NULL;
     return classe_frame;
 }
+
+
 
 // cette fonction enregistre une nouvelle class dans notre liste chaines de classe
 void			ei_widgetclass_register		(ei_widgetclass_t* widgetclass){

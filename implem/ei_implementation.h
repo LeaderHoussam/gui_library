@@ -103,7 +103,7 @@ typedef struct ei_impl_frame_t{
 
 
 // on va ajouter dans ce fichier, l'instanciation  de nos classes
-ei_widgetclass_t* init_frame_classe (void );
+ei_widgetclass_t* init_frame_classe(void );
 extern ei_widgetclass_t* liste_des_classe;
 
 #endif

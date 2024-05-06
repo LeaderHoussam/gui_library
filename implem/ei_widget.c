@@ -11,9 +11,10 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
                                             ei_user_param_t	user_data,
                                             ei_widget_destructor_t destructor){
 
-    if (parent == NULL) {
+    /*if (parent == NULL) {
         return NULL;
-    }
+    }*/
+
     // la classe du widget à creer; on suppose ici qu'elle existe
     ei_widgetclass_t* classe_du_widget = ei_widgetclass_from_name(class_name);
     // creation d'une instance de widget:
@@ -26,7 +27,11 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
     // ei_impl_widget_t
 
     new_widget->parent = parent;
-    parent->children_head = new_widget;
+
+    //à revoir pour gerer le cas ou il s'agit de la racine'
+    //parent->children_head = new_widget;
+
+
     // il faudra ici bien faire les liaisons entres les fils et fréres de widget
     // j'y reviendrai
     //new_widget->next_sibling =

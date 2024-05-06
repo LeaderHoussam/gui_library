@@ -26,12 +26,14 @@ void			ei_frame_configure		(ei_widget_t		widget,
 
 
     widget = (ei_widget_t) widget;
-    widget->requested_size = *requested_size;
+    if (requested_size != NULL) {
+        widget->requested_size = *requested_size;
+    }
 
     // on fait un transcriptage pour avoir accés aux autres champs
     ei_impl_frame_t* frame = (ei_impl_frame_t*) widget;
 
-    if ( !verifie_si_null(color) ){
+    if ( color != NULL){
         frame->color = *color;
     }
 
