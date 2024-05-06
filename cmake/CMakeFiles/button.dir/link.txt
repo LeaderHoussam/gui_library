@@ -1,1 +1,0 @@
-/usr/bin/cc CMakeFiles/button.dir/tests/button.c.o -o button   -L/user/5/traorefv/Desktop/ig_houssam_victor_nelson/_x11  -Wl,-rpath,/user/5/traorefv/Desktop/ig_houssam_victor_nelson/_x11 -lei -leibase -lfreeimage -lSDL2 -lSDL2_ttf -lSDL2_gfx -lm 

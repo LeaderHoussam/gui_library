@@ -1,1 +1,0 @@
-/usr/bin/cc CMakeFiles/ext_testclass.dir/tests/ext_testclass.c.o -o ext_testclass   -L/user/5/traorefv/Desktop/ig_houssam_victor_nelson/_x11  -Wl,-rpath,/user/5/traorefv/Desktop/ig_houssam_victor_nelson/_x11 -ltestclass -lei -leibase -lfreeimage -lSDL2 -lSDL2_ttf -lSDL2_gfx -lm 
