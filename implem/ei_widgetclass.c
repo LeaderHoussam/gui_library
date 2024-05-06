@@ -34,17 +34,18 @@ void releasefunc_frame(ei_widget_t  widget) {
 void drawfunc_frame(ei_widget_t		widget,
                     ei_surface_t		surface,
                     ei_surface_t		pick_surface,
-                    ei_rect_t*		clipper){
-// cette fonction est chargée de dessiner sur notre frame:
-// on y reviendra
+                    ei_rect_t*		clipper) {
+    // cette fonction est chargée de dessiner sur notre frame:
+    // on y reviendra
 
     hw_surface_lock(surface);
     //hw_surface_lock(pick_surface);
-    ei_point_t* debut_surface = (ei_point_t*) hw_surface_get_buffer(surface);
-    size_t taille = hw_surface_get_size(surface).height * hw_surface_get_size(surface).width;
+    ei_point_t debut_surface[4] = {{0,0}, {0,widget->requested_size.width}, {widget->requested_size.width,widget->requested_size.height }, {widget->requested_size.height, 0} };
+    //ei_point_t debut_surface[4] = {{0,0}, {0,600}, {600,600 }, {600, 0} };
+
     // transformation du widget en frame
     ei_impl_frame_t* frame = (ei_impl_frame_t*) widget;
-    ei_draw_polygon(surface,debut_surface, taille, frame->color, clipper);
+    ei_draw_polygon(surface,debut_surface, 4, frame->color, clipper);
     hw_surface_unlock(surface);
     //hw_surface_unlock(pick_surface);
     ei_linked_rect_t* clipp = (ei_linked_rect_t*) clipper;

@@ -6,6 +6,9 @@
 #include <stdlib.h>
 
 #include "ei_application.h"
+
+#include <ei_widget_configure.h>
+
 #include "hw_interface.h"
 #include "ei_draw.h"
 #include "ei_widgetclass.h"
@@ -30,8 +33,11 @@ void ei_app_create(ei_size_t main_window_size, bool fullscreen){
     //enregistrement des geometry:
 
     root_window =   hw_create_window(main_window_size, fullscreen);
+    //hw_surface_lock(root_window);
     root_widget = ei_widget_create("frame", NULL,NULL, NULL);
-
+    ei_size_t taille = hw_surface_get_size(root_window);
+    ei_frame_configure(root_widget, &taille, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+    //hw_surface_unlock(root_window);
 }
 
 ei_widget_t ei_app_root_widget(void) {
