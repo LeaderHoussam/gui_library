@@ -1,5 +1,6 @@
 //
 // Created by traorefv on 29/04/24.
+// modified by aharbilh on 07/05/24
 //
 
 #include <stdio.h>
@@ -13,6 +14,7 @@
 #include "ei_draw.h"
 #include "ei_widgetclass.h"
 #include "ei_implementation.h"
+#include "ei_geometrymanager.h"
 
 ei_surface_t root_window = NULL;
 ei_widget_t root_widget = NULL;
@@ -31,6 +33,8 @@ void ei_app_create(ei_size_t main_window_size, bool fullscreen){
     printf("j'ai reussi à ajouter la classe frame");
 
     //enregistrement des geometry:
+    ei_geometrymanager_t* placeur = init_placeur();
+    ei_geometrymanager_register (placeur);
 
     root_window =   hw_create_window(main_window_size, fullscreen);
     //hw_surface_lock(root_window);

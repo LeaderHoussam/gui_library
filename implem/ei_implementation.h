@@ -81,7 +81,6 @@ typedef struct ei_impl_geom_param_t {
 	ei_geometrymanager_t*		manager;	///< The geometry managers that manages this widget.
 } ei_impl_geom_param_t;
 
-
 typedef struct ei_impl_frame_t{
     ei_impl_widget_t widget;
     ei_color_t   color;
@@ -107,5 +106,7 @@ ei_widgetclass_t* init_frame_classe(void );
 extern ei_widgetclass_t* liste_des_classe;
 extern ei_surface_t root_window;
 extern ei_widget_t root_widget;
+
+ei_geometrymanager_t* init_placeur(void);
 
 #endif
