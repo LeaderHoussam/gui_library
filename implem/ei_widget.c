@@ -6,6 +6,9 @@
 #include "ei_implementation.h"
 #include "ei_widgetclass.h"
 
+
+// dans cette fonction il faudra revoir comment bien
+// chainer les widgets
 ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
                                             ei_widget_t		parent,
                                             ei_user_param_t	user_data,

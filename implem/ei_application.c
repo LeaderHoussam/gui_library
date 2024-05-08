@@ -32,9 +32,11 @@ void ei_app_create(ei_size_t main_window_size, bool fullscreen){
 
     printf("j'ai reussi à ajouter la classe frame");
 
-    //enregistrement des geometry:
+    // on initialise ici les gestionnaires de geometrie
     ei_geometrymanager_t* placeur = init_placeur();
     ei_geometrymanager_register (placeur);
+
+    //enregistrement des geometry:
 
     root_window =   hw_create_window(main_window_size, fullscreen);
     //hw_surface_lock(root_window);
@@ -57,7 +59,7 @@ void ei_app_run(void){
     // on doit normalement parcourir ici la hierarchie pour
     // afficher, mais je ne la comprend pas bien encore,
     // on affihce donc notre seul frame root  d'abord pour voir
-    (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, NULL);
+    (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, racine->content_rect);
     hw_surface_update_rects(surface_principale, NULL);
     getchar();
 }

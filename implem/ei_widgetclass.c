@@ -40,14 +40,24 @@ void drawfunc_frame(ei_widget_t		widget,
 
     hw_surface_lock(surface);
     //hw_surface_lock(pick_surface);
-    ei_point_t debut_surface[4] = {{0,0}, {widget->requested_size.width,0}, {widget->requested_size.width,widget->requested_size.height }, {0,widget->requested_size.height} };
+    ei_point_t pos_debut = widget->content_rect->top_left;
+    //if faut verifier ici que les coordonnées sont bien dans ceux du parent
+    // mais on le fait pas car notre geometrymanager runfunc s'en charge.
+    // après relecture du poly, j'ai finalement compris qu'il faut le faire ici et non
+    // dans le gestionnaire de geometry, car lui il n'est pas sensé modifier les dimensions
+    // si j'ai bien compris
+    ei_size_t dimension = widget->screen_location.size;
+    //ei_size_t dim_contenant = widget->content_rect->size;
+    //ei_point_t pos_1 = {m};
+    ei_point_t debut_surface[4] = {pos_debut, {pos_debut.x + dimension.width,pos_debut.y}, {pos_debut.x + dimension.width,pos_debut.y + dimension.height }, {pos_debut.x ,pos_debut.y + dimension.height} };
     //ei_point_t debut_surface[4] = {{0,0}, {0,600}, {600,600 }, {600, 0} };
 
     // transformation du widget en frame
     ei_impl_frame_t* frame = (ei_impl_frame_t*) widget;
     ei_draw_polygon(surface,debut_surface, 4, frame->color, clipper);
 
-    ei_impl_widget_draw_children(widget, surface, pick_surface, clipper);
+    // on doit dessiner les enfants dans le content_rect du widget
+    ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
 
     if (widget->next_sibling != NULL) {
         widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
@@ -55,7 +65,7 @@ void drawfunc_frame(ei_widget_t		widget,
 
     hw_surface_unlock(surface);
     //hw_surface_unlock(pick_surface);
-   // ei_linked_rect_t* clipp = (ei_linked_rect_t*) clipper;
+    // ei_linked_rect_t* clipp = (ei_linked_rect_t*) clipper;
 
 
     printf("\nAH AH, fonction draw_frame appélee");
@@ -79,6 +89,7 @@ void setdefaultsfunc_frame(ei_widget_t widget) {
     widget->destructor = NULL;
 
     //Widget Hierachy Management *//*
+    // il faut que je revois le chai voir le chaînage , mais à quel niveau?
     widget->children_head = NULL;
     widget->children_tail = NULL;
     widget->next_sibling = NULL;
@@ -87,13 +98,14 @@ void setdefaultsfunc_frame(ei_widget_t widget) {
     // je dois revenir sur cette fonction pour la comprendre et l'initialiser sinon rien ne s'affiche à l'écran
     widget->geom_params = NULL;
     if (widget->parent != NULL) {
-        widget->requested_size = widget->parent->requested_size;
+        // on initialise les dimentions à celles du parent (à 0)
+        widget->requested_size = (ei_size_t){0,0};
     }
 
-    widget->screen_location.size = widget->requested_size;
+    widget->screen_location.size = (ei_size_t){0,0};
+
     widget->screen_location.top_left.x = 0;
     widget->screen_location.top_left.y = 0;
-
     widget->content_rect = &(widget->screen_location);
 
     // les autres parametres non commun aux autres:
@@ -136,16 +148,16 @@ ei_widgetclass_t* init_frame_classe () {
 
 // cette fonction enregistre une nouvelle class dans notre liste chaines de classe
 void			ei_widgetclass_register		(ei_widgetclass_t* widgetclass){
-     ei_widgetclass_t* tete = liste_des_classe;
-     if (tete == NULL){
-         liste_des_classe = widgetclass;
-     }
-     else {
-         while (tete->next != NULL) {
-             tete = tete->next;
-         }
-         tete->next = widgetclass;
-     }
+    ei_widgetclass_t* tete = liste_des_classe;
+    if (tete == NULL){
+        liste_des_classe = widgetclass;
+    }
+    else {
+        while (tete->next != NULL) {
+            tete = tete->next;
+        }
+        tete->next = widgetclass;
+    }
 }
 
 // fonction permettant de retourner un pointeur vers une classe donnée

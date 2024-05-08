@@ -28,6 +28,9 @@ void			ei_frame_configure		(ei_widget_t		widget,
     widget = (ei_widget_t) widget;
     if (requested_size != NULL) {
         widget->requested_size = *requested_size;
+        if(widget == root_widget) {
+            widget->screen_location.size = *requested_size;
+        }
     }
 
     // on fait un transcriptage pour avoir accés aux autres champs
@@ -64,7 +67,4 @@ void			ei_frame_configure		(ei_widget_t		widget,
     if ( !verifie_si_null(img_anchor) ) {
         frame->img_anchor = *img_anchor;
     }
-
-
 }
-
