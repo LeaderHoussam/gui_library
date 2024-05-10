@@ -45,7 +45,11 @@ void		ei_place	(ei_widget_t		widget,
         }
     }
     else {
-        ei_impl_placeur_t* un_placeur = malloc(sizeof(ei_impl_placeur_t*));
+        ei_impl_placeur_t* un_placeur =  calloc(1,sizeof(ei_impl_placeur_t));
+        if(un_placeur == NULL) {
+            perror("erreur allocation");
+            exit(EXIT_FAILURE);
+        }
         // default params
         un_placeur->anchor = (anchor == NULL) ? ei_anc_northwest : *anchor;
         un_placeur->x = (x == NULL) ? 0 : *x;

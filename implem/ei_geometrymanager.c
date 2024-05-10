@@ -56,19 +56,19 @@ void placeur_runfunc(ei_widget_t widget) {
     //ei_rect_ptr_t* content_rect_parent = &(widget->parent->content_rect);
 
     // les paramètres de config  du widget (et sa localisation initiale)
-    ei_impl_placeur_t* geo_widget = (ei_impl_placeur_t*) widget->geom_params;
-    ei_point_t* pos_widget = &(widget->screen_location.top_left);
-    ei_size_t* dim_widget = &(widget->screen_location.size);
+    ei_impl_placeur_t *geo_widget = (ei_impl_placeur_t *) widget->geom_params;
+    ei_point_t *pos_widget = &(widget->screen_location.top_left);
+    ei_size_t *dim_widget = &(widget->screen_location.size);
 
     // il faut maintenant faire plein de mathématiques. AH AH AH!
 
 
     // gestion de la largeur et de la hauteur finales
-    int final_width = geo_widget->width + geo_widget->rel_width* dim_parent.width;
+    int final_width = geo_widget->width + geo_widget->rel_width * dim_parent.width;
     /*if (final_width < 0 || final_width > dim_parent.width) {
         final_width = dim_parent.width;
     }*/
-    int final_height = geo_widget->height + geo_widget->rel_width* dim_parent.height;
+    int final_height = geo_widget->height + geo_widget->rel_width * dim_parent.height;
     /*if (final_height < 0 || final_height > dim_parent.height) {
         final_height = dim_parent.width;
     }*/
@@ -76,10 +76,10 @@ void placeur_runfunc(ei_widget_t widget) {
     // maintenant on s'attaque au (x, y) final du widget;
     ei_anchor_t anchor = geo_widget->anchor;
     //ici je me demande si x, et y sont relatif au parent. oui!
-    int x_init = pos_parent.x + geo_widget->x + geo_widget->rel_x*dim_parent.width;
-    int y_init = pos_parent.y + geo_widget->y + geo_widget->rel_y*dim_parent.height;
-    int x_final=0;
-    int y_final=0;
+    int x_init = pos_parent.x + geo_widget->x + geo_widget->rel_x * dim_parent.width;
+    int y_init = pos_parent.y + geo_widget->y + geo_widget->rel_y * dim_parent.height;
+    int x_final = 0;
+    int y_final = 0;
 
     switch (anchor) {
         case ei_anc_northwest:
@@ -88,23 +88,23 @@ void placeur_runfunc(ei_widget_t widget) {
             //set_value(&x_final, &y_final, pos_parent, dim_parent);
             break;
         case ei_anc_center:
-            x_final = x_init - final_width/2;
-            y_final = y_init - final_height/2;
+            x_final = x_init - final_width / 2;
+            y_final = y_init - final_height / 2;
             break;
         case ei_anc_east:
             x_final = x_init - final_width;
-            y_final = y_init - final_height/2;
+            y_final = y_init - final_height / 2;
             break;
         case ei_anc_west:
             x_final = x_init;
-            y_final = y_init - final_height/2;
+            y_final = y_init - final_height / 2;
             break;
         case ei_anc_north:
-            x_final = x_init - final_width/2;
+            x_final = x_init - final_width / 2;
             y_final = y_init;
             break;
         case ei_anc_south:
-            x_final = x_init -  final_width/2;
+            x_final = x_init - final_width / 2;
             y_final = y_init - final_height;
             break;
         case ei_anc_northeast:
@@ -121,17 +121,21 @@ void placeur_runfunc(ei_widget_t widget) {
             break;
         case ei_anc_none:
             x_final = x_init;
-            y_final =  y_init;
+            y_final = y_init;
             break;
             // il faut gerer les cas ou la widget sortent du root_widget
         default:
             printf("On ne devrait jamais en arriver là. AH AH AH");
     }
-    ei_rect_t* nouveaux_affichage = &((ei_rect_t){(ei_point_t) {x_final, y_final},(ei_size_t) {final_width, final_height}});
+    ei_rect_t *nouveaux_affichage = &((ei_rect_t) {(ei_point_t) {x_final, y_final},
+                                                   (ei_size_t) {final_width, final_height}});
+// je ne sais pas s'il faut allouer ici ou pas
+    ei_rect_t *nouveaux_affichage = malloc(sizeof(ei_rect_t));
+    nouveaux_affichage = &((ei_rect_t) {(ei_point_t) {x_final, y_final}, (ei_size_t) {final_width, final_height}});
 
     /*il faudra commenter les deux lignes suivantes je crois pour bien comprendre encore*/
-    widget->screen_location.size = (ei_size_t) {final_width, final_height};
-    widget->screen_location.top_left = (ei_point_t) {x_final, y_final};
+    //widget->screen_location.size = (ei_size_t) {final_width, final_height};
+    //widget->screen_location.top_left = (ei_point_t) {x_final, y_final};
 
     ei_geometry_run_finalize(widget, nouveaux_affichage);
 }
@@ -148,6 +152,7 @@ ei_geometrymanager_t* init_placeur(void){
     placer_manager->runfunc = &(placeur_runfunc);
     placer_manager->releasefunc = &(placeur_releasefunc);
     placer_manager->next = NULL;
+    return placer_manager;
 }
 
 void			ei_geometrymanager_register	(ei_geometrymanager_t* geometrymanager){
