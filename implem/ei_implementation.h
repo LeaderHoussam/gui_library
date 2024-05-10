@@ -12,6 +12,7 @@
 #include "ei_types.h"
 #include "ei_widget.h"
 #include "ei_geometrymanager.h"
+#include "ei_event.h"
 
 /* par Nelson*/
 typedef struct {
@@ -161,5 +162,73 @@ extern ei_surface_t root_window;
 extern ei_widget_t root_widget;
 extern ei_geometrymanager_t* liste_des_geometrie;
 extern ei_linked_rect_t* surfaces_mises_a_jour;
+
+// event gestion
+
+/*
+ * une structure ei_event_binding qui stocke les informations de liaison,
+ * telles que le type d'événement, le widget ou l'étiquette, le rappel associé
+ * et les paramètres utilisateur.
+ */
+struct ei_event_binding {
+    ei_eventtype_t event_type;
+    ei_widget_t* widget;
+    ei_tag_t tag;
+    ei_callback_t callback;
+    void* user_param;
+    struct ei_event_binding* next;
+};
+
+static struct ei_event_binding* EVENT_BINDINGS = NULL;
+
+
+//Il faut corrigé callback
+/*
+ei_callback_t ei_event_get_callback(ei_eventtype_t event_type,
+                                    ei_widget_t* widget,
+                                    ei_user_param_t user_param) {
+    struct ei_event_binding* binding = EVENT_BINDINGS;
+    while (binding) {
+        if (binding->event_type == event_type &&
+            (binding->widget == widget || (binding->tag && strcmp(binding->tag,) == 0))) {
+            return binding->callback;
+        }
+        binding = binding->next;
+    }
+    return NULL;
+}
+*/
+/*
+ei_callback_t ei_event_get_callback(ei_eventtype_t event_type,
+                                    ei_widget_t widget,
+                                    ei_user_param_t user_param) {
+    // Obtenir le gestionnaire d'événements pour le type d'événement donné
+    ei_callback_t callback = NULL;
+    switch (event_type) {
+        case ei_ev_keydown:
+            callback = widget->wclass-> //handle_func.keydown;
+            break;
+        case ei_ev_keyup:
+            callback = widget->wclass->handle_func.keyup;
+            break;
+        case ei_ev_mouse_buttondown:
+            callback = widget->wclass->handle_func.mouse_down;
+            break;
+        case ei_ev_mouse_buttonup:
+            callback = widget->wclass->handle_func.mouse_up;
+            break;
+        case ei_ev_mouse_move:
+            callback = widget->wclass->handle_func.mouse_move;
+            break;
+        case ei_ev_mouse_wheel:
+            callback = widget->wclass->handle_func.mouse_wheel;
+            break;
+        default:
+            // Si aucun gestionnaire d'événements n'est défini pour ce type d'événement, utiliser la fonction de gestion par défaut
+            callback = ei_event_get_default_handle_func();
+            break;
+    }
+    return callback;
+}*/
 
 #endif

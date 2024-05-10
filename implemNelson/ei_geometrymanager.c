@@ -7,6 +7,7 @@
 #include "ei_geometrymanager.h"
 #include "ei_types.h"
 #include "ei_widget.h"
+#include "ei_application.h"
 #include "ei_implementation.h"
 
 ei_geometrymanager_t* liste_de_gestionnaires = NULL;
@@ -17,16 +18,23 @@ ei_geometrymanager_runfunc_t geomrunfunc(ei_widget_t widget){
     widget->screen_location.top_left.x;
 }
 
-void			ei_geometry_run_finalize(ei_widget_t widget, ei_rect_t* new_screen_location) {
-    if (new_screen_location->top_left.x != widget->content_rect->top_left.x ||
-        new_screen_location->top_left.y != widget->content_rect->top_left.y ||
-        new_screen_location->size.width != widget->content_rect->size.width ||
-        new_screen_location->size.height != widget->content_rect->size.height) {
+void ei_geometry_run_finalize(ei_widget_t widget, ei_rect_t* new_screen_location) {
+
+    // si y'a eu un changement de la géometry:
+    if (new_screen_location->top_left.x != widget->screen_location.top_left.x ||
+        new_screen_location->top_left.y != widget->screen_location.top_left.y ||
+        new_screen_location->size.width != widget->screen_location.size.width ||
+        new_screen_location->size.height != widget->screen_location.size.height) {
 
         //schedule a redraw of the screen on the old and new screen location
-        //widget->wclass->drawfunc(widget,root_window, NULL,NULL);
+        ei_app_invalidate_rect(&(widget->screen_location));
+        ei_app_invalidate_rect(new_screen_location);
+
         // notify the widget that it's geometry has changed
+        // on a modifier les dimensions et positions du widget
+        widget->screen_location = *new_screen_location;
         widget->wclass->geomnotifyfunc(widget);
+
         // recompute the geometry of the children
 
         /* je me demande, que se passe t'il si le fils n'a pas de gestionnaire de geometrie
@@ -34,6 +42,10 @@ void			ei_geometry_run_finalize(ei_widget_t widget, ei_rect_t* new_screen_locati
          */
         if (widget->children_head != NULL) {
             widget->children_head->geom_params->manager->runfunc(widget->children_head);
+        }
+
+        if (widget->next_sibling != NULL) {
+            widget->next_sibling->geom_params->manager->runfunc(widget->next_sibling);
         }
     }
 }
@@ -47,6 +59,7 @@ void set_value(int *x, int *y, ei_point_t pos_parent, ei_size_t dim_parent) {
         *y = pos_parent.x;
     }
 }
+
 void placeur_runfunc(ei_widget_t widget) {
     // les paramètre du parent:
     ei_widget_t parent = widget->parent;
@@ -130,8 +143,8 @@ void placeur_runfunc(ei_widget_t widget) {
     ei_rect_t *nouveaux_affichage = &((ei_rect_t) {(ei_point_t) {x_final, y_final},
                                                    (ei_size_t) {final_width, final_height}});
 // je ne sais pas s'il faut allouer ici ou pas
-    ei_rect_t *nouveaux_affichage = malloc(sizeof(ei_rect_t));
-    nouveaux_affichage = &((ei_rect_t) {(ei_point_t) {x_final, y_final}, (ei_size_t) {final_width, final_height}});
+   // ei_rect_t *nouveaux_affichage = malloc(sizeof(ei_rect_t));
+    //ouveaux_affichage = &((ei_rect_t) {(ei_point_t) {x_final, y_final}, (ei_size_t) {final_width, final_height}});
 
     /*il faudra commenter les deux lignes suivantes je crois pour bien comprendre encore*/
     //widget->screen_location.size = (ei_size_t) {final_width, final_height};

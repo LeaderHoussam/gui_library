@@ -262,7 +262,6 @@ ei_widgetclass_t* init_button_classe () {
     return classe_button;
 }
 
-
 // cette fonction enregistre une nouvelle class dans notre liste chaines de classe
 void			ei_widgetclass_register		(ei_widgetclass_t* widgetclass){
     ei_widgetclass_t* tete = liste_des_classe;
