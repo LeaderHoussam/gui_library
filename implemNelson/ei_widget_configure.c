@@ -97,11 +97,11 @@ void			ei_button_configure		(ei_widget_t		widget,
     }
 
     else{
-        if (  (((ei_impl_button_t*)(widget))->text) ){
+        if (  *text) {
 
         int width_text;
         int height_text;
-        hw_text_compute_size( (((ei_impl_button_t*)widget)->text),  (((ei_impl_button_t*)widget)->text_font), &width_text, &height_text);
+        hw_text_compute_size( *text,  (((ei_impl_button_t*)widget)->text_font), &width_text, &height_text);
         widget->requested_size = (ei_size_t){width_text,height_text};
 
 

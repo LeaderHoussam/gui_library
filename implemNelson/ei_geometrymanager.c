@@ -86,7 +86,7 @@ void placeur_runfunc(ei_widget_t widget) {
     /*if (final_width < 0 || final_width > dim_parent.width) {
         final_width = dim_parent.width;
     }*/
-    int final_height = geo_widget->height + geo_widget->rel_width* dim_parent.height;
+    int final_height = geo_widget->height + geo_widget->rel_height* dim_parent.height;
     /*if (final_height < 0 || final_height > dim_parent.height) {
         final_height = dim_parent.width;
     }*/

@@ -289,7 +289,9 @@ void drawfunc_button(ei_widget_t		widget,
         ei_point_t *where;
         where = place_text(widget, button->text, button->text_font, button->text_anchor);
 
-        ei_draw_text(surface, where, button->text, button->text_font, button->text_color, clipper);
+        ei_draw_text(surface, where, button->text, button->text_font, button->text_color, widget->content_rect);
+        //ei_draw_text(surface, where, button->text, button->text_font, button->text_color, clipper);
+
     }
 
     ei_impl_widget_draw_children(widget, surface, pick_surface, clipper);
