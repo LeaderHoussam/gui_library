@@ -96,6 +96,18 @@ void			ei_button_configure		(ei_widget_t		widget,
         widget->requested_size = *requested_size;
     }
 
+    else{
+        if (  (((ei_impl_button_t*)(widget))->text) ){
+
+        int width_text;
+        int height_text;
+        hw_text_compute_size( (((ei_impl_button_t*)widget)->text),  (((ei_impl_button_t*)widget)->text_font), &width_text, &height_text);
+        widget->requested_size = (ei_size_t){width_text,height_text};
+
+
+    }
+    }
+
     // on fait un transcriptage pour avoir accés aux autres champs
     ei_impl_button_t* button = (ei_impl_button_t*) widget;
 

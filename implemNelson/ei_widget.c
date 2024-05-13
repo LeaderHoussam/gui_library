@@ -66,6 +66,9 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
         new_widget->requested_size = (ei_size_t){0,0};
     }*/
 
+
+
+
     new_widget->requested_size = (ei_size_t){0,0};
     new_widget->screen_location.size = (ei_size_t){0,0};
 

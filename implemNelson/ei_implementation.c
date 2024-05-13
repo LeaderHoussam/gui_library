@@ -378,15 +378,54 @@ ei_color_t* map_pick_id_to_color(uint32_t pick_id){
 }
 
 
-ei_point_t  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_font_t	font, ei_anchor_t text_anchor){
-    ei_point_t place;
-    int* width_text;
-    int* height_text;
-    void hw_text_compute_size(text, font, width_text, height_text);
+ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_font_t	font, ei_anchor_t text_anchor){
+
+    ei_point_t* where = malloc(sizeof(ei_point_t));
+    int width_text;
+    int height_text;
+    hw_text_compute_size(text, font, &width_text, &height_text);
+
     if (text_anchor == ei_anc_none || text_anchor == ei_anc_center){
-        place.x = widget->screen_location.top_left.x + widget->screen_location.size.width/2 - *(width_text)/2;
-        place.y = widget->screen_location.top_left.y + widget->screen_location.size.height/2 - *(height_text)/2;
+        where->x = widget->screen_location.top_left.x + widget->screen_location.size.width/2 - width_text/2;
+        where->y = widget->screen_location.top_left.y + widget->screen_location.size.height/2 - height_text/2;
     }
-    return place;
+    else if (text_anchor == ei_anc_south){
+        where->x = widget->screen_location.top_left.x + widget->screen_location.size.width/2 - width_text/2;
+        where->y = widget->screen_location.top_left.y + widget->screen_location.size.height - height_text;
+    }
+    else if (text_anchor == ei_anc_north){
+        where->x = widget->screen_location.top_left.x + widget->screen_location.size.width/2 - width_text/2;
+        where->y = widget->screen_location.top_left.y ;
+    }
+    else if (text_anchor == ei_anc_east){
+        where->x = widget->screen_location.top_left.x + widget->screen_location.size.width - width_text;
+        where->y = widget->screen_location.top_left.y + widget->screen_location.size.height/2 - height_text/2;
+    }
+    else if (text_anchor == ei_anc_west){
+        where->x = widget->screen_location.top_left.x;
+        where->y = widget->screen_location.top_left.y + widget->screen_location.size.height/2 - height_text/2;
+    }
+    else if (text_anchor == ei_anc_southwest){
+        where->x = widget->screen_location.top_left.x;
+        where->y = widget->screen_location.top_left.y + widget->screen_location.size.height - height_text;
+    }
+    else if (text_anchor == ei_anc_southeast){
+        where->x = widget->screen_location.top_left.x + widget->screen_location.size.width - width_text;
+        where->y = widget->screen_location.top_left.y + widget->screen_location.size.height - height_text;
+    }
+    else if (text_anchor == ei_anc_northeast){
+        where->x = widget->screen_location.top_left.x + widget->screen_location.size.width - width_text;
+        where->y = widget->screen_location.top_left.y;
+    }
+    else if (text_anchor == ei_anc_northwest){
+        where->x = widget->screen_location.top_left.x;
+        where->y = widget->screen_location.top_left.y;
+    }
+
+
+    return where;
 
 }
+
+//void state_button(ei_widget_t widget, ei_relief_t relief ) {
+

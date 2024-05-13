@@ -39,9 +39,11 @@ void ei_geometry_run_finalize(ei_widget_t widget, ei_rect_t* new_screen_location
             widget->children_head->geom_params->manager->runfunc(widget->children_head);
         }
 
+        /*
         if (widget->next_sibling != NULL) {
             widget->next_sibling->geom_params->manager->runfunc(widget->next_sibling);
         }
+        */
 
 
     }
@@ -66,8 +68,8 @@ void set_value(int *x, int *y, ei_point_t pos_parent, ei_size_t dim_parent) {
 void placeur_runfunc(ei_widget_t widget) {
     // les paramètre du parent:
     ei_widget_t parent = widget->parent;
-    ei_point_t pos_parent = parent->screen_location.top_left;
-    ei_size_t dim_parent = parent->screen_location.size;
+    ei_point_t pos_parent = parent->content_rect->top_left;
+    ei_size_t dim_parent = parent->content_rect->size;
     //ei_rect_t* content_rect_parent = parent->content_rect;
     //ei_rect_ptr_t* content_rect_parent = &(widget->parent->content_rect);
 
@@ -103,12 +105,45 @@ void placeur_runfunc(ei_widget_t widget) {
             y_final = y_init;
             //set_value(&x_final, &y_final, pos_parent, dim_parent);
             break;
+        case ei_anc_center:
+            x_final = x_init - final_width/2;
+            y_final = y_init - final_height/2;
+            break;
+        case ei_anc_east:
+            x_final = x_init - final_width;
+            y_final = y_init - final_height/2;
+            break;
+        case ei_anc_west:
+            x_final = x_init;
+            y_final = y_init - final_height/2;
+            break;
+        case ei_anc_north:
+            x_final = x_init - final_width/2;
+            y_final = y_init;
+            break;
+        case ei_anc_south:
+            x_final = x_init -  final_width/2;
+            y_final = y_init - final_height;
+            break;
+        case ei_anc_northeast:
+            x_final = x_init - final_width;
+            y_final = y_init;
+            break;
+        case ei_anc_southeast:
+            x_final = x_init - final_width;
+            y_final = y_init - final_height;
+            break;
+        case ei_anc_southwest:
+            x_final = x_init;
+            y_final = y_init - final_height;
+            break;
+
         case ei_anc_none:
             x_final = x_init;
             y_final =  y_init;
 
         default:
-        printf("On ne devrait jamais en arriver là. AH AH AH");
+            printf("On ne devrait jamais en arriver là. AH AH AH");
     }
     // je ne sais pas s'il faut allouer ici ou pas
     ei_rect_t* nouveaux_affichage = malloc(sizeof(ei_rect_t));

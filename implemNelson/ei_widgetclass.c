@@ -110,7 +110,12 @@ void drawfunc_frame(ei_widget_t		widget,
 
     //const ei_point_t*	where = &(widget->screen_location.top_left);
     //ei_draw_text(surface, where, button->text, button->text_font, button->text_color,clipper);
+    if (frame->text) {
+        ei_point_t *where;
+        where = place_text(widget, frame->text, frame->text_font, frame->text_anchor);
 
+        ei_draw_text(surface, where, frame->text, frame->text_font, frame->text_color, clipper);
+    }
 
     ei_impl_widget_draw_children(widget, surface, pick_surface, clipper);
 
@@ -256,6 +261,7 @@ void drawfunc_button(ei_widget_t		widget,
         ei_draw_polygon(surface, debut_surface_up, taille_up, couleur_fonce, clipper);
         ei_draw_polygon(surface, debut_surface_down, taille_down, couleur_clair, clipper);
         ei_draw_polygon(surface,debut_surface, taille, couleur, clipper);
+
     }
     else if (rel == ei_relief_raised)
     {
@@ -276,60 +282,15 @@ void drawfunc_button(ei_widget_t		widget,
     //ei_font_t font = hw_text_font_create( ei_default_font_filename, ei_style_normal, size.height/2);
 
 
-    ei_surface_t surf = hw_text_create_surface(button->text, button->text_font, button->text_color);
-    ei_size_t size_surf = hw_surface_get_size 	( surf);
+    //ei_surface_t surf = hw_text_create_surface(button->text, button->text_font, button->text_color);
+    //ei_size_t size_surf = hw_surface_get_size 	( surf);
 
-/*
-    ei_point_t place;
-    place =  place_text ( widget, button->text, button->text_font, button->text_anchor);
+    if (button->text) {
+        ei_point_t *where;
+        where = place_text(widget, button->text, button->text_font, button->text_anchor);
 
-    //const ei_point_t*	where = &(widget->screen_location.top_left);
-    const ei_point_t*	where = &(place);
-
-    //const ei_point_t* where;
-    //where->x = widget->screen_location.top_left.x + size.width/2 ;
-    //where->y = widget->screen_location.top_left.y + size.height/2 ;
-
-    //ei_default_font  = hw_text_font_create	(ei_default_font_filename,ei_style_normal, ei_font_default_size);
-
-    ei_draw_text(surface, where, button->text, button->text_font, button->text_color,clipper);
-
-    //ei_draw_text(surface, where, button->text, font, button->text_color,clipper);
-    //hw_text_font_free( font);
-
-
-    //ei_font_t font = hw_text_font_create( ei_default_font_filename, ei_style_normal, 5*size.height/7);
-
-    //int taille_font = size.width/30;
-    */
-
-/*
-    int taille_font;
-    if (size_bg.width < size_bg.height){taille_font = size_bg.width/30;}
-
-    taille_font = (size_bg.width + size_bg.height)/30;
-
-
-
-    ei_font_t font = hw_text_font_create( ei_default_font_filename, ei_style_normal, taille_font);
-
-
-    ei_surface_t surf = hw_text_create_surface(button->text, font, button->text_color);
-    ei_size_t size_surf = hw_surface_get_size 	( surf);
-
-    ei_point_t place;
-    //place.x = widget->screen_location.top_left.x + 3*rayon_cercle;
-    //place.y = widget->screen_location.top_left.y - espace + espace/7;
-    place.x = widget->screen_location.top_left.x + size.width/2 - size_surf.width/2 ;
-    place.y = widget->screen_location.top_left.y + size.height/2 - size_surf.height/4;
-
-    const ei_point_t*	where = &(place);
-
-    ei_draw_text(surface, where, button->text, font, button->text_color, clipper);
-
-    hw_text_font_free(font);
-
-*/
+        ei_draw_text(surface, where, button->text, button->text_font, button->text_color, clipper);
+    }
 
     ei_impl_widget_draw_children(widget, surface, pick_surface, clipper);
 
@@ -372,6 +333,8 @@ void setdefaultsfunc_button(ei_widget_t widget) {
     le_button->img = NULL;
     le_button->img_rect = NULL;
     le_button->img_anchor = ei_anc_center;
+
+
 
 
 }
@@ -427,6 +390,9 @@ void drawfunc_toplevel(ei_widget_t		widget,
     rectangle_bg.top_left.y -= 40 ;// ((ei_impl_toplevel_t*) widget)->border_width; */
     //ei_rect_t rectangle = widget->screen_location;
 
+    // transformation du widget en toplevel
+    ei_impl_toplevel_t* toplevel = (ei_impl_toplevel_t*) widget;
+
     int border_width = ((ei_impl_toplevel_t*) widget)->border_width;
     int espace = 20;
     rectangle_bg.size.width += 2* border_width;
@@ -436,9 +402,6 @@ void drawfunc_toplevel(ei_widget_t		widget,
     pos_debut.x += border_width;
     pos_debut.y += espace;
 
-
-    // transformation du widget en button
-    ei_impl_toplevel_t* toplevel = (ei_impl_toplevel_t*) widget;
 
     ei_size_t dimension = widget->screen_location.size;
     //ei_size_t dim_contenant = widget->content_rect->size;
