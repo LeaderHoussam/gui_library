@@ -67,8 +67,9 @@ void			ei_frame_configure		(ei_widget_t		widget,
     if ( !verifie_si_null(img_anchor) ) {
         frame->img_anchor = *img_anchor;
     }
-}
 
+
+}
 
 // bouton configure
 
@@ -139,5 +140,45 @@ void			ei_button_configure		(ei_widget_t		widget,
     if ( !verifie_si_null(user_param) ) {
         button->user_param = *user_param;
     }
-    //un problème user_param
+     //un problème user_param
+
 }
+
+// configuratin d'un widget
+void			ei_toplevel_configure		(ei_widget_t		widget,
+                                              ei_size_t*		requested_size,
+                                              const ei_color_t*	color,
+                                              int*			border_width,
+                                              ei_string_t*		title,
+                                              bool*			closable,
+                                              ei_axis_set_t*		resizable,
+                                              ei_size_ptr_t*		min_size) {
+
+    if (requested_size != NULL) {
+        widget->requested_size = *requested_size;
+    }
+
+    ei_impl_toplevel_t* toplevel = (ei_impl_toplevel_t*) widget;
+
+    if(color != NULL) {
+        toplevel->color = *color;
+    }
+    if (!verifie_si_null(border_width)) {
+        toplevel->border_width = *border_width;
+    }
+    if (!verifie_si_null(title)) {
+        toplevel->title = *title;
+    }
+    if (!verifie_si_null(closable)) {
+        toplevel->closable = *closable;
+    }
+    if (!verifie_si_null(min_size)) {
+        toplevel->min_size = *min_size;
+    }
+    if (!verifie_si_null(resizable)) {
+        toplevel->resizable = *resizable;
+    }
+
+}
+
+
