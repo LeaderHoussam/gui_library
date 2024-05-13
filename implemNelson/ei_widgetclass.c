@@ -47,12 +47,7 @@ void drawfunc_frame(ei_widget_t		widget,
     // on y reviendra
 
     hw_surface_lock(surface);
-
-
-
-
-
-    //int32_t rayon = ((ei_impl_button_t*)widget)->corner_radius;
+    hw_surface_unlock(pick_surface);
 
     ei_point_t top_left_bg = widget->screen_location.top_left;
     ei_size_t size_bg = widget->screen_location.size;
@@ -67,14 +62,13 @@ void drawfunc_frame(ei_widget_t		widget,
     int bord = ((ei_impl_frame_t*)widget)->border_width;
     ei_point_t top_left = {top_left_bg.x + bord, top_left_bg.y + bord};
     ei_size_t size = {size_bg.width - 2*bord, size_bg.height - 2*bord};
-    ei_rect_t rectangle = {top_left, size};
 
-    //int32_t h = size_bg.height/2;
 
-    // transformation du widget en button
-    ei_impl_button_t* button = (ei_impl_button_t*) widget;
 
-    ei_color_t couleur = button->color;
+    // transformation du widget en frame
+    ei_impl_frame_t* frame = (ei_impl_frame_t*) widget;
+
+    ei_color_t couleur = frame->color;
     ei_color_t couleur_fonce = {couleur.red*0.7, couleur.green*0.7, couleur.blue*0.7, couleur.alpha};
     ei_color_t couleur_clair = {couleur.red*1.3, couleur.green*1.3, couleur.blue*1.3, couleur.alpha};
 
@@ -110,6 +104,8 @@ void drawfunc_frame(ei_widget_t		widget,
     {
         ei_draw_polygon(surface,debut_surface_bg, taille, couleur, clipper);
     }
+    ei_draw_polygon(pick_surface,debut_surface_bg, taille, *widget->pick_color, clipper);
+
 
 
     //const ei_point_t*	where = &(widget->screen_location.top_left);
@@ -126,7 +122,7 @@ void drawfunc_frame(ei_widget_t		widget,
     //ei_surface_t surf	(ei_const_string_t	text, const ei_font_t	font, ei_color_t		color);
 
     hw_surface_unlock(surface);
-    //hw_surface_unlock(pick_surface);
+    hw_surface_unlock(pick_surface);
     // ei_linked_rect_t* clipp = (ei_linked_rect_t*) clipper;
 
 
@@ -210,6 +206,7 @@ void drawfunc_button(ei_widget_t		widget,
     // on y reviendra
 
     hw_surface_lock(surface);
+    hw_surface_lock(pick_surface);
 
 
     int32_t rayon = ((ei_impl_button_t*)widget)->corner_radius;
@@ -253,6 +250,7 @@ void drawfunc_button(ei_widget_t		widget,
 
 
     ei_relief_t rel = ((ei_impl_button_t*)widget)->relief;
+
     if (rel == ei_relief_sunken)
     {
         ei_draw_polygon(surface, debut_surface_up, taille_up, couleur_fonce, clipper);
@@ -271,6 +269,9 @@ void drawfunc_button(ei_widget_t		widget,
         ei_draw_polygon(surface,debut_surface_bg, taille_bg, couleur, clipper);
     }
 
+    ei_draw_polygon(pick_surface,debut_surface_bg, taille_bg, *widget->pick_color, clipper);
+
+
 
     //ei_font_t font = hw_text_font_create( ei_default_font_filename, ei_style_normal, size.height/2);
 
@@ -278,10 +279,9 @@ void drawfunc_button(ei_widget_t		widget,
     ei_surface_t surf = hw_text_create_surface(button->text, button->text_font, button->text_color);
     ei_size_t size_surf = hw_surface_get_size 	( surf);
 
-
+/*
     ei_point_t place;
-    place.x = widget->screen_location.top_left.x + size.width/2 - size_surf.width/2 ;
-    place.y = widget->screen_location.top_left.y + size.height/2 - size_surf.height/4;
+    place =  place_text ( widget, button->text, button->text_font, button->text_anchor);
 
     //const ei_point_t*	where = &(widget->screen_location.top_left);
     const ei_point_t*	where = &(place);
@@ -293,23 +293,43 @@ void drawfunc_button(ei_widget_t		widget,
     //ei_default_font  = hw_text_font_create	(ei_default_font_filename,ei_style_normal, ei_font_default_size);
 
     ei_draw_text(surface, where, button->text, button->text_font, button->text_color,clipper);
+
     //ei_draw_text(surface, where, button->text, font, button->text_color,clipper);
     //hw_text_font_free( font);
 
-    /*
-    ei_font_t font = hw_text_font_create( ei_default_font_filename, ei_style_normal, 5*espace/7);
+
+    //ei_font_t font = hw_text_font_create( ei_default_font_filename, ei_style_normal, 5*size.height/7);
+
+    //int taille_font = size.width/30;
+    */
+
+/*
+    int taille_font;
+    if (size_bg.width < size_bg.height){taille_font = size_bg.width/30;}
+
+    taille_font = (size_bg.width + size_bg.height)/30;
+
+
+
+    ei_font_t font = hw_text_font_create( ei_default_font_filename, ei_style_normal, taille_font);
+
+
+    ei_surface_t surf = hw_text_create_surface(button->text, font, button->text_color);
+    ei_size_t size_surf = hw_surface_get_size 	( surf);
 
     ei_point_t place;
-    place.x = widget->screen_location.top_left.x + 3*rayon_cercle;
-    place.y = widget->screen_location.top_left.y - espace + espace/7;
+    //place.x = widget->screen_location.top_left.x + 3*rayon_cercle;
+    //place.y = widget->screen_location.top_left.y - espace + espace/7;
+    place.x = widget->screen_location.top_left.x + size.width/2 - size_surf.width/2 ;
+    place.y = widget->screen_location.top_left.y + size.height/2 - size_surf.height/4;
 
     const ei_point_t*	where = &(place);
 
-    ei_draw_text(surface, where, toplevel->title, font, ei_font_default_color,clipper);
+    ei_draw_text(surface, where, button->text, font, button->text_color, clipper);
 
     hw_text_font_free(font);
-     */
 
+*/
 
     ei_impl_widget_draw_children(widget, surface, pick_surface, clipper);
 
@@ -321,7 +341,7 @@ void drawfunc_button(ei_widget_t		widget,
     //ei_surface_t surf	(ei_const_string_t	text, const ei_font_t	font, ei_color_t		color);
 
     hw_surface_unlock(surface);
-    //hw_surface_unlock(pick_surface);
+    hw_surface_unlock(pick_surface);
     // ei_linked_rect_t* clipp = (ei_linked_rect_t*) clipper;
 
 
@@ -414,7 +434,7 @@ void drawfunc_toplevel(ei_widget_t		widget,
 
     ei_point_t pos_debut = widget->content_rect->top_left;
     pos_debut.x += border_width;
-    pos_debut.y += 20;
+    pos_debut.y += espace;
 
 
     // transformation du widget en button
@@ -442,6 +462,7 @@ void drawfunc_toplevel(ei_widget_t		widget,
     int32_t	taille = rounded_top_level(rayon, rectangle_bg)->taille;
     ei_draw_polygon(surface,debut_surface, taille, (ei_color_t){238,130,238,255}, clipper);
     ei_draw_polygon(pick_surface,debut_surface, taille, *widget->pick_color, clipper);
+
 
     // on va dessiner le rectangle interieur maintenant:
     ei_draw_polygon(surface,debut_surf,6,couleur,clipper);
@@ -497,6 +518,7 @@ void drawfunc_toplevel(ei_widget_t		widget,
 
     //ei_draw_polygon(surface,carre_resize, 4, (ei_color_t){238,0,0,255}, clipper);
     ei_draw_polygon(surface,carre_resize, 4, (ei_color_t){238,130,238,255}, clipper);
+    ei_draw_polygon(pick_surface,carre_resize, 4, *widget->pick_color, clipper);
 
 
 
