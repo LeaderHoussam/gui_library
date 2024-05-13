@@ -59,23 +59,24 @@ void	ei_draw_text	(ei_surface_t		surface,
             //int pt_x = ((int) pointeur_surface- (int) val_origin) % (size_surface.width*4);
             //int valeur_alpha = (*pointeur_surf>>24) & 0xFF;
             //uint8_t tab[4] = {couleur->blue, couleur->green, couleur->red, couleur->alpha};
-           if(x_i+j >= pos_deb.x && x_i+j <= pos_deb.x + dim_clip.width && y_i+i >= pos_deb.y && y_i+i <= pos_deb.y + dim_clip.height) {
-               r_s = pointeur_surf[ir];
-               g_s = pointeur_surf[ig];
-               b_s = pointeur_surf[ib];
-               a_s = pointeur_surf[ia];
 
-               pointeur_surface[ir] = (pointeur_surface[ir]*(255 - a_s) + r_s*a_s)/255;
-               pointeur_surface[ig] = (pointeur_surface[ig]*(255 - a_s) + g_s*a_s)/255;
-               pointeur_surface[ib] = (pointeur_surface[ib]*(255 - a_s) + b_s*a_s)/255;
-               //pointeur_surface[ia] = (pointeur_surface[ia]*(255 - a_s) + r_s*a_s)/255;
-           }
-               pointeur_surface += 4;
-               pointeur_surf += 4;
-               //free(couleur);
-           }
-            //pointeur_surf++;
-            //pointeur_surface++;
+            if(x_i+i >= pos_deb.x && x_i+i <= pos_deb.x + dim_clip.width && y_i+j >= pos_deb.y && y_i+j <= pos_deb.y + dim_clip.height) {
+                r_s = pointeur_surf[ir];
+                g_s = pointeur_surf[ig];
+                b_s = pointeur_surf[ib];
+                a_s = pointeur_surf[ia];
+
+                pointeur_surface[ir] = (pointeur_surface[ir] * (255 - a_s) + r_s * a_s) / 255;
+                pointeur_surface[ig] = (pointeur_surface[ig] * (255 - a_s) + g_s * a_s) / 255;
+                pointeur_surface[ib] = (pointeur_surface[ib] * (255 - a_s) + b_s * a_s) / 255;
+                //pointeur_surface[ia] = (pointeur_surface[ia]*(255 - a_s) + r_s*a_s)/255;
+            }
+            pointeur_surface += 4;
+            pointeur_surf += 4;
+            //free(couleur);
+        }
+        //pointeur_surf++;
+        //pointeur_surface++;
 
         pointeur_surface = pointeur_surface + 4*(width_surface - width_surf);
     }

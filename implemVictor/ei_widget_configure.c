@@ -96,6 +96,18 @@ void			ei_button_configure		(ei_widget_t		widget,
         widget->requested_size = *requested_size;
     }
 
+    else{
+        if (  *text) {
+
+        int width_text;
+        int height_text;
+        hw_text_compute_size( *text,  (((ei_impl_button_t*)widget)->text_font), &width_text, &height_text);
+        widget->requested_size = (ei_size_t){width_text,height_text};
+
+
+    }
+    }
+
     // on fait un transcriptage pour avoir accés aux autres champs
     ei_impl_button_t* button = (ei_impl_button_t*) widget;
 
@@ -142,19 +154,17 @@ void			ei_button_configure		(ei_widget_t		widget,
     }
      //un problème user_param
 
-
-
 }
 
 // configuratin d'un widget
 void			ei_toplevel_configure		(ei_widget_t		widget,
-                             ei_size_t*		requested_size,
-                             const ei_color_t*	color,
-                             int*			border_width,
-                             ei_string_t*		title,
-                             bool*			closable,
-                             ei_axis_set_t*		resizable,
-                              ei_size_ptr_t*		min_size) {
+                                              ei_size_t*		requested_size,
+                                              const ei_color_t*	color,
+                                              int*			border_width,
+                                              ei_string_t*		title,
+                                              bool*			closable,
+                                              ei_axis_set_t*		resizable,
+                                              ei_size_ptr_t*		min_size) {
 
     if (requested_size != NULL) {
         widget->requested_size = *requested_size;
@@ -182,4 +192,5 @@ void			ei_toplevel_configure		(ei_widget_t		widget,
     }
 
 }
+
 

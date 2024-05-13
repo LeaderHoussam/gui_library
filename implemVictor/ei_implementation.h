@@ -32,7 +32,8 @@ ei_arc_t* arc(int32_t rayon, ei_point_t centre, double angle_debut, double angle
 ei_arc_t* rounded_frame(int32_t rayon, ei_rect_t rectangle);
 ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle, int32_t h);
 ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle);
-
+ei_arc_bg_t* triangle_frame_bg(ei_rect_t rectangle);
+ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_font_t	font, ei_anchor_t text_anchor);
 
 
 /* fin par Nelson*/
@@ -110,10 +111,10 @@ typedef struct ei_impl_placeur_t {
 	int y;
 	int width;
 	int height;
-	int rel_x;
-	int rel_y;
-	int rel_width;
-	int rel_height;
+	float rel_x;
+	float rel_y;
+	float rel_width;
+	float rel_height;
 }ei_impl_placeur_t;
 
 typedef struct ei_impl_frame_t{

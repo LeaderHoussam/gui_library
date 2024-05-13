@@ -206,4 +206,3 @@ int max(int a, int b) {
  * je mets à jour les coordonnée du clipper final.
  */
 //ei_rect_t* clipper_mise_à_jour(ei_linked_rect_t*) {}
-
