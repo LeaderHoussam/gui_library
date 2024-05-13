@@ -2,6 +2,7 @@
 // Created by traorefv on 30/04/24.
 //
 #include "ei_placer.h"
+
 #include "ei_implementation.h"
 
 void		ei_place	(ei_widget_t		widget,
@@ -29,19 +30,19 @@ void		ei_place	(ei_widget_t		widget,
             un_placeur->width = *width;
         }
         if(height != NULL) {
-            un_placeur->height = *height;
+            un_placeur->anchor = *height;
         }
         if(rel_x != NULL) {
-            un_placeur->rel_x = *rel_x;
+            un_placeur->anchor = *rel_x;
         }
         if(rel_y != NULL) {
-            un_placeur->rel_y = *rel_y;
+            un_placeur->anchor = *rel_y;
         }
         if(rel_width != NULL) {
-            un_placeur->rel_width = *rel_width;
+            un_placeur->anchor = *rel_width;
         }
         if(rel_height!= NULL) {
-            un_placeur->rel_height = *rel_height;
+            un_placeur->anchor = *rel_height;
         }
     }
     else {
@@ -50,7 +51,6 @@ void		ei_place	(ei_widget_t		widget,
             perror("erreur allocation");
             exit(EXIT_FAILURE);
         }
-        // default params
         un_placeur->anchor = (anchor == NULL) ? ei_anc_northwest : *anchor;
         un_placeur->x = (x == NULL) ? 0 : *x;
         un_placeur->y = (y == NULL) ? 0 : *y;
@@ -63,6 +63,7 @@ void		ei_place	(ei_widget_t		widget,
 
         widget->geom_params = (ei_impl_geom_param_t*) un_placeur;
         widget->geom_params->manager= ei_geometrymanager_from_name("placeur");
+
     }
     widget->geom_params->manager->runfunc(widget);
 }

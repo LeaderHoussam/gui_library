@@ -6,9 +6,9 @@
 #include "ei_application.h"
 
 void		ei_impl_widget_draw_children	(ei_widget_t		widget,
-                                             ei_surface_t		surface,
-                                             ei_surface_t		pick_surface,
-                                             ei_rect_t*		clipper) {
+                         ei_surface_t		surface,
+                         ei_surface_t		pick_surface,
+                         ei_rect_t*		clipper) {
     if (widget->children_head != NULL) {
         widget->children_head->wclass->drawfunc(widget->children_head, surface, pick_surface, clipper);
     }
@@ -28,8 +28,11 @@ ei_arc_t* arc(int32_t rayon, ei_point_t centre, double angle_debut, double angle
 
     ei_point_t point;
 
+    //angle_debut = angle_debut - delta/200;
+
     while (angle_debut <= angle_fin)
     {
+
         taille++;
 
         points = realloc(points, taille * sizeof(ei_point_t));
@@ -234,3 +237,76 @@ ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle, int32_t h)
     return arcc;
 
 }
+
+
+ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle)
+{
+    int	width = rectangle.size.width;
+    int	height = rectangle.size.height;
+    int x = rectangle.top_left.x;
+    int y = rectangle.top_left.y;
+
+
+    ei_point_t c1 = {x + rayon, y + rayon};
+    ei_point_t* points_1 = arc(rayon, c1, -M_PI, -M_PI/2)->points;
+    int32_t	taille1 = arc(rayon, c1, -M_PI, -M_PI/2)->taille;
+
+
+    ei_point_t c2 = {x + width - rayon, y + rayon};
+    ei_point_t* points_2 = arc(rayon, c2, -M_PI/2, 0)->points;
+    int32_t	taille2 = arc(rayon, c2, -M_PI/2, 0)->taille;
+
+
+    ei_point_t pt3 = {x + width, y + height};
+    ei_point_t* point3 = malloc(sizeof(ei_point_t));
+    point3[0] = pt3;
+    int32_t taille3 = 1;
+
+
+    ei_point_t pt4 = {x, y + height};
+    ei_point_t* point4 = malloc(sizeof(ei_point_t));
+    point4[0] = pt4;
+    int32_t taille4 = 1;
+
+
+    ei_point_t* points = concatenation_tab( points_1, taille1, points_2, taille2);
+    int32_t taille = taille1 + taille2;
+
+
+    points = concatenation_tab(points, taille, point3, taille3);
+    taille = taille + taille3;
+
+
+    points = concatenation_tab(points, taille, point4, taille4);
+    taille = taille + taille4;
+
+
+    ei_arc_t* arcc = malloc(sizeof(ei_arc_t));
+    arcc->taille = taille;
+    arcc->points = points;
+
+    return arcc;
+
+}
+
+/* Cette fonction transforme
+ * un entier sur 32 bits en une couleur
+ */
+ei_color_t* map_pick_id_to_color(uint32_t pick_id) {
+    ei_color_t *color = malloc(sizeof(ei_color_t)); // Allouer de la mémoire pour la structure
+
+    if (color == NULL) {
+        // Gérer l'échec de l'allocation de mémoire
+        fprintf(stderr, "Erreur lors de l'allocation de mémoire pour la couleur.\n");
+        exit(EXIT_FAILURE);
+    }
+
+    // Extraire les composantes de couleur et les stocker dans la structure
+    color->red = (pick_id >> 24) & 0xFF; // Composante rouge
+    color->green = (pick_id >> 16) & 0xFF; // Composante verte
+    color->blue = (pick_id >> 8) & 0xFF;  // Composante bleue
+    color->alpha = pick_id & 0xFF;         // Composante alpha
+
+    return color;
+}
+

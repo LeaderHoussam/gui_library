@@ -27,10 +27,10 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
     new_widget->wclass = classe_du_widget;
 
     //ce bloc est à revoir
-    new_widget->pick_id = 0;
-    new_widget->pick_color = NULL;
+    new_widget->pick_id = compteur_pick_id;
+    new_widget->pick_color = map_pick_id_to_color(compteur_pick_id);
     new_widget->user_data = NULL;
-
+    compteur_pick_id++;
     // ici, si le parent est NULL
 
     new_widget->parent = parent;
@@ -61,10 +61,10 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
     // je dois revenir sur cette fonction pour la comprendre et l'initialiser sinon rien ne s'affiche à l'écran
     new_widget->geom_params = NULL;
 
-    /* if (new_widget->parent != NULL) {
-         // on initialise les dimentions à  0
-         new_widget->requested_size = (ei_size_t){0,0};
-     }*/
+   /* if (new_widget->parent != NULL) {
+        // on initialise les dimentions à  0
+        new_widget->requested_size = (ei_size_t){0,0};
+    }*/
 
     new_widget->requested_size = (ei_size_t){0,0};
     new_widget->screen_location.size = (ei_size_t){0,0};
@@ -87,94 +87,6 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
 
 
     return new_widget;
+
 }
 
-// à revoir toute la partie au-dessous
-
-//nous devons parcourir la hiérarchie des widgets à partir de la racine,
-// et pour chaque widget, vérifier si le point donné est à l'intérieur de sa zone de dessin.
-
-/*
- * Parcourir récursivement la hiérarchie des widgets, commençant par la racine de l'application
- * et pour chaque widget, vérifie si le point donné est à l'intérieur de sa zone de dessin.
- * Si c'est le cas, elle vérifie également si le point est à l'intérieur des zones de dessin
- * de ses enfants. La fonction retourne le widget le plus haut dans la hiérarchie qui correspond
- * au point donné.
- * Si aucun widget ne correspond, elle retourne NULL.
- */
-
-/*
-ei_widget_t pick_recursive(ei_widget_t widget, ei_point_t *where) {
-    // Vérifier si le point est à l'intérieur de la zone de dessin du widget
-    if (ei_rect_contains(widget->screen_location, *where)) {
-        // Si le widget a des enfants, vérifier s'il y a un widget enfant qui correspond également au point
-        if (widget->children_head != NULL) {
-            // Parcourir tous les enfants, du plus récent au plus ancien, pour respecter l'ordre d'affichage
-            ei_widget_t enfant = widget->children_tail;
-            while (enfant != NULL) {
-                // Appeler récursivement cette fonction pour vérifier le widget enfant
-                ei_widget_t widget_touche = pick_recursive(enfant, where);
-                if (widget_touche != NULL) {
-                    // Si un widget enfant correspond, le retourner
-                    return widget_touche;
-                }
-                // Passer à l'enfant précédent
-                enfant = enfant->prev_sibling;
-            }
-        }
-        // Si aucun enfant ne correspond et que ce widget est touché, le retourner
-        return widget;
-    }
-    // Si le point n'est pas à l'intérieur de la zone de dessin de ce widget, retourner NULL
-    return NULL;
-}
-
-ei_widget_t		ei_widget_pick			(ei_point_t*		where){
-    // Commencer à partir de la racine de l'application
-    ei_widget_t racine = root_widget;
-    // Appeler une fonction récursive pour parcourir les widgets et choisir celui qui correspond au point donné
-    return pick_recursive(racine, where);
-}*/
-
-bool is_point_inside_widget(ei_widget_t widget, ei_point_t *where) {
-    // Vérifier si le point est à l'intérieur de la zone de dessin du widget
-    return (where->x >= widget->screen_location.top_left.x &&
-            where->x < widget->screen_location.top_left.x + widget->screen_location.size.width &&
-            where->y >= widget->screen_location.top_left.y &&
-            where->y < widget->screen_location.top_left.y + widget->screen_location.size.height &&
-            widget->pick_color != NULL);
-}
-
-ei_widget_t pick_recursive(ei_widget_t widget, ei_point_t *where) {
-    // Vérifier si le point est à l'intérieur de la zone de dessin du widget
-    if (is_point_inside_widget(widget, where)) {
-        // Si le widget a des enfants, vérifier s'il y a un widget enfant qui correspond également au point
-        if (widget->children_head != NULL) {
-            // Parcourir tous les enfants, du plus récent au plus ancien, pour respecter l'ordre d'affichage
-            ei_widget_t enfant = widget->children_head;
-            while (enfant != NULL) {
-                // Appeler récursivement cette fonction pour vérifier le widget enfant
-                ei_widget_t widget_touche = pick_recursive(enfant, where);
-                if (widget_touche != NULL) {
-                    // Si un widget enfant correspond, le retourner
-                    return widget_touche;
-                }
-                // Passer à l'enfant suivant
-                enfant = enfant->next_sibling;
-                // à revoir !
-            }
-        }
-        // Si aucun enfant ne correspond et que ce widget est touché, le retourner
-        return widget;
-    }
-    // Si le point n'est pas à l'intérieur de la zone de dessin de ce widget, retourner NULL
-    return NULL;
-}
-
-ei_widget_t ei_widget_pick(ei_point_t *where) {
-    // Commencer à partir de la racine de l'application
-    ei_widget_t racine = root_widget;
-
-    // Appeler une fonction récursive pour parcourir les widgets et choisir celui qui correspond au point donné
-    return pick_recursive(racine, where);
-}
