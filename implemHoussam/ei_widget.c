@@ -27,10 +27,10 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
     new_widget->wclass = classe_du_widget;
 
     //ce bloc est à revoir
-    new_widget->pick_id = 0;
-    new_widget->pick_color = NULL;
+    new_widget->pick_id = compteur_pick_id;
+    new_widget->pick_color = map_pick_id_to_color(compteur_pick_id);
     new_widget->user_data = NULL;
-
+    compteur_pick_id++;
     // ici, si le parent est NULL
 
     new_widget->parent = parent;
@@ -61,10 +61,10 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
     // je dois revenir sur cette fonction pour la comprendre et l'initialiser sinon rien ne s'affiche à l'écran
     new_widget->geom_params = NULL;
 
-    /* if (new_widget->parent != NULL) {
-         // on initialise les dimentions à  0
-         new_widget->requested_size = (ei_size_t){0,0};
-     }*/
+   /* if (new_widget->parent != NULL) {
+        // on initialise les dimentions à  0
+        new_widget->requested_size = (ei_size_t){0,0};
+    }*/
 
     new_widget->requested_size = (ei_size_t){0,0};
     new_widget->screen_location.size = (ei_size_t){0,0};
@@ -73,6 +73,29 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
     new_widget->screen_location.top_left.y = 0;
     new_widget->content_rect = &(new_widget->screen_location);
 
+    /*
+    if (strcmp(new_widget->wclass->name, "toplevel") == 0){
+
+
+
+        int border_width = ((ei_impl_toplevel_t*) new_widget)->border_width;
+        //ei_point_t pos_debut = {new_widget->screen_location.top_left.x + border_width, new_widget->screen_location.top_left.y + 20};
+        ei_point_t pos_debut = new_widget->screen_location.top_left;
+        pos_debut.x -= border_width;
+        pos_debut.y -= 20;
+
+        //pos_debut.x += ((ei_impl_toplevel_t*) new_widget)->border_width;
+        //pos_debut.y += 20;
+
+        ei_rect_t rectangle;
+        rectangle.top_left = pos_debut;
+        //rectangle.top_left = (ei_point_t){0,0};
+        //rectangle.size = new_widget->screen_location.size;
+        //rectangle.size = new_widget->requested_size;
+        new_widget->content_rect = &(rectangle);
+    }
+    else{new_widget->content_rect = &(new_widget->screen_location);}
+    */
 
     classe_du_widget->setdefaultsfunc(new_widget);
 
@@ -84,7 +107,6 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
     // il faudra ici bien faire les liaisons entres les fils et fréres de widget
     // j'y reviendrai
     //new_widget->next_sibling =
-
 
     return new_widget;
 }
@@ -135,7 +157,7 @@ ei_widget_t		ei_widget_pick			(ei_point_t*		where){
     // Appeler une fonction récursive pour parcourir les widgets et choisir celui qui correspond au point donné
     return pick_recursive(racine, where);
 }*/
-
+/*
 bool is_point_inside_widget(ei_widget_t widget, ei_point_t *where) {
     // Vérifier si le point est à l'intérieur de la zone de dessin du widget
     return (where->x >= widget->screen_location.top_left.x &&
@@ -145,7 +167,7 @@ bool is_point_inside_widget(ei_widget_t widget, ei_point_t *where) {
             widget->pick_color != NULL);
 }
 
-ei_widget_t pick_recursive(ei_widget_t widget, ei_point_t *where) {
+/*ei_widget_t pick_recursive(ei_widget_t widget, ei_point_t *where) {
     // Vérifier si le point est à l'intérieur de la zone de dessin du widget
     if (is_point_inside_widget(widget, where)) {
         // Si le widget a des enfants, vérifier s'il y a un widget enfant qui correspond également au point
@@ -166,15 +188,40 @@ ei_widget_t pick_recursive(ei_widget_t widget, ei_point_t *where) {
         }
         // Si aucun enfant ne correspond et que ce widget est touché, le retourner
         return widget;
+}
+// Si le point n'est pas à l'intérieur de la zone de dessin de ce widget, retourner NULL
+return NULL;
+}*/
+
+
+ei_widget_t pick_recursive(ei_widget_t widget, ei_color_t* color) {
+    if (widget->pick_color == color){
+        return widget;
+    } else {
+        if (widget != root_widget){
+            while(widget->next_sibling != NULL){
+                return pick_recursive(widget->next_sibling, color);
+            }
+        } else
+        return pick_recursive(widget->children_head, color);
     }
-    // Si le point n'est pas à l'intérieur de la zone de dessin de ce widget, retourner NULL
     return NULL;
 }
 
 ei_widget_t ei_widget_pick(ei_point_t *where) {
     // Commencer à partir de la racine de l'application
     ei_widget_t racine = root_widget;
+    //trouver la couleur du pixel
+    uint8_t * ptr_deb_surface = hw_surface_get_buffer(racine);
+    uint8_t * ptr_point = ptr_deb_surface + (hw_surface_get_size(racine).width * where->y +  where->x) * 4;
+    ei_color_t* couleur_pixel;
+    //supposons que l'ordre pour linux est RGBA
+    couleur_pixel->red = ptr_point[0];
+    couleur_pixel->green = ptr_point[1];
+    couleur_pixel->blue = ptr_point[2];
+    couleur_pixel->alpha = ptr_point[3];
 
     // Appeler une fonction récursive pour parcourir les widgets et choisir celui qui correspond au point donné
-    return pick_recursive(racine, where);
+    return pick_recursive(racine, couleur_pixel);
 }
+

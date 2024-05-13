@@ -5,6 +5,7 @@
 #include "ei_types.h"
 #include "ei_implementation.h"
 
+ei_event_binding* EVENT_BINDINGS = NULL;
 
 void		ei_bind			(ei_eventtype_t		eventtype,
                                 ei_widget_t		widget,
@@ -14,15 +15,20 @@ void		ei_bind			(ei_eventtype_t		eventtype,
    /* if (callback == NULL){
         return; //si le callback n'est pas valide.
     }*/
-    struct ei_event_binding* new_binding = malloc(sizeof(struct ei_event_binding));
+    ei_event_binding* new_binding = malloc(sizeof(struct ei_event_binding));
     if (new_binding) {
         new_binding->event_type = eventtype;
         new_binding->widget = &widget;
         new_binding->tag = tag;
         new_binding->callback = callback;
         new_binding->user_param = user_param;
-        new_binding->next = EVENT_BINDINGS;
-        EVENT_BINDINGS = new_binding;
+        new_binding->next = NULL;
+        //EVENT_BINDINGS = new_binding;
+        if (!EVENT_BINDINGS){
+            EVENT_BINDINGS = new_binding;
+        } else {
+            EVENT_BINDINGS->next = new_binding;
+        }
     }
 }
 

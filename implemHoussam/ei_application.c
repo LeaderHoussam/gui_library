@@ -9,7 +9,7 @@
 #include "ei_application.h"
 
 #include <ei_widget_configure.h>
-
+#include "ei_widget.h"
 #include "hw_interface.h"
 #include "ei_draw.h"
 #include "ei_widgetclass.h"
@@ -21,11 +21,14 @@ ei_surface_t root_window = NULL;
 ei_widget_t root_widget = NULL;
 ei_linked_rect_t* surfaces_mise_a_jour = NULL;
 ei_rect_t* clipper_final = NULL;
+uint32_t compteur_pick_id = 1;
+ei_event_t *event;
 
 extern ei_widgetclass_t* liste_des_classe;
 int min(int a, int b);
 int max(int a, int b);
 
+//ei_rect_t* clipper_mise_à_jour(ei_linked_rect_t*);
 void ei_app_create(ei_size_t main_window_size, bool fullscreen){
     hw_init();
 
@@ -39,7 +42,10 @@ void ei_app_create(ei_size_t main_window_size, bool fullscreen){
 
     ei_widgetclass_t* classe_button = init_button_classe();
     ei_widgetclass_register(classe_button);
+    ei_default_font  = hw_text_font_create	(ei_default_font_filename,ei_style_normal, ei_font_default_size);
 
+    ei_widgetclass_t* classe_toplevel = init_toplevel_classe();
+    ei_widgetclass_register(classe_toplevel);
     printf("j'ai reussi à ajouter la classe frame");
 
     // on initialise ici les gestionnaires de geometrie
@@ -73,19 +79,35 @@ bool ei_app_should_quit() {
 
 void ei_app_run(void){
     ei_widget_t racine = ei_app_root_widget();
-    const ei_surface_t surface_principale = ei_app_root_surface();
+    const ei_surface_t *surface_principale = ei_app_root_surface();
     ei_surface_t surface_arriere = hw_surface_create(surface_principale, hw_surface_get_size(surface_principale), false);
 
     // Redessiner la racine avant d'entrer dans la boucle des événements
     (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, racine->content_rect);
     hw_surface_update_rects(surface_principale, NULL);
+    ei_event_t *event = calloc(1, sizeof(ei_event_t));
+    //hw_event_post_app(EVENT_BINDINGS);
 
     while (!quit_requested) {
         // Attendre le prochain événement utilisateur
         //ei_eventtype_t event;
-        ei_event_t *event;
-        hw_event_wait_next(event);
 
+        hw_event_wait_next(event);
+        //On parcours toute la liste des bindings, c'est pas trop optimisé mais on fait comme ça pour le moment
+        ei_event_binding* event_bind;
+        event_bind = EVENT_BINDINGS;
+
+        while  (event->type != event_bind->event_type) {
+            event_bind = event_bind->next;
+            if(event_bind->next == NULL){
+                break;
+            }
+        }
+        //ei_widget_t current_widget = ei_widget_pick(&(event->param.mouse.where));
+        ei_widget_t current_widget = root_widget;
+        event_bind->callback(current_widget, event, NULL);
+
+/*
         // Traiter l'événement
         if (event->type == ei_ev_keydown) {
             // Exemple : Si la touche "Escape" est pressée, demander à quitter l'application
@@ -93,7 +115,7 @@ void ei_app_run(void){
                 ei_app_quit_request();
             }
         } // décommenter après faire ei_widget_pick et ei_event_get_callback
-        /*else if (event->type == ei_ev_mouse_buttondown) {
+        else if (event->type == ei_ev_mouse_buttondown) {
             // Exemple : Si un clic de souris est détecté, identifier le widget concerné et appeler son gestionnaire d'événements
             ei_widget_t widget_cible = ei_widget_pick(&event->param.mouse.where);
             if (widget_cible != NULL) {
@@ -102,16 +124,16 @@ void ei_app_run(void){
                     callback(widget_cible, event, NULL);
                 }
             }
-        }*/ else if (event->type == ei_ev_close){
+        } else if (event->type == ei_ev_close){
             ei_app_quit_request();
-        }
-
+        }*/
         // Redessiner la racine avec les mises à jour
         (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, racine->content_rect);
         hw_surface_update_rects(surface_principale, NULL);
     }
 
     hw_surface_free(surface_arriere);
+    //getchar();
 }
 
 void ei_app_free(void){
