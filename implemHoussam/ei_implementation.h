@@ -31,8 +31,8 @@ ei_arc_t* arc(int32_t rayon, ei_point_t centre, double angle_debut, double angle
 
 ei_arc_t* rounded_frame(int32_t rayon, ei_rect_t rectangle);
 ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle, int32_t h);
-
-
+ei_arc_bg_t* triangle_frame_bg(ei_rect_t rectangle);
+ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle);
 /* fin par Nelson*/
 
 /**
@@ -148,15 +148,34 @@ typedef struct ei_impl_button_t{
     ei_anchor_t 	img_anchor;
     ei_callback_t   callback;
     ei_user_param_t	user_param;
-
-
 }ei_impl_button_t;
 
+typedef struct ei_impl_toplevel_t{
+    ei_impl_widget_t widget;
+    ei_color_t   color;
+    int  	border_width;
+    int     corner_radius;
+    ei_relief_t  	relief;
+    ei_string_t  	text;
+    ei_font_t  	text_font;
+    ei_color_t 	text_color;
+    ei_anchor_t  	text_anchor;
+    ei_surface_t  	img;
+    ei_rect_ptr_t  	img_rect;
+    ei_anchor_t 	img_anchor;
+    ei_callback_t   callback;
+    ei_user_param_t	user_param;
+    ei_string_t  	title;
+    bool 	closable;
+    ei_axis_set_t resizable;
+    ei_size_ptr_t  	min_size;
+}ei_impl_toplevel_t;
 
 // on va ajouter dans ce fichier, l'instanciation  de nos classes
-ei_widgetclass_t* init_button_classe(void );
-ei_widgetclass_t* init_frame_classe(void );
+ei_widgetclass_t* init_button_classe(void);
+ei_widgetclass_t* init_frame_classe(void);
 ei_geometrymanager_t*  init_placeur(void);
+ei_widgetclass_t* init_toplevel_classe(void);
 extern ei_widgetclass_t* liste_des_classe;
 extern ei_surface_t root_window;
 extern ei_widget_t root_widget;
@@ -170,17 +189,19 @@ extern ei_linked_rect_t* surfaces_mises_a_jour;
  * telles que le type d'événement, le widget ou l'étiquette, le rappel associé
  * et les paramètres utilisateur.
  */
-struct ei_event_binding {
+typedef struct ei_event_binding {
     ei_eventtype_t event_type;
     ei_widget_t* widget;
     ei_tag_t tag;
     ei_callback_t callback;
     void* user_param;
     struct ei_event_binding* next;
-};
+}ei_event_binding;
 
-static struct ei_event_binding* EVENT_BINDINGS = NULL;
-
+extern   ei_event_binding* EVENT_BINDINGS;
+extern ei_event_t *event;
+extern uint32_t compteur_pick_id;
+ei_color_t* map_pick_id_to_color(uint32_t pick_id);
 
 //Il faut corrigé callback
 /*
