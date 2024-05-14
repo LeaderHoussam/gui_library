@@ -152,8 +152,8 @@ void			ei_button_configure		(ei_widget_t		widget,
     if ( !verifie_si_null(user_param) ) {
         button->user_param = *user_param;
     }
-     //un problème user_param
 
+    ei_bind(ei_ev_mouse_buttondown,widget,NULL,button->callback,NULL);
 }
 
 // configuratin d'un widget

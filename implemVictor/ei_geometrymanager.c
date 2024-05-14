@@ -141,6 +141,7 @@ void placeur_runfunc(ei_widget_t widget) {
         case ei_anc_none:
             x_final = x_init;
             y_final =  y_init;
+            break;
 
         default:
             printf("On ne devrait jamais en arriver là. AH AH AH");

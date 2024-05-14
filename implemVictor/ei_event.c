@@ -107,12 +107,40 @@ void		ei_unbind		(ei_eventtype_t		eventtype,
 // création des widgets et ensuite parcourir cette liste
 ei_widget_t get_widget_actuel(ei_event_t* event) {
     ei_point_t pos_souris = event->param.mouse.where;
-    //ei_color_t pick_screen_color = get_pick_screen_color(pos_souris);
-    //return get_widget_from_pick_color(pick_screen_color);
-    return root_widget; // à supprimer après
+    ei_color_t* pick_screen_color = get_pick_screen_color(pos_souris);
+    return get_widget_from_pick_color(*pick_screen_color);
+    //return root_widget; // à supprimer après
 }
-
+ei_widget_t get_widget_from_pick_color(ei_color_t pick_color) {
+    link_widget* debut = liste_des_widgets;
+    while (debut!= NULL && (debut->widget->pick_color->red != pick_color.red ||
+        debut->widget->pick_color->green != pick_color.green ||
+        debut->widget->pick_color->blue != pick_color.blue ||
+        debut->widget->pick_color->alpha != pick_color.alpha) ) {
+        debut = debut->next;
+    }
+    return (debut==NULL ? NULL: debut->widget);
+}
+ei_color_t* get_pick_screen_color(ei_point_t pos_souris) {
+    hw_surface_lock(surface_arriere);
+    uint32_t* pointeur_surface = (uint32_t*)hw_surface_get_buffer(surface_arriere);
+    ei_size_t size = hw_surface_get_size(surface_arriere);
+    pointeur_surface = pointeur_surface + (size.width*pos_souris.y + pos_souris.x);
+    int ir, ig, ib, ia;
+    hw_surface_get_channel_indices(surface_arriere, &ir, &ig, &ib, &ia);
+    uint8_t* tab = (uint8_t*)pointeur_surface;
+    ei_color_t* couleur = malloc(sizeof(ei_color_t));
+    couleur->red = tab[ir];
+    couleur->green = tab[ig];
+    couleur->blue = tab[ib];
+    couleur->alpha = 255;
+    //*couleur = (ei_color_t){ pointeur_surface[ir],pointeur_surface[ig],pointeur_surface[ib],0};
+    hw_surface_unlock(surface_arriere);
+    return couleur;
+}
 bool execute_traitant(ei_event_t* event,traitant_t traitant) {
+
+
     if(traitant.tag == NULL && traitant.widget != NULL) {
         if(get_widget_actuel(event) == traitant.widget) {
             return traitant.callback(traitant.widget, event, traitant.user_param);
@@ -123,7 +151,7 @@ bool execute_traitant(ei_event_t* event,traitant_t traitant) {
             if(strcmp(traitant.tag,"all") == 0){
                 return traitant.callback(get_widget_actuel(event), event, traitant.user_param);
             }
-            if(strcmp(get_widget_actuel(event)->wclass->name,traitant.tag) == 0) {
+            if( get_widget_actuel(event) != NULL && strcmp(get_widget_actuel(event)->wclass->name,traitant.tag) == 0) {
                     return traitant.callback(get_widget_actuel(event),event, traitant.user_param);
 
             }
@@ -132,4 +160,6 @@ bool execute_traitant(ei_event_t* event,traitant_t traitant) {
         //return  true;
         }
     return true;
+
+    //return traitant.callback(root_widget->children_head, event, traitant.user_param);
 }

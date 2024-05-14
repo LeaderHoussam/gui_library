@@ -6,7 +6,7 @@
 #include "ei_implementation.h"
 #include "ei_widgetclass.h"
 
-
+link_widget* liste_des_widgets = NULL;
 // dans cette fonction il faudra revoir comment bien
 // chainer les widgets
 // et aussi comment faire pour refuser la création d'un widget de parent NULL, sauf la racine
@@ -28,9 +28,9 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
 
     //ce bloc est à revoir
     new_widget->pick_id = compteur_pick_id;
-    new_widget->pick_color = map_pick_id_to_color(compteur_pick_id);
+    new_widget->pick_color = map_pick_id_to_color(surface_arriere, compteur_pick_id);
     new_widget->user_data = NULL;
-    compteur_pick_id++;
+    compteur_pick_id += 256;
     // ici, si le parent est NULL
 
     new_widget->parent = parent;
@@ -84,6 +84,20 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
     // il faudra ici bien faire les liaisons entres les fils et fréres de widget
     // j'y reviendrai
     //new_widget->next_sibling =
+    link_widget* new = malloc(sizeof(link_widget));
+    new->widget = new_widget;
+    new->next = NULL;
+    if (liste_des_widgets==NULL) {
+
+        liste_des_widgets =  new;
+    }
+    else {
+        link_widget* tete = liste_des_widgets;
+        while (tete->next != NULL) {
+            tete = tete->next;
+        }
+        tete->next = new;
+    }
 
 
     return new_widget;

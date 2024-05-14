@@ -171,13 +171,15 @@ ei_widgetclass_t* init_frame_classe(void );
 ei_geometrymanager_t*  init_placeur(void);
 extern ei_widgetclass_t* liste_des_classe;
 extern ei_surface_t root_window;
+extern ei_surface_t surface_arriere;
 extern ei_widget_t root_widget;
+
 extern ei_geometrymanager_t* liste_des_geometrie;
 extern ei_linked_rect_t* surfaces_mise_a_jour;
 extern uint32_t compteur_pick_id;
 
 //fonction pour transformer un pick_id en couleur
-ei_color_t* map_pick_id_to_color(uint32_t pick_id);
+ei_color_t* map_pick_id_to_color(ei_surface_t surface, uint32_t pick_id);
 
 // pour capter les données de l'evenement:
 extern ei_event_t* evenement;
@@ -217,4 +219,13 @@ extern event_with_callback* liste_des_events_enregistres;
 bool execute_traitant(ei_event_t* event, traitant_t traitant);
 traitant_t* trouve_traitant(ei_eventtype_t eventtype);
 ei_widget_t get_widget_actuel(ei_event_t* event);
+ei_color_t* get_pick_screen_color(ei_point_t pos_souris);
+ei_widget_t get_widget_from_pick_color(ei_color_t pick_color);
+
+typedef struct link_widget {
+	ei_widget_t widget;
+	struct link_widget* next;
+}link_widget;
+extern link_widget* liste_des_widgets;
+bool bouton_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
 #endif

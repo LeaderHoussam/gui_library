@@ -16,10 +16,11 @@
 #include "ei_implementation.h"
 
 ei_surface_t root_window = NULL;
+ei_surface_t surface_arriere = NULL;
 ei_widget_t root_widget = NULL;
 ei_linked_rect_t* surfaces_mise_a_jour = NULL;
 ei_rect_t* clipper_final = NULL;
-uint32_t compteur_pick_id = 256;
+uint32_t compteur_pick_id = 16384;
 
 bool quitter = false;
 //ei_font_t ei_default_font = NULL;
@@ -55,11 +56,17 @@ void ei_app_create(ei_size_t main_window_size, bool fullscreen){
     //enregistrement des geometry:
 
     root_window =   hw_create_window(main_window_size, fullscreen);
+    surface_arriere = hw_surface_create(root_window, hw_surface_get_size(root_window), false);
+    //surface_arriere = hw_create_window(main_window_size, fullscreen);
     //hw_surface_lock(root_window);
     root_widget = ei_widget_create("frame", NULL,NULL, NULL);
     ei_size_t taille = hw_surface_get_size(root_window);
     ei_frame_configure(root_widget, &taille, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
     //hw_surface_unlock(root_window);
+
+    ei_bind(ei_ev_mouse_buttondown, NULL, "button",bouton_handler, NULL);
+    ei_bind(ei_ev_mouse_buttonup, NULL, "button",bouton_handler, NULL);
+
 }
 
 ei_widget_t ei_app_root_widget(void) {
@@ -71,7 +78,8 @@ void ei_app_run(void){
     //
     ei_widget_t racine = ei_app_root_widget();
     const ei_surface_t surface_principale = ei_app_root_surface();
-    ei_surface_t surface_arriere = hw_surface_create(surface_principale, hw_surface_get_size(surface_principale), false);
+    //surface_arriere = hw_surface_create(surface_principale, hw_surface_get_size(surface_principale), false);
+
     // on doit normalement parcourir ici la hierarchie pour
     // afficher, mais je ne la comprend pas bien encore,
     // on affihce donc notre seul frame root  d'abord pour voir
@@ -107,12 +115,19 @@ void ei_app_run(void){
 
     (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, racine->content_rect);
     hw_surface_update_rects(surface_principale, NULL);
+
+    //hw_surface_update_rects(surface_arriere, NULL);
+
+    ei_color_t* col_pic = get_pick_screen_color((ei_point_t){350, 250});
+    printf("la couleur de la pickcolor  à 350, 250 est : \n"
+           "r : %u, g: %u, b: %u, a: %u ", col_pic->red, col_pic->green, col_pic->blue, col_pic->alpha);
+
     surfaces_mise_a_jour = NULL;
     clipper_final = NULL;
     ei_event_t* evenement = calloc(1,sizeof(ei_event_t));
     while(!quitter) {
         if (surfaces_mise_a_jour != NULL) {
-            (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, clipper_final);
+            (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, racine->content_rect);
             hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
         }
 
@@ -131,7 +146,8 @@ void ei_app_run(void){
         }
 
     }
-    hw_surface_free(surface_arriere);
+
+    //hw_surface_free(surface_arriere);
     //getchar();
 
 

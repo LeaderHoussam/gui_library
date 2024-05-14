@@ -358,7 +358,7 @@ ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle)
 
 //Cette fonction transforme un entier sur 32 bits en une couleur
 
-ei_color_t* map_pick_id_to_color(uint32_t pick_id){
+ei_color_t* map_pick_id_to_color(ei_surface_t surface, uint32_t pick_id){
     ei_color_t* color = malloc(sizeof(ei_color_t));
 
     if (color == NULL){
@@ -367,13 +367,19 @@ ei_color_t* map_pick_id_to_color(uint32_t pick_id){
         exit(EXIT_FAILURE);
 
     }
+    int ir, ig, ib, ia;
+    hw_surface_lock(surface);
+    uint8_t* pixel_ptr = (uint8_t*)(&pick_id);
+    hw_surface_get_channel_indices(surface, &ir, &ig, &ib, &ia);
 
     //Extraire les composantes de couleur et les stocker dans la structure
-    color->red = (pick_id >> 24) & 0xFF;  //Composante rouge
-    color->blue = (pick_id >> 16) & 0xFF;  //Composante bleue
-    color->red = (pick_id >> 8) & 0xFF;  //Composante verte
-    color->alpha = pick_id& 0xFF;
+    color->red = pixel_ptr[ir];  //Composante rouge
+    color->green = pixel_ptr[ig];  //Composante verte
+    color->blue = pixel_ptr[ib];  //Composante bleue
+    //color->alpha = (pick_id >> 8*ia)& 0xFF;
+    color->alpha =255;
 
+    hw_surface_unlock(surface);
     return color;
 }
 
@@ -429,3 +435,20 @@ ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_f
 
 //void state_button(ei_widget_t widget, ei_relief_t relief ) {
 
+bool bouton_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
+    ei_impl_button_t* bouton = (ei_impl_button_t*) widget;
+    if (event->type == ei_ev_mouse_buttondown) {
+        bouton->relief = ei_relief_sunken;
+        printf("\n jai appuyé \n");
+        ei_app_invalidate_rect(&widget->screen_location);
+        return false;
+    }
+    else if (event->type == ei_ev_mouse_buttonup) {
+        bouton->relief = ei_relief_raised;
+        printf("\njai relaché\n");
+        ei_app_invalidate_rect(&widget->screen_location);
+        return false;
+    }
+    return true;
+
+}

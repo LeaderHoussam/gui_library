@@ -47,7 +47,7 @@ void drawfunc_frame(ei_widget_t		widget,
     // on y reviendra
 
     hw_surface_lock(surface);
-    hw_surface_unlock(pick_surface);
+    hw_surface_lock(pick_surface);
 
     ei_point_t top_left_bg = widget->screen_location.top_left;
     ei_size_t size_bg = widget->screen_location.size;
@@ -104,7 +104,7 @@ void drawfunc_frame(ei_widget_t		widget,
     {
         ei_draw_polygon(surface,debut_surface_bg, taille, couleur, clipper);
     }
-    ei_draw_polygon(pick_surface,debut_surface_bg, taille, *widget->pick_color, clipper);
+    ei_draw_polygon(pick_surface,debut_surface_bg, taille, *(widget->pick_color), clipper);
 
 
 
@@ -114,10 +114,10 @@ void drawfunc_frame(ei_widget_t		widget,
         ei_point_t *where;
         where = place_text(widget, frame->text, frame->text_font, frame->text_anchor);
 
-        ei_draw_text(surface, where, frame->text, frame->text_font, frame->text_color, clipper);
+        ei_draw_text(surface, where, frame->text, frame->text_font, frame->text_color, widget->content_rect);
     }
 
-    ei_impl_widget_draw_children(widget, surface, pick_surface, clipper);
+    ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
 
     if (widget->next_sibling != NULL) {
         widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
@@ -131,7 +131,7 @@ void drawfunc_frame(ei_widget_t		widget,
     // ei_linked_rect_t* clipp = (ei_linked_rect_t*) clipper;
 
 
-    printf("\nAH AH, fonction draw_button appélee");
+    printf("\nAH AH, fonction draw_frame appélee");
 
 
 
@@ -294,7 +294,7 @@ void drawfunc_button(ei_widget_t		widget,
 
     }
 
-    ei_impl_widget_draw_children(widget, surface, pick_surface, clipper);
+    ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
 
     if (widget->next_sibling != NULL) {
         widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
