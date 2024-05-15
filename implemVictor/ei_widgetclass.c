@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include "ei_widgetclass.h"
 
+#include <ei_utils.h>
 #include <ei_widget_attributes.h>
 #include <locale.h>
 
@@ -373,12 +374,24 @@ void releasefunc_toplevel(ei_widget_t widget) {
     // à completer après
 }
 
+void geomnotifyfunc_toplevel(ei_widget_t widget) {
+
+    ei_impl_toplevel_t*   top_level = (ei_impl_toplevel_t*) widget;
+
+    widget->content_rect->top_left.x = widget->screen_location.top_left.x + top_level->border_width;
+    widget->content_rect->top_left.y = widget->screen_location.top_left.y + 20;
+    widget->content_rect->size.width = widget->screen_location.size.width;
+    widget->content_rect->size.height = widget->screen_location.size.height;
+
+}
 void drawfunc_toplevel(ei_widget_t		widget,
                        ei_surface_t		surface,
                        ei_surface_t		pick_surface,
                        ei_rect_t*		clipper) {
 
 
+
+    //geomnotifyfunc_toplevel(widget);
 
     hw_surface_lock(surface);
     hw_surface_lock(pick_surface);
@@ -401,8 +414,11 @@ void drawfunc_toplevel(ei_widget_t		widget,
     rectangle_bg.size.height += espace + border_width;
 
     ei_point_t pos_debut = widget->content_rect->top_left;
-    pos_debut.x += border_width;
-    pos_debut.y += espace;
+    //pos_debut.x += border_width;
+    //pos_debut.y += espace;
+
+    //ei_size_t dim = widget->content_rect->size;
+
 
 
     ei_size_t dimension = widget->screen_location.size;
@@ -442,13 +458,17 @@ void drawfunc_toplevel(ei_widget_t		widget,
         double angle_fin = 2*M_PI;
         ei_point_t* cercle = arc(rayon_cercle, centre, angle_debut, angle_fin)->points;
         int32_t	taille_cercle = arc(rayon_cercle, centre, angle_debut, angle_fin)->taille;
-        ei_draw_polygon(surface,cercle, taille_cercle, (ei_color_t){255,50,0,255}, clipper);
+        ei_draw_polygon(surface,cercle, taille_cercle, (ei_color_t){255,50,0,255}, &widget->screen_location);
 
     }
     // dessin de la zone cliquable à droite
     //on transforme juste le rectangle d'inclusion
 
-    widget->content_rect->top_left = pos_debut;
+    //widget->content_rect->top_left = pos_debut;
+
+    //ei_rect_t* nouveau_content = malloc(sizeof(ei_rect_t));
+    //nouveau_content->top_left = pos_debut;
+    //nouveau_content->size = dim;
     //ei_rect_t* clipper_pour_enfants = widget->content_rect;
     //clipper_pour_enfants->top_left = pos_debut;
     ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
@@ -456,22 +476,24 @@ void drawfunc_toplevel(ei_widget_t		widget,
 
     //dessin du titre
 
+    if (widget->next_sibling != NULL) {
+        widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
+    }
+
     ei_font_t font = hw_text_font_create( ei_default_font_filename, ei_style_normal, 5*espace/7);
 
     ei_point_t place;
     place.x = widget->screen_location.top_left.x + 3*rayon_cercle;
-    place.y = widget->screen_location.top_left.y - espace + espace/7;
+    place.y = widget->screen_location.top_left.y;
 
     const ei_point_t*	where = &(place);
 
-    ei_draw_text(surface, where, toplevel->title, font, ei_font_default_color,clipper);
+    ei_draw_text(surface, where, toplevel->title, font, ei_font_default_color,&widget->screen_location);
 
     hw_text_font_free(font);
 
 
-    if (widget->next_sibling != NULL) {
-        widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
-    }
+
 
     //après tous les dessins, il faut que je dessine le petit point en bas à droite du top_level
     //à faire
@@ -484,6 +506,7 @@ void drawfunc_toplevel(ei_widget_t		widget,
     //ei_draw_polygon(surface,carre_resize, 4, (ei_color_t){238,0,0,255}, clipper);
     ei_draw_polygon(surface,carre_resize, 4, (ei_color_t){238,130,238,255}, clipper);
     ei_draw_polygon(pick_surface,carre_resize, 4, *widget->pick_color, clipper);
+
 
 
 
@@ -501,7 +524,7 @@ void setdefaultsfunc_toplevel(ei_widget_t widget) {
     // les autres parametres non commun aux autres:
     // on fait d'abord un transcriptage avant de les utiliser
 
-    widget->requested_size = (ei_size_t){320,240};
+
     ei_impl_toplevel_t* le_toplevel = (ei_impl_toplevel_t *) widget;
     le_toplevel->border_width = 4;
     le_toplevel->closable = true ;
@@ -509,11 +532,16 @@ void setdefaultsfunc_toplevel(ei_widget_t widget) {
     le_toplevel->min_size = &((ei_size_t) {160, 120});
     le_toplevel->resizable = ei_axis_both;
     le_toplevel->title = "Toplevel";
+
+    widget->requested_size = (ei_size_t){320,240};
+    ei_rect_t* new_cr = malloc(sizeof(ei_rect_t));
+    new_cr->top_left.x = widget->screen_location.top_left.x + 4;
+    new_cr->top_left.y = widget->screen_location.top_left.x + 20;
+    new_cr->size = widget->requested_size;
+    widget->content_rect = new_cr;
 }
 
-void geomnotifyfunc_toplevel(ei_widget_t widget) {
 
-}
 
 
 ei_widgetclass_t* init_toplevel_classe() {

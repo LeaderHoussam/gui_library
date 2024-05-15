@@ -147,13 +147,14 @@ void			ei_button_configure		(ei_widget_t		widget,
     }
     if ( !verifie_si_null(callback) ) {
         button->callback = *callback;
+        ei_bind(ei_ev_mouse_buttondown,widget,NULL,*callback,NULL);
     }
 
     if ( !verifie_si_null(user_param) ) {
         button->user_param = *user_param;
     }
 
-    ei_bind(ei_ev_mouse_buttondown,widget,NULL,button->callback,NULL);
+
 }
 
 // configuratin d'un widget
@@ -166,11 +167,14 @@ void			ei_toplevel_configure		(ei_widget_t		widget,
                                               ei_axis_set_t*		resizable,
                                               ei_size_ptr_t*		min_size) {
 
-    if (requested_size != NULL) {
-        widget->requested_size = *requested_size;
-    }
+
 
     ei_impl_toplevel_t* toplevel = (ei_impl_toplevel_t*) widget;
+
+    if (requested_size != NULL) {
+        widget->requested_size = *requested_size;
+        widget->content_rect->size = *requested_size;
+    }
 
     if(color != NULL) {
         toplevel->color = *color;

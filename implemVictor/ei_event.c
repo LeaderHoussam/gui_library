@@ -76,30 +76,43 @@ traitant_t* trouve_traitant(ei_eventtype_t eventtype) {
 
 
 // à revoir: il faut supprimer un élément d'une liste chainee
-void		ei_unbind		(ei_eventtype_t		eventtype,
-                     ei_widget_t		widget,
-                     ei_tag_t		tag,
-                     ei_callback_t		callback,
-                     void*			user_param) {
+void ei_unbind(ei_eventtype_t eventtype,
+               ei_widget_t widget,
+               ei_tag_t tag,
+               ei_callback_t callback,
+               void* user_param) {
 
-    /*event_with_callback* event = (event_with_callback*) (&eventtype);
-    traitant_t* liste_des_traitants = event->liste_des_traitants;
-
-    while((liste_des_traitants->evenement != eventtype ||
-            liste_des_traitants->widget != widget ||
-            liste_des_traitants->tag != tag ||
-            liste_des_traitants->callback != callback ||
-            liste_des_traitants->user_param != user_param) &&
-            liste_des_traitants != NULL){
-
-        liste_des_traitants = liste_des_traitants->next;
+    // Parcours de la liste des événements enregistrés
+    event_with_callback* event_ptr = liste_des_events_enregistres;
+    while (event_ptr != NULL && event_ptr->event != eventtype) {
+        event_ptr = event_ptr->next;
     }
-    if (liste_des_traitants != NULL) {
-        traitant_t* a_supprimer = liste_des_traitants;
-        liste_des_traitants->next = liste_des_traitants->next != NULL ? liste_des_traitants->next->next: NULL;
+
+    if (event_ptr != NULL) {
+        // Parcours de la liste des traitants de l'événement trouvé
+        traitant_t* traitant_ptr = event_ptr->liste_des_traitants;
+        traitant_t* previous = NULL;
+        while (traitant_ptr != NULL) {
+            // Vérification si le traitant correspond aux paramètres donnés
+            if (traitant_ptr->widget == widget &&
+                traitant_ptr->tag == tag &&
+                traitant_ptr->callback == callback &&
+                traitant_ptr->user_param == user_param) {
+                // Suppression du traitant de la liste
+                if (previous != NULL) {
+                    previous->next = traitant_ptr->next;
+                } else {
+                    event_ptr->liste_des_traitants = traitant_ptr->next;
+                }
+                free(traitant_ptr);
+                return; // Sortie de la fonction une fois que le traitant est supprimé
+                }
+            previous = traitant_ptr;
+            traitant_ptr = traitant_ptr->next;
+        }
     }
-*/
 }
+
 
 // il faut faire les fonctions en rouge
 //idée pour la fonction get_widget_from_pick_clor:
@@ -159,7 +172,8 @@ bool execute_traitant(ei_event_t* event,traitant_t traitant) {
 
         //return  true;
         }
-    return true;
+    return false;
+    //return true;
 
     //return traitant.callback(root_widget->children_head, event, traitant.user_param);
 }

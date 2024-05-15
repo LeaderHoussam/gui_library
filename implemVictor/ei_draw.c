@@ -60,7 +60,8 @@ void	ei_draw_text	(ei_surface_t		surface,
             //int valeur_alpha = (*pointeur_surf>>24) & 0xFF;
             //uint8_t tab[4] = {couleur->blue, couleur->green, couleur->red, couleur->alpha};
 
-            if(x_i+i >= pos_deb.x && x_i+i <= pos_deb.x + dim_clip.width && y_i+j >= pos_deb.y && y_i+j <= pos_deb.y + dim_clip.height) {
+            //x_i+i >= 0 &&  y_i+j>=0 &&
+            if( x_i+i >= pos_deb.x && x_i+i <= pos_deb.x + dim_clip.width && y_i+j >= pos_deb.y && y_i+j <= pos_deb.y + dim_clip.height) {
                 r_s = pointeur_surf[ir];
                 g_s = pointeur_surf[ig];
                 b_s = pointeur_surf[ib];

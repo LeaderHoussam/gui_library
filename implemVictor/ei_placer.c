@@ -30,19 +30,19 @@ void		ei_place	(ei_widget_t		widget,
             un_placeur->width = *width;
         }
         if(height != NULL) {
-            un_placeur->anchor = *height;
+            un_placeur->height = *height;
         }
         if(rel_x != NULL) {
-            un_placeur->anchor = *rel_x;
+            un_placeur->rel_x = *rel_x;
         }
         if(rel_y != NULL) {
-            un_placeur->anchor = *rel_y;
+            un_placeur->rel_y = *rel_y;
         }
         if(rel_width != NULL) {
-            un_placeur->anchor = *rel_width;
+            un_placeur->rel_width = *rel_width;
         }
         if(rel_height!= NULL) {
-            un_placeur->anchor = *rel_height;
+            un_placeur->rel_height = *rel_height;
         }
     }
     else {

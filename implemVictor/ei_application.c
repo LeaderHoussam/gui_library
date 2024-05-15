@@ -14,13 +14,14 @@
 #include "ei_widgetclass.h"
 #include "ei_geometrymanager.h"
 #include "ei_implementation.h"
+#include "ei_placer.h"
 
 ei_surface_t root_window = NULL;
 ei_surface_t surface_arriere = NULL;
 ei_widget_t root_widget = NULL;
 ei_linked_rect_t* surfaces_mise_a_jour = NULL;
 ei_rect_t* clipper_final = NULL;
-uint32_t compteur_pick_id = 16384;
+uint32_t compteur_pick_id = 256;//16384;
 
 bool quitter = false;
 //ei_font_t ei_default_font = NULL;
@@ -66,6 +67,10 @@ void ei_app_create(ei_size_t main_window_size, bool fullscreen){
 
     ei_bind(ei_ev_mouse_buttondown, NULL, "button",bouton_handler, NULL);
     ei_bind(ei_ev_mouse_buttonup, NULL, "button",bouton_handler, NULL);
+    ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_handler, NULL);
+    ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_handler_1, NULL);
+    ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_redimension, NULL);
+
 
 }
 
@@ -116,20 +121,29 @@ void ei_app_run(void){
     (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, racine->content_rect);
     hw_surface_update_rects(surface_principale, NULL);
 
+    //ei_place_xy(racine->children_head, 50,40);
     //hw_surface_update_rects(surface_arriere, NULL);
 
+    /*
     ei_color_t* col_pic = get_pick_screen_color((ei_point_t){350, 250});
     printf("la couleur de la pickcolor  à 350, 250 est : \n"
            "r : %u, g: %u, b: %u, a: %u ", col_pic->red, col_pic->green, col_pic->blue, col_pic->alpha);
-
-    surfaces_mise_a_jour = NULL;
-    clipper_final = NULL;
+*/
+    //surfaces_mise_a_jour = NULL;
+    //clipper_final = NULL;
     ei_event_t* evenement = calloc(1,sizeof(ei_event_t));
     while(!quitter) {
+
         if (surfaces_mise_a_jour != NULL) {
-            (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, racine->content_rect);
-            hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+
+           // (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, racine->content_rect);
+            //hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+
+
+            (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, clipper_final);
+            hw_surface_update_rects(surface_principale, NULL);
         }
+
 
         surfaces_mise_a_jour = NULL;
         clipper_final = NULL;
@@ -144,6 +158,8 @@ void ei_app_run(void){
         while( liste != NULL && !execute_traitant(evenement, *liste)) {
             liste = liste->next;
         }
+
+
 
     }
 
@@ -174,15 +190,18 @@ void ei_app_invalidate_rect(const ei_rect_t* rect) {
     }
     ei_linked_rect_t* nouveau  = malloc(sizeof(ei_linked_rect_t));
     nouveau->rect = *rect;
+    nouveau->rect.size.width += 30;
+    nouveau->rect.size.height += 30;
     nouveau->next = NULL;
     int x_more_left = rect->top_left.x;
-    int new_width =  rect->size.width;
+    int new_width =  rect->size.width+30; // j'ajoute ces plus trente pour tenir compte du top level
     int y_more_top = rect->top_left.y;
-    int new_height = rect->size.height;
+    int new_height = rect->size.height+30;
 
     if (surfaces_mise_a_jour == NULL) {
         surfaces_mise_a_jour = nouveau;
-        clipper_final = &((ei_rect_t){{x_more_left, y_more_top}, {new_width,new_height}});
+        clipper_final->top_left = (ei_point_t){x_more_left, y_more_top};
+        clipper_final->size = (ei_size_t) {new_width,new_height};
     }
     else {
         int actual_x = clipper_final->top_left.x;
@@ -197,8 +216,8 @@ void ei_app_invalidate_rect(const ei_rect_t* rect) {
 
         clipper_final->top_left.x = final_x;
         clipper_final->top_left.y = final_y;
-        clipper_final->size.width = final_width;
-        clipper_final->size.height= final_height;
+        clipper_final->size.width = final_width+30;
+        clipper_final->size.height= final_height+30;
         ei_linked_rect_t* copie = surfaces_mise_a_jour;
         while(copie->next != NULL) {
             copie = copie->next;

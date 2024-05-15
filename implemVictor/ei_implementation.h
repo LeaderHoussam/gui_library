@@ -13,6 +13,7 @@
 #include "ei_widget.h"
 #include "ei_geometrymanager.h"
 #include "ei_event.h"
+#include "ei_placer.h"
 
 /* par Nelson*/
 typedef struct {
@@ -176,6 +177,7 @@ extern ei_widget_t root_widget;
 
 extern ei_geometrymanager_t* liste_des_geometrie;
 extern ei_linked_rect_t* surfaces_mise_a_jour;
+extern ei_rect_t* clipper_final;
 extern uint32_t compteur_pick_id;
 
 //fonction pour transformer un pick_id en couleur
@@ -228,4 +230,10 @@ typedef struct link_widget {
 }link_widget;
 extern link_widget* liste_des_widgets;
 bool bouton_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool toplevel_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool toplevel_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool toplevel_handler_2(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool toplevel_redimension(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+
+static inline void ei_place_wh		(ei_widget_t widget, int w, int h)			{ ei_place(widget, NULL, NULL, NULL, &w, &h, NULL, NULL, NULL, NULL); }
 #endif
