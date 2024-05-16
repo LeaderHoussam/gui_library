@@ -12,6 +12,7 @@
 #include "ei_types.h"
 #include "ei_widget.h"
 #include "ei_geometrymanager.h"
+#include "ei_event.h"
 
 /* par Nelson*/
 typedef struct {
@@ -34,7 +35,17 @@ ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle, int32_t h);
 ei_arc_bg_t* triangle_frame_bg(ei_rect_t rectangle);
 
 ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle);
+
 ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_font_t	font, ei_anchor_t text_anchor);
+
+ei_rect_ptr_t place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t img_rect, ei_anchor_t img_anchor);
+
+void free_place_text( ei_point_t* point );
+
+void free_place_img( ei_rect_ptr_t rect );
+
+void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anchor);
+
 
 //void state_button(ei_widget_t widget, ei_relief_t relief, ei_point_t* debut_surface_up, ei_point_t* debut_surface_down, taille_up, couleur_fonce, clipper); );
 
@@ -169,20 +180,84 @@ typedef struct ei_impl_toplevel_t{
 }ei_impl_toplevel_t;
 
 
+typedef struct	ei_impl_entry_t {
+    ei_impl_widget_t widget;
+    int requested_char_size;
+    ei_color_t color;
+    int border_width;
+    ei_font_t text_font;
+    ei_color_t    text_color;
+
+}ei_impl_entry_t;
+
+
 
 // on va ajouter dans ce fichier, l'instanciation  de nos classes
 ei_widgetclass_t* init_frame_classe(void );
 ei_widgetclass_t* init_button_classe(void );
 ei_widgetclass_t* init_toplevel_classe(void );
 ei_geometrymanager_t*  init_placeur(void);
+ei_widgetclass_t* init_entry_classe(void );
+
+
 extern ei_widgetclass_t* liste_des_classe;
 extern ei_surface_t root_window;
+extern ei_surface_t surface_arriere;
 extern ei_widget_t root_widget;
 extern ei_geometrymanager_t* liste_des_geometrie;
 extern ei_linked_rect_t* surfaces_mises_a_jour;
 extern uint32_t compteur_pick_id;
+//extern int espace;
+
+//fonction pour transformer un pick_id en couleur
+ei_color_t* map_pick_id_to_color(ei_surface_t surface, uint32_t pick_id);
 
 
-ei_color_t* map_pick_id_to_color(uint32_t pick_id);
+// pour capter les données de l'evenement:
+extern ei_event_t* evenement;
 
+// ICI JE VAIS DEFINIR DES TYPES GENERAUX POUR CAPTER
+// POUR LIER DES TRAITANTS À CHAQUE ÉVÈNEMENTS
+// ON PENSERA BIEN À CE QUE NOS TRAITANTS INTERNES RENVOIE
+// FALSE POUR POUVOIR TRAITER LES TRAITANTS EXTERNES
+// QUE L'UTILISATEUR AJOUTERA
+
+// concretement, chaque évènement aura une liste chainées de traitants
+// et ei_bind va ajouter des traitants à la liste des traitants d'un évènement
+// on va créer une structure xxx dont les elements sont les paramètres de bind ou unbind
+// on va aussi créer une fonction execute structure qui verifie si le traitant doit etre executer et le fait:
+// donc chaque evènements aura une liste chainées de xxx
+// bind ajoute un éléments de type xxx à cette liste et unbid l'en suprimme
+// on et on appelera execute sur les évènements de cette liste
+
+// j'appelle la structure traitant_t
+typedef struct traitant_t {
+    //ei_eventtype_t evenement;
+    ei_widget_t widget;
+    ei_tag_t tag;
+    ei_callback_t callback;
+    void* user_param;
+    struct traitant_t* next;
+}traitant_t;
+
+// on cree aussi une structure de transcriptage d'un évènement
+typedef struct event_with_callback {
+    ei_eventtype_t event;
+    traitant_t* liste_des_traitants;
+    struct event_with_callback* next;
+}event_with_callback;
+
+extern event_with_callback* liste_des_events_enregistres;
+bool execute_traitant(ei_event_t* event, traitant_t traitant);
+traitant_t* trouve_traitant(ei_eventtype_t eventtype);
+ei_widget_t get_widget_actuel(ei_event_t* event);
+ei_color_t* get_pick_screen_color(ei_point_t pos_souris);
+ei_widget_t get_widget_from_pick_color(ei_color_t pick_color);
+
+typedef struct link_widget {
+    ei_widget_t widget;
+    struct link_widget* next;
+}link_widget;
+extern link_widget* liste_des_widgets;
+bool bouton_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
 #endif

@@ -71,7 +71,7 @@ void			ei_frame_configure		(ei_widget_t		widget,
 
 }
 
-// bouton configure
+// configuratin d'un button
 
 void			ei_button_configure		(ei_widget_t		widget,
                                             ei_size_t*		requested_size,
@@ -156,7 +156,7 @@ void			ei_button_configure		(ei_widget_t		widget,
 
 }
 
-// configuratin d'un widget
+// configuratin d'un toplevel
 void			ei_toplevel_configure		(ei_widget_t		widget,
                                               ei_size_t*		requested_size,
                                               const ei_color_t*	color,
@@ -193,4 +193,32 @@ void			ei_toplevel_configure		(ei_widget_t		widget,
 
 }
 
+// configuratin d'un entry
+void			ei_entry_configure		(ei_widget_t		widget,
+                                           int*			requested_char_size,
+                                           const ei_color_t*	color,
+                                           int*			border_width,
+                                           ei_font_t*		text_font,
+                                           ei_color_t*		text_color){
 
+
+    ei_impl_entry_t* entry = (ei_impl_entry_t*) widget;
+
+    if (!verifie_si_null(requested_char_size)) {
+        entry->requested_char_size = *requested_char_size;
+    }
+    if(color != NULL) {
+        entry->color = *color;
+    }
+    if (!verifie_si_null(border_width)) {
+        entry->border_width = *border_width;
+    }
+    if ( !verifie_si_null(text_font) ) {
+        entry->text_font = *text_font;
+    }
+    if ( !verifie_si_null(text_color) ) {
+        entry->text_color = *text_color;
+    }
+
+
+}

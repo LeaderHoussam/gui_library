@@ -16,13 +16,15 @@
 #include "ei_implementation.h"
 
 ei_surface_t root_window = NULL;
+ei_surface_t surface_arriere = NULL;
 ei_widget_t root_widget = NULL;
 ei_linked_rect_t* surfaces_mise_a_jour = NULL;
 ei_rect_t* clipper_final = NULL;
-uint32_t compteur_pick_id = 1;
+uint32_t compteur_pick_id = 256;
 
+bool quitter = false;
 
-extern ei_widgetclass_t* liste_des_classe;
+//extern ei_widgetclass_t* liste_des_classe;
 int min(int a, int b);
 int max(int a, int b);
 //ei_rect_t* clipper_mise_à_jour(ei_linked_rect_t*);
@@ -31,7 +33,7 @@ void ei_app_create(ei_size_t main_window_size, bool fullscreen){
 
     //enregistrement des classes:
     // pour l'instant, on enregistre  juste la classe frame
-    ei_default_font  = hw_text_font_create	(ei_default_font_filename,ei_style_normal, ei_font_default_size);
+    //ei_default_font  = hw_text_font_create	(ei_default_font_filename,ei_style_normal, ei_font_default_size);
     // on initialise la liste des classes
     printf("j'ai bien fait le init");
     ei_widgetclass_t* classe_frame = init_frame_classe();
@@ -53,11 +55,15 @@ void ei_app_create(ei_size_t main_window_size, bool fullscreen){
     //enregistrement des geometry:
 
     root_window =   hw_create_window(main_window_size, fullscreen);
+    surface_arriere = hw_surface_create(root_window, hw_surface_get_size(root_window), false);
     //hw_surface_lock(root_window);
     root_widget = ei_widget_create("frame", NULL,NULL, NULL);
     ei_size_t taille = hw_surface_get_size(root_window);
     ei_frame_configure(root_widget, &taille, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
     //hw_surface_unlock(root_window);
+
+    ei_bind(ei_ev_mouse_buttondown, NULL, "button",bouton_handler, NULL);
+    ei_bind(ei_ev_mouse_buttonup, NULL, "button",bouton_handler, NULL);
 }
 
 ei_widget_t ei_app_root_widget(void) {
@@ -69,7 +75,7 @@ void ei_app_run(void){
     //
     ei_widget_t racine = ei_app_root_widget();
     const ei_surface_t surface_principale = ei_app_root_surface();
-    ei_surface_t surface_arriere = hw_surface_create(surface_principale, hw_surface_get_size(surface_principale), false);
+    //ei_surface_t surface_arriere = hw_surface_create(surface_principale, hw_surface_get_size(surface_principale), false);
     // on doit normalement parcourir ici la hierarchie pour
     // afficher, mais je ne la comprend pas bien encore,
     // on affihce donc notre seul frame root  d'abord pour voir
@@ -77,7 +83,15 @@ void ei_app_run(void){
     //ici on affiche tout l'écran initiale avant de rentrer dans la gestion des events
     (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, racine->content_rect);
     hw_surface_update_rects(surface_principale, NULL);
+/*
+    if (surfaces_mise_a_jour != NULL) {
+        (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, clipper_final);
+        hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+    }
+    */
+
     /* on met le clipper de la racine à NULL,
+
      * ensuite on le modifiera pour le faire pointer vers nos surfaces mises à jour
      * (on va créer une variable globale pour gèrer les surfaces mises à jour)
      * ei_rect_t* surfaces_mis_a_jour;
@@ -89,8 +103,38 @@ void ei_app_run(void){
      * hw_surfaces updates_rect.
      */
 
-    hw_surface_free(surface_arriere);
-    getchar();
+    ei_color_t* col_pic = get_pick_screen_color((ei_point_t){350, 250});
+    printf("la couleur de la pickcolor  à 350, 250 est : \n"
+           "r : %u, g: %u, b: %u, a: %u ", col_pic->red, col_pic->green, col_pic->blue, col_pic->alpha);
+
+    surfaces_mise_a_jour = NULL;
+    clipper_final = NULL;
+    ei_event_t* evenement = calloc(1,sizeof(ei_event_t));
+    while(!quitter) {
+        if (surfaces_mise_a_jour != NULL) {
+            (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, racine->content_rect);
+            hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+        }
+
+        surfaces_mise_a_jour = NULL;
+        clipper_final = NULL;
+
+        //ei_app_quit_request(); // à commenter quand tout sera bon
+        hw_event_wait_next(evenement);
+        // il faut maintenant traiter l'évènement
+        //event_with_callback* mes_types_event = liste_des_events_enregistres;
+        ei_eventtype_t type_event = evenement->type;
+        traitant_t* liste = trouve_traitant(type_event);
+        //traitant_t* liste = type_evenement->liste_des_traitants;
+        while( liste != NULL && !execute_traitant(evenement, *liste)) {
+            liste = liste->next;
+        }
+
+    }
+
+
+    //hw_surface_free(surface_arriere);
+    //getchar();
 }
 
 void ei_app_free(void){
@@ -99,6 +143,11 @@ void ei_app_free(void){
 
 ei_surface_t ei_app_root_surface(void) {
     return root_window;
+}
+
+// permet de quitter l'application
+void ei_app_quit_request(void) {
+    quitter = true;
 }
 
 // chaque fois qu'on rentre dans cette fonction
@@ -142,6 +191,7 @@ void ei_app_invalidate_rect(const ei_rect_t* rect) {
         copie->next = nouveau;
     }
 }
+
 
 // fonction min et max
 int min(int a, int b) {
