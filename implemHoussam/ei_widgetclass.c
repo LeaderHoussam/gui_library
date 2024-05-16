@@ -12,6 +12,7 @@
 #include "ei_implementation.h"
 #include "ei_draw.h"
 #include "ei_types.h"
+#include "ei_utils.h"
 
 //extern ei_widgetclass_t* liste_des_classe =calloc(sizeof(ei_widgetclass_t), 1);
 ei_widgetclass_t* liste_des_classe = NULL;
@@ -113,9 +114,42 @@ void drawfunc_frame(ei_widget_t		widget,
     if (frame->text) {
         ei_point_t *where;
         where = place_text(widget, frame->text, frame->text_font, frame->text_anchor);
-
         ei_draw_text(surface, where, frame->text, frame->text_font, frame->text_color, widget->content_rect);
+
     }
+    if (frame->text) {
+        ei_point_t *where;
+        where = place_text(widget, frame->text, frame->text_font, frame->text_anchor);
+        ei_draw_text(surface, where, frame->text, frame->text_font, frame->text_color, clipper);
+        free_place_text(where);
+    }
+
+    if (frame->img) {
+        ei_surface_t source = frame->img;
+        //ei_point_t pt = {300,300};
+        //ei_rect_t dst_rect = (ei_rect_t){ei_point_neg(widget->screen_location.top_left), widget->requested_size};
+        //ei_rect_t dst_rect = (ei_rect_t){ei_point_neg(pt), widget->requested_size};
+/*
+        ei_rect_ptr_t src_rect = frame->img_rect;
+        ei_rect_ptr_t dst_rect = place_img ( widget, frame->img, frame->img_rect, frame->img_anchor);
+
+        compare_rect(widget, src_rect, dst_rect, frame->img_anchor);
+*/
+
+        ei_rect_ptr_t src_rect = frame->img_rect;
+        compare_rect(widget, src_rect, frame->img_anchor);
+        ei_rect_ptr_t dst_rect = place_img ( widget, frame->img, frame->img_rect, frame->img_anchor);
+        //ei_rect_ptr_t dst_rect = place_img ( widget, frame->img, frame->img_rect, frame->img_anchor);
+        //ei_point_t pt = { 212,0 };
+        //ei_rect_t src_rect = (ei_rect_t){ei_point_neg(pt), widget->requested_size};
+
+
+        ei_copy_surface(surface, dst_rect, source, src_rect, false);
+
+        free_place_img(dst_rect);
+
+    }
+
 
     ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
 
@@ -293,6 +327,16 @@ void drawfunc_button(ei_widget_t		widget,
         //ei_draw_text(surface, where, button->text, button->text_font, button->text_color, clipper);
 
     }
+
+    if (button->img) {
+        ei_surface_t source = button->img;
+        ei_rect_ptr_t src_rect = button->img_rect;
+        compare_rect(widget, src_rect, button->img_anchor);
+        ei_rect_ptr_t dst_rect = place_img ( widget, button->img, button->img_rect, button->img_anchor);
+
+        ei_copy_surface(surface, dst_rect, source, src_rect, false);
+    }
+
 
     ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
 
@@ -567,3 +611,66 @@ ei_widgetclass_t*	ei_widgetclass_from_name	(ei_const_string_t name){
     }
     return NULL;
 }
+
+// allocation mémoire pour entry
+ei_widget_t allocfunc_entry() {
+    ei_impl_entry_t* espace_pour_entry = calloc(1,sizeof(ei_impl_entry_t));
+    ei_widget_t espace = (ei_widget_t) espace_pour_entry;
+    return espace;
+}
+
+void releasefunc_entry(ei_widget_t widget) {
+    // à completer après
+}
+
+void drawfunc_entry(ei_widget_t		widget,
+                    ei_surface_t		surface,
+                    ei_surface_t		pick_surface,
+                    ei_rect_t*		clipper) {
+
+
+
+    hw_surface_lock(surface);
+    hw_surface_lock(pick_surface);
+
+
+    ei_impl_entry_t* entry = (ei_impl_entry_t *) widget;
+
+
+    hw_surface_unlock(surface);
+    hw_surface_unlock(pick_surface);
+    // ei_linked_rect_t* clipp = (ei_linked_rect_t*) clipper;
+
+
+    printf("\nAH AH, fonction draw_toplevel appélee");
+}
+
+void setdefaultsfunc_entry(ei_widget_t widget) {
+    // fonction chargée d'initialisée les valeurs par défauts d'un toplevel
+
+    // les autres parametres non commun aux autres:
+    // on fait d'abord un transcriptage avant de les utiliser
+
+    ei_impl_entry_t* entry = (ei_impl_entry_t *) widget;
+    entry->requested_char_size = 10;
+    entry->border_width =  2 ;
+    entry->color = ei_default_background_color;
+    entry->text_font = ei_default_font;
+    entry->text_color = ei_font_default_color;
+}
+
+void geomnotifyfunc_entry(ei_widget_t widget) {
+}
+
+ei_widgetclass_t* init_entry_classe() {
+    ei_widgetclass_t* classe_entry = calloc(1, sizeof(ei_widgetclass_t));
+    strcpy(classe_entry->name, "entry");
+    classe_entry->allocfunc = &(allocfunc_entry);
+    classe_entry->drawfunc = &(drawfunc_entry);
+    classe_entry->releasefunc = releasefunc_entry;
+    classe_entry->setdefaultsfunc = setdefaultsfunc_entry;
+    classe_entry->geomnotifyfunc = geomnotifyfunc_entry;
+    classe_entry->next = NULL;
+    return classe_entry;
+}
+

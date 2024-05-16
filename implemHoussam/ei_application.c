@@ -22,7 +22,8 @@ ei_widget_t root_widget = NULL;
 ei_linked_rect_t* surfaces_mise_a_jour = NULL;
 ei_rect_t* clipper_final = NULL;
 uint32_t compteur_pick_id = 256;
-bool down_toplevel = NULL;
+bool top_toplevel = NULL;
+bool btm_toplevel = NULL;
 ei_point_t pt_init_toplevel = {0,0};
 
 
@@ -89,7 +90,6 @@ bool do_nothing(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_para
 }
 
 bool search_binding(ei_event_t event, ei_widget_t){
-
 }
 
 void ei_app_run(void){
@@ -115,7 +115,10 @@ void ei_app_run(void){
         //On parcours toute la liste des bindings, c'est pas trop optimisé mais on fait comme ça pour le moment
         ei_event_binding *event_bind;
         event_bind = EVENT_BINDINGS;
-        if (event->type != ei_ev_exposed && event->type != ei_ev_mouse_move) {
+        if (event->type == ei_ev_exposed){
+            continue;
+        }
+        if (event->type != ei_ev_mouse_move) {
             current_widget = ei_widget_pick(&(event->param.mouse.where));
             //while (event->type != event_bind->event_type && current_widget != event_bind->widget) { //
             while (!(event->type == event_bind->event_type && current_widget == event_bind->widget)){
@@ -128,8 +131,8 @@ void ei_app_run(void){
             //current_widget->wclass->drawfunc(current_widget, );
             (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
             hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
-        } else if (event->type == ei_ev_mouse_move && down_toplevel==true){
-            printf("hna");
+        } else if (event->type == ei_ev_mouse_move && (top_toplevel || btm_toplevel)){
+            printf("\n hna \n");
             //current_widget = ei_widget_pick(&(event->param.mouse.where));
             while (!(event->type == event_bind->event_type && current_widget == event_bind->widget)){
                 event_bind = event_bind->next;
@@ -142,125 +145,7 @@ void ei_app_run(void){
             hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
         }
     }
-    ei_unbind(ei_ev_mouse_move, NULL, "all", do_nothing,NULL);
-    free(event);
-    hw_surface_free(offscreen);
-    //getchar();
-}
-
-void ei_app_run2(void) {
-    ei_widget_t racine = ei_app_root_widget();
-    const ei_surface_t surface_principale = ei_app_root_surface();
-    ei_surface_t offscreen = hw_surface_create(surface_principale, hw_surface_get_size(surface_principale), false);
-
-    // Redessiner la racine avant d'entrer dans la boucle des événements
-    (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
-    hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
-
-    // Variables pour la gestion des événements
-    ei_event_t *event;
-    //bool quit_requested = false;
-
-    while (!quit_requested) {
-        hw_event_wait_next(event);
-
-        // Gérer l'événement en fonction de son type
-        /*if (event.type == ei_ev_close) {
-            quit_requested = true;
-        } else {*/
-            ei_widget_t* current_widget = ei_widget_pick(&(event->param.mouse.where));
-
-            // Parcourir les bindings pour trouver et appeler le callback approprié
-            ei_event_binding* event_bind = EVENT_BINDINGS;
-            /*while (event_bind != NULL) {
-                if (event_bind->event_type == event.type &&
-                    (event_bind->widget == current_widget || strcmp(event_bind->tag, "all") == 0)) {
-                    event_bind->callback(current_widget, &event, event_bind->user_param);
-                }
-                event_bind = event_bind->next;
-            }*/
-            while (!(event->type == event_bind->event_type && current_widget == event_bind->widget)){
-                event_bind = event_bind->next;
-                if (event_bind->next == NULL) {
-                    break;
-                }
-            }
-            // Redessiner uniquement si l'événement nécessite une mise à jour de l'affichage
-            if (event->type != ei_ev_exposed && event->type != ei_ev_mouse_move) {
-                (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
-                hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
-            } else if (event->type == ei_ev_mouse_move && down_toplevel) {
-                (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
-                hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
-            }
-       // }
-    }
-
-    hw_surface_free(offscreen);
-}
-
-void ei_app_run0(void) {
-    // Initialise the root widget and the main surface
-    ei_widget_t racine = ei_app_root_widget();
-    const ei_surface_t surface_principale = ei_app_root_surface();
-    ei_surface_t offscreen = hw_surface_create(surface_principale, hw_surface_get_size(surface_principale), false);
-
-    // Initial draw of the root widget
-    (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
-    hw_surface_update_rects(surface_principale, NULL);
-
-    // Variables for tracking updates and events
-    surfaces_mise_a_jour = NULL;
-    clipper_final = NULL;
-    ei_event_t *event = calloc(1, sizeof(ei_event_t));
-
-    while (!quit_requested) {
-        // Wait for the next event
-        hw_event_wait_next(event);
-
-        // Process the event
-        if (event->type != ei_ev_exposed && event->type != ei_ev_mouse_move) {
-            ei_widget_t current_widget = ei_widget_pick(&(event->param.mouse.where));
-            if (current_widget != NULL) {
-                // Find the appropriate event binding
-                ei_event_binding * event_bind = EVENT_BINDINGS;
-                while (event_bind && event_bind->event_type != event->type) {
-                    event_bind = event_bind->next;
-                }
-                if (event_bind && event_bind->callback) {
-                    event_bind->callback(current_widget, &event, event_bind->user_param);
-                }
-            }
-
-            // Redraw the root widget
-            (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
-            hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
-        } else if (event->type == ei_ev_mouse_move && down_toplevel) {
-            ei_widget_t* current_widget = ei_widget_pick(&(event->param.mouse.where));
-            if (current_widget) {
-                // Find the appropriate event binding
-                ei_event_binding * event_bind = EVENT_BINDINGS;
-                while (event_bind && event_bind->event_type != event->type) {
-                    event_bind = event_bind->next;
-                }
-                if (event_bind && event_bind->callback) {
-                    event_bind->callback(current_widget, &event, event_bind->user_param);
-                }
-            }
-
-            // Redraw the root widget
-            (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
-
-            hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
-        }
-
-        // Check for quit event
-        if (event->type == ei_ev_close) {
-            ei_app_quit_request();
-        }
-    }
-
-    // Cleanup
+    //ei_unbind(ei_ev_mouse_move, NULL, "all", do_nothing,NULL);
     free(event);
     hw_surface_free(offscreen);
 }

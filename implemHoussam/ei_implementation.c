@@ -1,9 +1,19 @@
 //
 // Created by ensimag on 5/6/24.
 //
-#include "ei_implementation.h"
 
 #include "ei_application.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include "ei_widgetclass.h"
+
+#include <ei_widget_attributes.h>
+#include <locale.h>
+
+#include "ei_implementation.h"
+#include "ei_draw.h"
+#include "ei_types.h"
+#include "ei_utils.h"
 
 void		ei_impl_widget_draw_children	(ei_widget_t		widget,
                                              ei_surface_t		surface,
@@ -40,7 +50,7 @@ ei_arc_t* arc(int32_t rayon, ei_point_t centre, double angle_debut, double angle
 
         points[taille-1] = point;
 
-        angle_debut = angle_debut + delta/200;
+        angle_debut = angle_debut + delta/10;
     }
 
     ei_arc_t* arcc = malloc(sizeof(ei_arc_t));
@@ -428,12 +438,163 @@ ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_f
         where->y = widget->screen_location.top_left.y;
     }
 
-
     return where;
 
 }
 
-//void state_button(ei_widget_t widget, ei_relief_t relief ) {
+
+ei_rect_ptr_t  place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t img_rect, ei_anchor_t img_anchor){
+
+    ei_rect_ptr_t where = malloc(sizeof(ei_rect_t)); //le rectangle sur la frame sur lequel on va dessiner l'image
+
+    if (strcmp(widget->wclass->name, "frame") == 0){
+
+        ei_impl_frame_t* new_widget = (ei_impl_frame_t*) widget;
+        if (new_widget->img_rect->size.width <= widget->requested_size.width){
+            where->size.width = img_rect->size.width;
+        }
+        if (new_widget->img_rect->size.height <= widget->requested_size.height){
+            where->size.height = img_rect->size.height;
+        }
+
+        if (new_widget->img_rect->size.width > widget->requested_size.width){
+            where->size.width = widget->requested_size.width;
+        }
+        if (new_widget->img_rect->size.height > widget->requested_size.height){
+            where->size.height = widget->requested_size.height;
+        }
+
+
+    }
+
+    else if (strcmp(widget->wclass->name, "button") == 0){
+
+        ei_impl_button_t* new_widget = (ei_impl_button_t*) widget;
+        //si la source est plus petite que la destination
+        if (new_widget->img_rect->size.width <= widget->requested_size.width){
+            where->size.width = img_rect->size.width;
+        }
+        if (new_widget->img_rect->size.height <= widget->requested_size.height){
+            where->size.height = img_rect->size.height;
+        }
+        else{
+            where->size = widget->requested_size;
+        }
+    }
+
+
+    if (img_anchor == ei_anc_none || img_anchor == ei_anc_center){
+        where->top_left.x = widget->screen_location.top_left.x +  widget->screen_location.size.width/2 - img_rect->size.width/2;
+        where->top_left.y = widget->screen_location.top_left.y +  widget->screen_location.size.height/2 - img_rect->size.height/2;
+    }
+
+    else if (img_anchor == ei_anc_south){
+        where->top_left.x = widget->screen_location.top_left.x +  widget->screen_location.size.width/2 - img_rect->size.width/2;
+        where->top_left.y = widget->screen_location.top_left.y +  widget->screen_location.size.height - img_rect->size.height;
+    }
+
+    else if (img_anchor == ei_anc_north){
+        where->top_left.x = widget->screen_location.top_left.x +  widget->screen_location.size.width/2 - img_rect->size.width/2;
+        where->top_left.y = widget->screen_location.top_left.y;
+    }
+
+    else if (img_anchor == ei_anc_east){
+        where->top_left.x = widget->screen_location.top_left.x +  widget->screen_location.size.width - img_rect->size.width;
+        where->top_left.y = widget->screen_location.top_left.y +  widget->screen_location.size.height/2 - img_rect->size.height/2;
+    }
+
+    else if (img_anchor == ei_anc_west){
+        where->top_left.x = widget->screen_location.top_left.x;
+        where->top_left.y = widget->screen_location.top_left.y +  widget->screen_location.size.height/2 - img_rect->size.height/2;
+    }
+
+    else if (img_anchor == ei_anc_southwest){
+        where->top_left.x = widget->screen_location.top_left.x;
+        where->top_left.y = widget->screen_location.top_left.y +  widget->screen_location.size.height - img_rect->size.height;
+    }
+
+    else if (img_anchor == ei_anc_southeast){
+        where->top_left.x = widget->screen_location.top_left.x +  widget->screen_location.size.width - img_rect->size.width;
+        where->top_left.y = widget->screen_location.top_left.y +  widget->screen_location.size.height - img_rect->size.height;
+    }
+
+    else if (img_anchor == ei_anc_northeast){
+        where->top_left.x = widget->screen_location.top_left.x +  widget->screen_location.size.width - img_rect->size.width;
+        where->top_left.y = widget->screen_location.top_left.y;
+    }
+
+    else if (img_anchor == ei_anc_northwest){
+        where->top_left.x = widget->screen_location.top_left.x;
+        where->top_left.y = widget->screen_location.top_left.y;
+    }
+
+    where->top_left = ei_point_neg(where->top_left);
+
+    return where;
+}
+
+
+void free_place_text( ei_point_t* point ){ free(point);}
+
+
+void free_place_img( ei_rect_ptr_t rect ){ free(rect);}
+
+
+void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anchor){
+
+    if (img_anchor == ei_anc_northeast) {
+        if (source->size.width > widget->requested_size.width) {
+            source->top_left.x = source->size.width - widget->requested_size.width;
+            source->size.width = widget->requested_size.width;
+        }
+        if (source->size.height > widget->requested_size.height) {
+            source->size.height = widget->requested_size.height;
+        }
+    }
+
+    if (img_anchor == ei_anc_northwest) {
+        if (source->size.width > widget->requested_size.width) {
+            source->size.width = widget->requested_size.width;
+        }
+        if (source->size.height > widget->requested_size.height) {
+            source->size.height = widget->requested_size.height;
+        }
+
+    }
+
+    if (img_anchor == ei_anc_southwest) {
+
+        if (source->size.width > widget->requested_size.width) {
+            //source->top_left.x = source->size.width - destination->size.width;
+            source->size.width = widget->requested_size.width;
+        }
+        if (source->size.height > widget->requested_size.height) {
+            source->top_left.y = source->size.height - widget->requested_size.height;
+            source->size.height = widget->requested_size.height;
+        }
+    }
+
+    if (img_anchor == ei_anc_southeast) {
+        if (source->size.width > widget->requested_size.width) {
+            source->top_left.x = source->size.width - widget->requested_size.width;
+            source->size.width = widget->requested_size.width;
+        }
+        if (source->size.height > widget->requested_size.height) {
+            source->top_left.y = source->size.height - widget->requested_size.height;
+            source->size.height = widget->requested_size.height;
+        }
+    }
+
+    if (img_anchor == ei_anc_north){
+
+    }
+
+
+
+
+    source->top_left = ei_point_neg(source->top_left);
+
+}
 
 bool bouton_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
     ei_impl_button_t* bouton = (ei_impl_button_t*) widget;

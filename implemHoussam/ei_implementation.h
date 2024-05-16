@@ -14,6 +14,7 @@
 #include "ei_geometrymanager.h"
 #include "ei_event.h"
 #include "ei_widget_attributes.h"
+#include "ei_placer.h"
 
 /* par Nelson*/
 typedef struct {
@@ -35,6 +36,14 @@ ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle, int32_t h);
 ei_arc_bg_t* triangle_frame_bg(ei_rect_t rectangle);
 ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle);
 ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_font_t	font, ei_anchor_t text_anchor);
+
+ei_rect_ptr_t place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t img_rect, ei_anchor_t img_anchor);
+
+void free_place_text( ei_point_t* point );
+
+void free_place_img( ei_rect_ptr_t rect );
+
+void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anchor);
 
 /* fin par Nelson*/
 
@@ -163,6 +172,15 @@ typedef struct ei_impl_toplevel_t{
     ei_size_ptr_t  	min_size;
 }ei_impl_toplevel_t;
 
+typedef struct	ei_impl_entry_t {
+    ei_impl_widget_t widget;
+    int requested_char_size;
+    ei_color_t color;
+    int border_width;
+    ei_font_t text_font;
+    ei_color_t    text_color;
+}ei_impl_entry_t;
+
 // on va ajouter dans ce fichier, l'instanciation  de nos classes
 ei_widgetclass_t* init_button_classe(void);
 ei_widgetclass_t* init_frame_classe(void);
@@ -175,6 +193,7 @@ extern ei_surface_t root_window;
 extern ei_widget_t root_widget;
 extern ei_geometrymanager_t* liste_de_gestionnaires;
 extern ei_linked_rect_t* surfaces_mises_a_jour;
+extern ei_rect_t* clipper_final;
 
 // event gestion
 
@@ -201,8 +220,13 @@ extern uint32_t compteur_pick_id;
 ei_color_t* map_pick_id_to_color(ei_surface_t surface, uint32_t pick_id);
 extern ei_surface_t offscreen;
 
-extern bool down_toplevel ;
+extern bool top_toplevel;
+extern bool btm_toplevel;
 extern ei_point_t pt_init_toplevel;
+static inline void ei_place_wh		(ei_widget_t widget, int w, int h){
+    ei_place(widget, NULL, NULL, NULL, &w, &h, NULL, NULL, NULL, NULL);
+}
+
 
 typedef struct link_widget {
     ei_widget_t widget;

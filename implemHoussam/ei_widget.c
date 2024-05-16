@@ -149,26 +149,40 @@ ei_widget_t ei_widget_pick(ei_point_t *where){
     return current_widget;
 }
 
-/*
-ei_widget_t ei_widget_pick0(ei_point_t *where) {
-    // Commencer à partir de la racine de l'application
-    ei_widget_t racine = root_widget;
-    //trouver la couleur du pixel
-    hw_surface_lock(root_window);
-    uint8_t * ptr_deb_surface = hw_surface_get_buffer(root_window);
-    uint8_t * ptr_point = ptr_deb_surface + (hw_surface_get_size(root_window).width * where->y +  where->x) * 4;
-    if (ptr_deb_surface == ptr_point){
-        printf("on a rien fait !");
-        hw_surface_unlock(root_window);
-        return root_widget;
+void ei_widget_destroy(ei_widget_t widget) {
+    if (widget == NULL) {
+        return;
     }
-    ei_color_t* couleur_pixel;
-    //supposons que l'ordre pour linux est RGBA
-    couleur_pixel->red = ptr_point[0];
-    couleur_pixel->green = ptr_point[1];
-    couleur_pixel->blue = ptr_point[2];
-    couleur_pixel->alpha = ptr_point[3];
-    printf("pt %i", couleur_pixel);
-    // Appeler une fonction récursive pour parcourir les widgets et choisir celui qui correspond au point donné
-    return pick_recursive(racine, couleur_pixel);
-}*/
+    // Recursively destroy all descendants
+    ei_widget_t child = widget->children_head;
+    while (child != NULL) {
+        ei_widget_t next_child = child->next_sibling;
+        ei_widget_destroy(child);
+        child = next_child;
+    }
+    /*
+    if (widget->wclass->destructor != NULL) {
+        widget->wclass->destructor(widget);
+    }
+    */
+    // Remove widget from its parent's child list
+    if (widget->parent != NULL) {
+        ei_widget_t prev_sibling = NULL;
+        ei_widget_t sibling = widget->parent->children_head;
+
+        while (sibling != NULL) {
+            if (sibling == widget) {
+                if (prev_sibling == NULL) {
+                    widget->parent->children_head = widget->next_sibling;
+                } else {
+                    prev_sibling->next_sibling = widget->next_sibling;
+                }
+                break;
+            }
+            prev_sibling = sibling;
+            sibling = sibling->next_sibling;
+        }
+    }
+    // Free the memory used by the widget
+    free(widget);
+}

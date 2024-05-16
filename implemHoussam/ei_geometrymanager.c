@@ -201,7 +201,10 @@ ei_geometrymanager_t*	ei_widget_get_geom_manager	(ei_widget_t widget){
 }
 
 ei_geom_param_t		ei_widget_get_geom_params	(ei_widget_t widget){
-    return widget->geom_params;
+    if (widget->geom_params != NULL) {
+        return widget->geom_params->manager;
+    }
+    return NULL;
 }
 
 void			ei_widget_set_geom_manager	(ei_widget_t widget, ei_geometrymanager_t* manager){
