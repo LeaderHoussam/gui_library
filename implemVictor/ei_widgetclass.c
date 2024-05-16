@@ -8,6 +8,7 @@
 
 #include <ei_utils.h>
 #include <ei_widget_attributes.h>
+#include <ei_widget_configure.h>
 #include <locale.h>
 
 #include "ei_implementation.h"
@@ -115,7 +116,16 @@ void drawfunc_frame(ei_widget_t		widget,
         ei_point_t *where;
         where = place_text(widget, frame->text, frame->text_font, frame->text_anchor);
 
-        ei_draw_text(surface, where, frame->text, frame->text_font, frame->text_color, widget->content_rect);
+        // il faut prendre un clipper qui prend prend juste
+        //les dimension du content_rect inclus dans ceux du parent
+        ei_rect_t* clipper_pour_text;
+        if(widget->parent != NULL) {
+            clipper_pour_text = trouve_inter_rect(*widget->content_rect, *widget->parent->content_rect);
+        }else {
+            clipper_pour_text = widget->content_rect;
+        }
+        ei_draw_text(surface, where, frame->text, frame->text_font, frame->text_color, clipper_pour_text);
+        free(clipper_pour_text);
     }
 
     ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
@@ -123,6 +133,10 @@ void drawfunc_frame(ei_widget_t		widget,
     if (widget->next_sibling != NULL) {
         widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
     }
+    if (widget->children_tail != NULL) {
+        widget->children_tail->wclass->drawfunc(widget->children_tail, surface, pick_surface, widget->content_rect);
+    }
+
 
 
     //ei_surface_t surf	(ei_const_string_t	text, const ei_font_t	font, ei_color_t		color);
@@ -290,9 +304,14 @@ void drawfunc_button(ei_widget_t		widget,
         ei_point_t *where;
         where = place_text(widget, button->text, button->text_font, button->text_anchor);
 
-        ei_draw_text(surface, where, button->text, button->text_font, button->text_color, widget->content_rect);
-        //ei_draw_text(surface, where, button->text, button->text_font, button->text_color, clipper);
-
+        ei_rect_t* clipper_pour_text;
+        if(widget->parent != NULL) {
+            clipper_pour_text = trouve_inter_rect(*widget->content_rect, *widget->parent->content_rect);
+        }else {
+            clipper_pour_text = widget->content_rect;
+        }
+        ei_draw_text(surface, where, button->text, button->text_font, button->text_color, clipper_pour_text);
+        free(clipper_pour_text);
     }
 
     ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
@@ -326,9 +345,9 @@ void setdefaultsfunc_button(ei_widget_t widget) {
     ei_impl_button_t* le_button = (ei_impl_button_t *) widget;
 
     le_button->color = ei_default_background_color;
-    le_button->border_width = 0;
-    le_button->corner_radius = 0;
-    le_button->relief = ei_relief_none;
+    le_button->border_width = k_default_button_border_width;
+    le_button->corner_radius = k_default_button_corner_radius;
+    le_button->relief = ei_relief_raised;
     le_button->text = NULL;
     le_button->text_font = ei_default_font;
     le_button->text_color = ei_font_default_color;
@@ -446,7 +465,13 @@ void drawfunc_toplevel(ei_widget_t		widget,
 
 
     // on va dessiner le rectangle interieur maintenant:
-    ei_draw_polygon(surface,debut_surf,6,couleur,clipper);
+    if (toplevel->resizable != ei_axis_none) {
+        ei_draw_polygon(surface,debut_surf,6,couleur,clipper);
+    }
+    else {
+        ei_point_t surface_int[4] ={pos_debut, {pos_debut.x + dimension.width,pos_debut.y} ,{pos_debut.x + dimension.width,pos_debut.y + dimension.height }, {pos_debut.x ,pos_debut.y + dimension.height} };
+        ei_draw_polygon(surface,surface_int,4,couleur,clipper);
+    }
 
     // on dessine le button de fermeture si closable vaut true
 
@@ -472,6 +497,8 @@ void drawfunc_toplevel(ei_widget_t		widget,
     //ei_rect_t* clipper_pour_enfants = widget->content_rect;
     //clipper_pour_enfants->top_left = pos_debut;
     ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
+    //widget->children_tail->wclass->drawfunc(widget->children_tail, surface, pick_surface, widget->content_rect);
+
 
 
     //dessin du titre
@@ -504,8 +531,10 @@ void drawfunc_toplevel(ei_widget_t		widget,
 
 
     //ei_draw_polygon(surface,carre_resize, 4, (ei_color_t){238,0,0,255}, clipper);
-    ei_draw_polygon(surface,carre_resize, 4, (ei_color_t){238,130,238,255}, clipper);
-    ei_draw_polygon(pick_surface,carre_resize, 4, *widget->pick_color, clipper);
+    if(toplevel->resizable != ei_axis_none) {
+        ei_draw_polygon(surface,carre_resize, 4, (ei_color_t){238,130,238,255}, clipper);
+        ei_draw_polygon(pick_surface,carre_resize, 4, *widget->pick_color, clipper);
+    }
 
 
 
@@ -581,4 +610,9 @@ ei_widgetclass_t*	ei_widgetclass_from_name	(ei_const_string_t name){
         tete = tete->next;
     }
     return NULL;
+}
+
+size_t		ei_widget_struct_size() {
+    size_t size_of_widget = sizeof(*((ei_impl_widget_t*)NULL));
+    return size_of_widget;
 }

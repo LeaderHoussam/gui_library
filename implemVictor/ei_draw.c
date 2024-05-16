@@ -12,6 +12,8 @@
 #include "ei_implementation.h"
 #include "ei_draw.h"
 
+#include <ei_utils.h>
+
 
 #include "hw_interface.h"
 
@@ -51,6 +53,7 @@ void	ei_draw_text	(ei_surface_t		surface,
     hw_surface_get_channel_indices(surf, &ir, &ig, &ib, &ia);
     int x_i = where->x;
     int y_i = where->y;
+    ei_size_t taille_prin = hw_surface_get_size(root_window);
     for(j=0; j < size_surf.height; j++){
 
         for(i=0;i < size_surf.width;i++) {
@@ -61,7 +64,8 @@ void	ei_draw_text	(ei_surface_t		surface,
             //uint8_t tab[4] = {couleur->blue, couleur->green, couleur->red, couleur->alpha};
 
             //x_i+i >= 0 &&  y_i+j>=0 &&
-            if( x_i+i >= pos_deb.x && x_i+i <= pos_deb.x + dim_clip.width && y_i+j >= pos_deb.y && y_i+j <= pos_deb.y + dim_clip.height) {
+            if(x_i+i >= 0 &&  y_i+j>=0 && x_i+i < taille_prin.width && y_i+j < taille_prin.height&&
+                x_i+i >= pos_deb.x && x_i+i <= pos_deb.x + dim_clip.width && y_i+j >= pos_deb.y && y_i+j <= pos_deb.y + dim_clip.height) {
                 r_s = pointeur_surf[ir];
                 g_s = pointeur_surf[ig];
                 b_s = pointeur_surf[ib];
@@ -83,6 +87,21 @@ void	ei_draw_text	(ei_surface_t		surface,
     }
     hw_surface_unlock(surf);
     hw_surface_free(surf);
+    hw_surface_unlock(surface);
+
+}
+
+void	ei_fill			(ei_surface_t		surface,
+                 const ei_color_t*	color,
+                 const ei_rect_t*	clipper) {
+
+    int w = clipper->size.width;
+    int h = clipper->size.height;
+    int x = clipper->top_left.x;
+    int y = clipper->top_left.y;
+    hw_surface_lock(surface);
+    ei_point_t coins[4] = {clipper->top_left,(ei_point_t){x+w,y},(ei_point_t){x+w,y+h} ,(ei_point_t){x,y+h}};
+    ei_draw_polygon(surface,coins,4,*color,clipper);
     hw_surface_unlock(surface);
 
 }
