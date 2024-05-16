@@ -462,8 +462,8 @@ bool toplevel_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t use
         (pos_souri.x <= coin_gauche.x+17) && (pos_souri.y <= coin_gauche.y+17)  &&
         (pos_souri.y >= coin_gauche.y+3)) {
         printf("la croix rouge marche");
-        ei_app_invalidate_rect(&widget->screen_location);
-        ei_app_quit_request();
+        ei_widget_destroy(widget);
+        //ei_app_quit_request();
         //widget->screen_location.size = (ei_size_t){0,0};
         //return false;
     }
@@ -482,10 +482,11 @@ bool toplevel_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t u
         (pos_souri.x <= coin_gauche.x+ taille.width) && (pos_souri.y <= coin_gauche.y+20)  &&
         (pos_souri.y >= coin_gauche.y)) {
         // à essayer quand j'aurai fait un_bind
-        //ei_bind(ei_ev_mouse_buttonup, NULL, "all", toplevel_handler_2, NULL);
-        //ei_bind(ei_ev_mouse_move, NULL, "all", toplevel_handler_2, NULL);
+        ei_bind(ei_ev_mouse_buttonup, NULL, "all", toplevel_handler_2, NULL);
+        ei_bind(ei_ev_mouse_move, NULL, "all", toplevel_handler_2, NULL);
 
-
+        pos_mouse = event->param.mouse.where;
+    /*
         while(true) {
             hw_event_wait_next(&event_int);
             if(event_int.type == ei_ev_mouse_move) {
@@ -497,19 +498,26 @@ bool toplevel_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t u
                 new_y =  (geo_par!= NULL) ? (geo_par->y+ pos_int.y - pos_souri.y): pos_int.y - (pos_souri.x-widget->screen_location.top_left.y);
                 ei_place_xy(widget, new_x, new_y);
                 (*(root_widget->wclass->drawfunc))(root_widget, root_window, surface_arriere, root_widget->content_rect);
-                hw_surface_update_rects(root_window, NULL);
+                hw_surface_update_rects(root_window, surfaces_mise_a_jour);
+                surfaces_mise_a_jour = NULL;
                 pos_souri = pos_int;
             }
             else if(event_int.type == ei_ev_mouse_buttonup) {
                 break;
             }
         }
+        */
+        //widget->parent->children_tail = widget;
+        //ei_app_invalidate_rect(widget->parent->content_rect);
+
     }
+
+
         return false;
 }
 
 bool toplevel_handler_2(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
-        ei_point_t pos_souri = event->param.mouse.where;
+        //ei_point_t pos_souri = event->param.mouse.where;
         ei_point_t coin_gauche = widget->screen_location.top_left;
         ei_size_t taille = widget->screen_location.size;
         ei_impl_placeur_t* geo_par = (ei_impl_placeur_t*)widget->geom_params;
@@ -517,18 +525,18 @@ bool toplevel_handler_2(ei_widget_t widget, ei_event_t* event, ei_user_param_t u
         ei_event_t event_int;
         ei_point_t pos_int;
 
-        hw_event_wait_next(&event_int);
-        if(event_int.type == ei_ev_mouse_move) {
-            pos_int = event_int.param.mouse.where;
-            new_x =  pos_int.x - (pos_souri.x-widget->screen_location.top_left.x);
+        //hw_event_wait_next(&event_int);
+        if(event->type == ei_ev_mouse_move) {
+            pos_int = event->param.mouse.where;
+            new_x =  widget->screen_location.top_left.x + pos_int.x - pos_mouse.x;
 
-            new_y =  pos_int.y - (pos_souri.y-widget->screen_location.top_left.y);
+            new_y =  widget->screen_location.top_left.y + pos_int.y - pos_mouse.y;
             //new_x =  (geo_par!= NULL) ? (geo_par->x+ pos_int.x - pos_souri.x): pos_int.x - (pos_souri.x-widget->screen_location.top_left.x);
             //new_y =  (geo_par!= NULL) ? (geo_par->y+ pos_int.y - pos_souri.y): pos_int.y - (pos_souri.x-widget->screen_location.top_left.y);
             ei_place_xy(widget, new_x, new_y);
-            //pos_souri = pos_int;
+            pos_mouse = pos_int;
         }
-        else if(event_int.type == ei_ev_mouse_buttonup) {
+        else if(event->type == ei_ev_mouse_buttonup) {
             ei_unbind(ei_ev_mouse_buttonup, NULL, "all", toplevel_handler_2, NULL);
             ei_unbind(ei_ev_mouse_move, NULL, "all", toplevel_handler_2, NULL);
         }
@@ -561,13 +569,22 @@ bool toplevel_redimension(ei_widget_t widget, ei_event_t* event, ei_user_param_t
                 //new_y =  (geo_par!= NULL) ? (geo_par->y+ pos_int.y - pos_souri.y): pos_int.y - (pos_souri.x-widget->screen_location.top_left.y);
                 new_w = widget->screen_location.size.width + new_x;
                 new_h = widget->screen_location.size.height + new_y;
-                ei_place_wh(widget, new_w, new_h);
+                if(top_level->resizable == ei_axis_both) {
+                    ei_place_wh(widget, new_w, new_h);
+                }
+                else if(top_level->resizable == ei_axis_x) {
+                    ei_place(widget,NULL,NULL, NULL, &new_w, NULL,NULL,NULL,NULL,NULL);
+                }
+                else {
+                    ei_place(widget,NULL,NULL, NULL, NULL, &new_h,NULL,NULL,NULL,NULL);
+                }
 
                 //(*(root_widget->wclass->drawfunc))(root_widget, root_window, surface_arriere, root_widget->content_rect);
                 //hw_surface_update_rects(root_window, NULL);
 
-                (*(root_widget->wclass->drawfunc))(root_widget, root_window, surface_arriere, root_widget->content_rect);
-                hw_surface_update_rects(root_window, NULL);
+                (*(root_widget->wclass->drawfunc))(root_widget, root_window, surface_arriere, clipper_final);
+                hw_surface_update_rects(root_window, surfaces_mise_a_jour);
+                surfaces_mise_a_jour = NULL;
                 pos_souri = pos_int;
             }
             else if(event_int.type == ei_ev_mouse_buttonup) {

@@ -7,6 +7,7 @@
 
 #include "ei_application.h"
 
+#include <ei_utils.h>
 #include <ei_widget_configure.h>
 
 #include "hw_interface.h"
@@ -22,6 +23,7 @@ ei_widget_t root_widget = NULL;
 ei_linked_rect_t* surfaces_mise_a_jour = NULL;
 ei_rect_t* clipper_final = NULL;
 uint32_t compteur_pick_id = 256;//16384;
+ei_point_t pos_mouse = (ei_point_t){0,0};
 
 bool quitter = false;
 //ei_font_t ei_default_font = NULL;
@@ -69,7 +71,7 @@ void ei_app_create(ei_size_t main_window_size, bool fullscreen){
     ei_bind(ei_ev_mouse_buttonup, NULL, "button",bouton_handler, NULL);
     ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_handler, NULL);
     ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_handler_1, NULL);
-    ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_redimension, NULL);
+
 
 
 }
@@ -141,15 +143,21 @@ void ei_app_run(void){
 
 
             (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, clipper_final);
-            hw_surface_update_rects(surface_principale, NULL);
+            hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+            liberer_ei_linked_rect(&surfaces_mise_a_jour);
+            liberer_ei_rect(&clipper_final);
         }
 
 
-        surfaces_mise_a_jour = NULL;
-        clipper_final = NULL;
+
+        //free(surfaces_mise_a_jour);
+        //clipper_final->size = (ei_size_t){0,0};
+        //clipper_final->top_left = (ei_point_t){0,0};
+
 
         //ei_app_quit_request(); // à commenter quand tout sera bon
         hw_event_wait_next(evenement);
+        //pos_mouse = evenement->param.mouse.where;
         // il faut maintenant traiter l'évènement
         //event_with_callback* mes_types_event = liste_des_events_enregistres;
         ei_eventtype_t type_event = evenement->type;
@@ -193,17 +201,21 @@ void ei_app_invalidate_rect(const ei_rect_t* rect) {
     nouveau->rect.size.width += 30;
     nouveau->rect.size.height += 30;
     nouveau->next = NULL;
-    int x_more_left = rect->top_left.x;
-    int new_width =  rect->size.width+30; // j'ajoute ces plus trente pour tenir compte du top level
-    int y_more_top = rect->top_left.y;
-    int new_height = rect->size.height+30;
+
+
 
     if (surfaces_mise_a_jour == NULL) {
         surfaces_mise_a_jour = nouveau;
+        int x_more_left = rect->top_left.x;
+        int new_width =  rect->size.width+30; // j'ajoute ces plus trente pour tenir compte du top level
+        int y_more_top = rect->top_left.y;
+        int new_height = rect->size.height+30;
+
         clipper_final->top_left = (ei_point_t){x_more_left, y_more_top};
         clipper_final->size = (ei_size_t) {new_width,new_height};
     }
     else {
+        /*
         int actual_x = clipper_final->top_left.x;
         int actual_y = clipper_final->top_left.y;
         int actual_width = clipper_final->size.width;
@@ -216,8 +228,13 @@ void ei_app_invalidate_rect(const ei_rect_t* rect) {
 
         clipper_final->top_left.x = final_x;
         clipper_final->top_left.y = final_y;
-        clipper_final->size.width = final_width+30;
-        clipper_final->size.height= final_height+30;
+        clipper_final->size.width = final_width;
+        clipper_final->size.height= final_height;
+        */
+        ei_rect_t* clip = trouve_rect_contenant(*clipper_final, *rect);
+        clipper_final->top_left = clip->top_left;
+        clipper_final->size = clip->size;
+        free(clip);
         ei_linked_rect_t* copie = surfaces_mise_a_jour;
         while(copie->next != NULL) {
             copie = copie->next;
@@ -241,3 +258,69 @@ int max(int a, int b) {
  * je mets à jour les coordonnée du clipper final.
  */
 //ei_rect_t* clipper_mise_à_jour(ei_linked_rect_t*) {}
+
+void liberer_ei_linked_rect(ei_linked_rect_t** liste) {
+    ei_linked_rect_t* current = *liste;
+    while (current != NULL) {
+        ei_linked_rect_t* next = current->next;
+        free(current);
+        current = next;
+    }
+    *liste = NULL;
+}
+
+void liberer_ei_rect(ei_rect_t** clip) {
+    ei_rect_t* current = *clip;
+    free(current);
+    *clip = NULL;
+}
+
+ei_rect_t* trouve_rect_contenant(ei_rect_t rec1, ei_rect_t rec2) {
+    ei_point_t coin_gauche;
+    ei_size_t dim;
+
+    ei_rect_t* retour = malloc(sizeof(ei_rect_t));
+
+    // Trouver les coordonnées du coin supérieur gauche
+    coin_gauche.x = (rec1.top_left.x < rec2.top_left.x) ? rec1.top_left.x : rec2.top_left.x;
+    coin_gauche.y = (rec1.top_left.y < rec2.top_left.y) ? rec1.top_left.y : rec2.top_left.y;
+
+    retour->top_left = coin_gauche;
+    // les coordonnes en bas à droite
+    int droit1 = rec1.top_left.x + rec1.size.width;
+    int droit2 = rec2.top_left.x + rec2.size.width;
+    int bas1 = rec1.top_left.y + rec1.size.height;
+    int bas2 = rec2.top_left.y + rec1.size.height;
+
+    dim.width =  (droit1 > droit2) ? (droit1 - coin_gauche.x) : (droit2 - coin_gauche.x);
+    dim.height = (bas1 > bas2) ? (bas1 - coin_gauche.y) : (bas2 - coin_gauche.y);
+
+    retour->size = dim;
+
+    return retour;
+}
+
+ei_rect_t* trouve_inter_rect(ei_rect_t rect1, ei_rect_t rect2) {
+    ei_rect_t* retour = malloc(sizeof(ei_rect_t));
+    ei_rect_t result;
+
+    // Calcul des coordonnées du coin supérieur gauche du rectangle d'intersection
+    result.top_left.x = (rect1.top_left.x > rect2.top_left.x) ? rect1.top_left.x : rect2.top_left.x;
+    result.top_left.y = (rect1.top_left.y > rect2.top_left.y) ? rect1.top_left.y : rect2.top_left.y;
+
+    // Calcul des coordonnées du coin inférieur droit du rectangle d'intersection
+    int right1 = rect1.top_left.x + rect1.size.width;
+    int right2 = rect2.top_left.x + rect2.size.width;
+    int bottom1 = rect1.top_left.y + rect1.size.height;
+    int bottom2 = rect2.top_left.y + rect2.size.height;
+    result.size.width = (right1 < right2) ? (right1 - result.top_left.x) : (right2 - result.top_left.x);
+    result.size.height = (bottom1 < bottom2) ? (bottom1 - result.top_left.y) : (bottom2 - result.top_left.y);
+
+    // Si les rectangles ne se chevauchent pas, le rectangle d'intersection est vide
+    if (result.size.width < 0 || result.size.height < 0) {
+        result.top_left.x = result.top_left.y = result.size.width = result.size.height = 0;
+    }
+
+    *retour = result;
+    return retour;
+}

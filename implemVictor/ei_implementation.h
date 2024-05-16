@@ -178,6 +178,8 @@ extern ei_widget_t root_widget;
 extern ei_geometrymanager_t* liste_des_geometrie;
 extern ei_linked_rect_t* surfaces_mise_a_jour;
 extern ei_rect_t* clipper_final;
+
+
 extern uint32_t compteur_pick_id;
 
 //fonction pour transformer un pick_id en couleur
@@ -235,5 +237,11 @@ bool toplevel_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t u
 bool toplevel_handler_2(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
 bool toplevel_redimension(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
 
+extern ei_point_t pos_mouse;
+
 static inline void ei_place_wh		(ei_widget_t widget, int w, int h)			{ ei_place(widget, NULL, NULL, NULL, &w, &h, NULL, NULL, NULL, NULL); }
+void liberer_ei_linked_rect(ei_linked_rect_t** liste);
+void liberer_ei_rect(ei_rect_t** clip);
+ei_rect_t* trouve_rect_contenant(ei_rect_t rec1, ei_rect_t rec2);
+ei_rect_t* trouve_inter_rect(ei_rect_t rect1, ei_rect_t rect2);
 #endif

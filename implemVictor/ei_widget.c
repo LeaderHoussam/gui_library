@@ -3,6 +3,9 @@
 //
 
 #include "ei_widget.h"
+
+#include <ei_application.h>
+
 #include "ei_implementation.h"
 #include "ei_widgetclass.h"
 
@@ -104,3 +107,13 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
 
 }
 
+
+void			ei_widget_destroy		(ei_widget_t		widget) {
+    // à modifier
+    widget->geom_params = NULL;
+    ei_app_invalidate_rect(&widget->screen_location);
+}
+
+bool	 		ei_widget_is_displayed		(ei_widget_t		widget) {
+    return (widget->geom_params != NULL);
+}

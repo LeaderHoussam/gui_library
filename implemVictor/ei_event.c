@@ -120,6 +120,10 @@ void ei_unbind(ei_eventtype_t eventtype,
 // création des widgets et ensuite parcourir cette liste
 ei_widget_t get_widget_actuel(ei_event_t* event) {
     ei_point_t pos_souris = event->param.mouse.where;
+    ei_size_t taille_max = root_widget->screen_location.size;
+    if(pos_souris.x > taille_max.width || pos_souris.y > taille_max.height) {
+        return NULL;
+    }
     ei_color_t* pick_screen_color = get_pick_screen_color(pos_souris);
     return get_widget_from_pick_color(*pick_screen_color);
     //return root_widget; // à supprimer après

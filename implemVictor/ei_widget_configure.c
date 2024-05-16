@@ -147,12 +147,13 @@ void			ei_button_configure		(ei_widget_t		widget,
     }
     if ( !verifie_si_null(callback) ) {
         button->callback = *callback;
-        ei_bind(ei_ev_mouse_buttondown,widget,NULL,*callback,NULL);
+        ei_bind(ei_ev_mouse_buttondown,widget,NULL,*callback,(user_param != NULL)?*user_param: NULL);
     }
 
     if ( !verifie_si_null(user_param) ) {
         button->user_param = *user_param;
     }
+
 
 
 }
@@ -191,8 +192,15 @@ void			ei_toplevel_configure		(ei_widget_t		widget,
     if (!verifie_si_null(min_size)) {
         toplevel->min_size = *min_size;
     }
+
     if (!verifie_si_null(resizable)) {
         toplevel->resizable = *resizable;
+        if(*resizable != ei_axis_none) {
+            ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_redimension, NULL);
+        }
+    }
+    else {
+        ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_redimension, NULL);
     }
 
 }
