@@ -21,8 +21,13 @@ ei_surface_t root_window = NULL;
 ei_widget_t root_widget = NULL;
 ei_linked_rect_t* surfaces_mise_a_jour = NULL;
 ei_rect_t* clipper_final = NULL;
-uint32_t compteur_pick_id = 1;
-ei_event_t *event;
+uint32_t compteur_pick_id = 256;
+bool down_toplevel = NULL;
+ei_point_t pt_init_toplevel = {0,0};
+
+
+ei_surface_t offscreen = NULL;
+//ei_event_t *event;
 
 extern ei_widgetclass_t* liste_des_classe;
 int min(int a, int b);
@@ -55,6 +60,8 @@ void ei_app_create(ei_size_t main_window_size, bool fullscreen){
     //enregistrement des geometry:
 
     root_window =   hw_create_window(main_window_size, fullscreen);
+    offscreen = hw_surface_create(root_window, hw_surface_get_size(root_window), false);
+
     //hw_surface_lock(root_window);
     root_widget = ei_widget_create("frame", NULL,NULL, NULL);
     ei_size_t taille = hw_surface_get_size(root_window);
@@ -77,16 +84,28 @@ bool ei_app_should_quit() {
     return quit_requested;
 }*/
 
+bool do_nothing(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param){
+    return true;
+}
+
+bool search_binding(ei_event_t event, ei_widget_t){
+
+}
+
 void ei_app_run(void){
+    //ei_bind(ei_ev_mouse_move, NULL, "all", do_nothing,NULL);
     ei_widget_t racine = ei_app_root_widget();
     const ei_surface_t *surface_principale = ei_app_root_surface();
-    ei_surface_t surface_arriere = hw_surface_create(surface_principale, hw_surface_get_size(surface_principale), false);
+    //offscreen = hw_surface_create(surface_principale, hw_surface_get_size(surface_principale), false);
 
     // Redessiner la racine avant d'entrer dans la boucle des événements
-    (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, racine->content_rect);
+    (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
     hw_surface_update_rects(surface_principale, NULL);
+    surfaces_mise_a_jour = NULL;
+    clipper_final = NULL;
     ei_event_t *event = calloc(1, sizeof(ei_event_t));
     //hw_event_post_app(EVENT_BINDINGS);
+    ei_widget_t current_widget;
 
     while (!quit_requested) {
         // Attendre le prochain événement utilisateur
@@ -94,46 +113,156 @@ void ei_app_run(void){
 
         hw_event_wait_next(event);
         //On parcours toute la liste des bindings, c'est pas trop optimisé mais on fait comme ça pour le moment
-        ei_event_binding* event_bind;
+        ei_event_binding *event_bind;
         event_bind = EVENT_BINDINGS;
-
-        while  (event->type != event_bind->event_type) {
-            event_bind = event_bind->next;
-            if(event_bind->next == NULL){
-                break;
-            }
-        }
-        //ei_widget_t current_widget = ei_widget_pick(&(event->param.mouse.where));
-        ei_widget_t current_widget = root_widget;
-        event_bind->callback(current_widget, event, NULL);
-
-/*
-        // Traiter l'événement
-        if (event->type == ei_ev_keydown) {
-            // Exemple : Si la touche "Escape" est pressée, demander à quitter l'application
-            if (event->param.key_code == SDLK_ESCAPE) {
-                ei_app_quit_request();
-            }
-        } // décommenter après faire ei_widget_pick et ei_event_get_callback
-        else if (event->type == ei_ev_mouse_buttondown) {
-            // Exemple : Si un clic de souris est détecté, identifier le widget concerné et appeler son gestionnaire d'événements
-            ei_widget_t widget_cible = ei_widget_pick(&event->param.mouse.where);
-            if (widget_cible != NULL) {
-                ei_callback_t callback = ei_event_get_callback(event->type, widget_cible, NULL);
-                if (callback != NULL) {
-                    callback(widget_cible, event, NULL);
+        if (event->type != ei_ev_exposed && event->type != ei_ev_mouse_move) {
+            current_widget = ei_widget_pick(&(event->param.mouse.where));
+            //while (event->type != event_bind->event_type && current_widget != event_bind->widget) { //
+            while (!(event->type == event_bind->event_type && current_widget == event_bind->widget)){
+                event_bind = event_bind->next;
+                if (event_bind->next == NULL) {
+                    break;
                 }
             }
-        } else if (event->type == ei_ev_close){
-            ei_app_quit_request();
-        }*/
-        // Redessiner la racine avec les mises à jour
-        (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, racine->content_rect);
-        hw_surface_update_rects(surface_principale, NULL);
+            event_bind->callback(current_widget, event, NULL);
+            //current_widget->wclass->drawfunc(current_widget, );
+            (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
+            hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+        } else if (event->type == ei_ev_mouse_move && down_toplevel==true){
+            printf("hna");
+            //current_widget = ei_widget_pick(&(event->param.mouse.where));
+            while (!(event->type == event_bind->event_type && current_widget == event_bind->widget)){
+                event_bind = event_bind->next;
+                if (event_bind->next == NULL) {
+                    break;
+                }
+            }
+            event_bind->callback(current_widget, event, NULL);
+            (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
+            hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+        }
+    }
+    ei_unbind(ei_ev_mouse_move, NULL, "all", do_nothing,NULL);
+    free(event);
+    hw_surface_free(offscreen);
+    //getchar();
+}
+
+void ei_app_run2(void) {
+    ei_widget_t racine = ei_app_root_widget();
+    const ei_surface_t surface_principale = ei_app_root_surface();
+    ei_surface_t offscreen = hw_surface_create(surface_principale, hw_surface_get_size(surface_principale), false);
+
+    // Redessiner la racine avant d'entrer dans la boucle des événements
+    (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
+    hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+
+    // Variables pour la gestion des événements
+    ei_event_t *event;
+    //bool quit_requested = false;
+
+    while (!quit_requested) {
+        hw_event_wait_next(event);
+
+        // Gérer l'événement en fonction de son type
+        /*if (event.type == ei_ev_close) {
+            quit_requested = true;
+        } else {*/
+            ei_widget_t* current_widget = ei_widget_pick(&(event->param.mouse.where));
+
+            // Parcourir les bindings pour trouver et appeler le callback approprié
+            ei_event_binding* event_bind = EVENT_BINDINGS;
+            /*while (event_bind != NULL) {
+                if (event_bind->event_type == event.type &&
+                    (event_bind->widget == current_widget || strcmp(event_bind->tag, "all") == 0)) {
+                    event_bind->callback(current_widget, &event, event_bind->user_param);
+                }
+                event_bind = event_bind->next;
+            }*/
+            while (!(event->type == event_bind->event_type && current_widget == event_bind->widget)){
+                event_bind = event_bind->next;
+                if (event_bind->next == NULL) {
+                    break;
+                }
+            }
+            // Redessiner uniquement si l'événement nécessite une mise à jour de l'affichage
+            if (event->type != ei_ev_exposed && event->type != ei_ev_mouse_move) {
+                (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
+                hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+            } else if (event->type == ei_ev_mouse_move && down_toplevel) {
+                (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
+                hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+            }
+       // }
     }
 
-    hw_surface_free(surface_arriere);
-    //getchar();
+    hw_surface_free(offscreen);
+}
+
+void ei_app_run0(void) {
+    // Initialise the root widget and the main surface
+    ei_widget_t racine = ei_app_root_widget();
+    const ei_surface_t surface_principale = ei_app_root_surface();
+    ei_surface_t offscreen = hw_surface_create(surface_principale, hw_surface_get_size(surface_principale), false);
+
+    // Initial draw of the root widget
+    (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
+    hw_surface_update_rects(surface_principale, NULL);
+
+    // Variables for tracking updates and events
+    surfaces_mise_a_jour = NULL;
+    clipper_final = NULL;
+    ei_event_t *event = calloc(1, sizeof(ei_event_t));
+
+    while (!quit_requested) {
+        // Wait for the next event
+        hw_event_wait_next(event);
+
+        // Process the event
+        if (event->type != ei_ev_exposed && event->type != ei_ev_mouse_move) {
+            ei_widget_t current_widget = ei_widget_pick(&(event->param.mouse.where));
+            if (current_widget != NULL) {
+                // Find the appropriate event binding
+                ei_event_binding * event_bind = EVENT_BINDINGS;
+                while (event_bind && event_bind->event_type != event->type) {
+                    event_bind = event_bind->next;
+                }
+                if (event_bind && event_bind->callback) {
+                    event_bind->callback(current_widget, &event, event_bind->user_param);
+                }
+            }
+
+            // Redraw the root widget
+            (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
+            hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+        } else if (event->type == ei_ev_mouse_move && down_toplevel) {
+            ei_widget_t* current_widget = ei_widget_pick(&(event->param.mouse.where));
+            if (current_widget) {
+                // Find the appropriate event binding
+                ei_event_binding * event_bind = EVENT_BINDINGS;
+                while (event_bind && event_bind->event_type != event->type) {
+                    event_bind = event_bind->next;
+                }
+                if (event_bind && event_bind->callback) {
+                    event_bind->callback(current_widget, &event, event_bind->user_param);
+                }
+            }
+
+            // Redraw the root widget
+            (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
+
+            hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+        }
+
+        // Check for quit event
+        if (event->type == ei_ev_close) {
+            ei_app_quit_request();
+        }
+    }
+
+    // Cleanup
+    free(event);
+    hw_surface_free(offscreen);
 }
 
 void ei_app_free(void){
@@ -151,15 +280,18 @@ void ei_app_invalidate_rect(const ei_rect_t* rect) {
     }
     ei_linked_rect_t* nouveau  = malloc(sizeof(ei_linked_rect_t));
     nouveau->rect = *rect;
+    nouveau->rect.size.width += 30;
+    nouveau->rect.size.height += 30;
     nouveau->next = NULL;
     int x_more_left = rect->top_left.x;
-    int new_width =  rect->size.width;
+    int new_width =  rect->size.width+30; // j'ajoute ces plus trente pour tenir compte du top level
     int y_more_top = rect->top_left.y;
-    int new_height = rect->size.height;
+    int new_height = rect->size.height+30;
 
     if (surfaces_mise_a_jour == NULL) {
         surfaces_mise_a_jour = nouveau;
-        clipper_final = &((ei_rect_t){{x_more_left, y_more_top}, {new_width,new_height}});
+        clipper_final->top_left = (ei_point_t){x_more_left, y_more_top};
+        clipper_final->size = (ei_size_t) {new_width,new_height};
     }
     else {
         int actual_x = clipper_final->top_left.x;
@@ -174,8 +306,8 @@ void ei_app_invalidate_rect(const ei_rect_t* rect) {
 
         clipper_final->top_left.x = final_x;
         clipper_final->top_left.y = final_y;
-        clipper_final->size.width = final_width;
-        clipper_final->size.height= final_height;
+        clipper_final->size.width = final_width+30;
+        clipper_final->size.height= final_height+30;
         ei_linked_rect_t* copie = surfaces_mise_a_jour;
         while(copie->next != NULL) {
             copie = copie->next;
@@ -184,7 +316,6 @@ void ei_app_invalidate_rect(const ei_rect_t* rect) {
         copie->next = nouveau;
     }
 }
-
 
 // fonction min et max
 int min(int a, int b) {

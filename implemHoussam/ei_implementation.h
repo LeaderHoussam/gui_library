@@ -13,6 +13,7 @@
 #include "ei_widget.h"
 #include "ei_geometrymanager.h"
 #include "ei_event.h"
+#include "ei_widget_attributes.h"
 
 /* par Nelson*/
 typedef struct {
@@ -33,6 +34,8 @@ ei_arc_t* rounded_frame(int32_t rayon, ei_rect_t rectangle);
 ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle, int32_t h);
 ei_arc_bg_t* triangle_frame_bg(ei_rect_t rectangle);
 ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle);
+ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_font_t	font, ei_anchor_t text_anchor);
+
 /* fin par Nelson*/
 
 /**
@@ -108,10 +111,10 @@ typedef struct ei_impl_placeur_t {
     int y;
     int width;
     int height;
-    int rel_x;
-    int rel_y;
-    int rel_width;
-    int rel_height;
+    float rel_x;
+    float rel_y;
+    float rel_width;
+    float rel_height;
 }ei_impl_placeur_t;
 
 typedef struct ei_impl_frame_t{
@@ -154,17 +157,6 @@ typedef struct ei_impl_toplevel_t{
     ei_impl_widget_t widget;
     ei_color_t   color;
     int  	border_width;
-    int     corner_radius;
-    ei_relief_t  	relief;
-    ei_string_t  	text;
-    ei_font_t  	text_font;
-    ei_color_t 	text_color;
-    ei_anchor_t  	text_anchor;
-    ei_surface_t  	img;
-    ei_rect_ptr_t  	img_rect;
-    ei_anchor_t 	img_anchor;
-    ei_callback_t   callback;
-    ei_user_param_t	user_param;
     ei_string_t  	title;
     bool 	closable;
     ei_axis_set_t resizable;
@@ -174,12 +166,14 @@ typedef struct ei_impl_toplevel_t{
 // on va ajouter dans ce fichier, l'instanciation  de nos classes
 ei_widgetclass_t* init_button_classe(void);
 ei_widgetclass_t* init_frame_classe(void);
-ei_geometrymanager_t*  init_placeur(void);
 ei_widgetclass_t* init_toplevel_classe(void);
+
+ei_geometrymanager_t*  init_placeur(void);
+
 extern ei_widgetclass_t* liste_des_classe;
 extern ei_surface_t root_window;
 extern ei_widget_t root_widget;
-extern ei_geometrymanager_t* liste_des_geometrie;
+extern ei_geometrymanager_t* liste_de_gestionnaires;
 extern ei_linked_rect_t* surfaces_mises_a_jour;
 
 // event gestion
@@ -191,7 +185,7 @@ extern ei_linked_rect_t* surfaces_mises_a_jour;
  */
 typedef struct ei_event_binding {
     ei_eventtype_t event_type;
-    ei_widget_t* widget;
+    ei_widget_t widget;
     ei_tag_t tag;
     ei_callback_t callback;
     void* user_param;
@@ -199,57 +193,21 @@ typedef struct ei_event_binding {
 }ei_event_binding;
 
 extern   ei_event_binding* EVENT_BINDINGS;
-extern ei_event_t *event;
-extern uint32_t compteur_pick_id;
-ei_color_t* map_pick_id_to_color(uint32_t pick_id);
+extern ei_linked_rect_t* surfaces_mise_a_jour;
 
-//Il faut corrigé callback
-/*
-ei_callback_t ei_event_get_callback(ei_eventtype_t event_type,
-                                    ei_widget_t* widget,
-                                    ei_user_param_t user_param) {
-    struct ei_event_binding* binding = EVENT_BINDINGS;
-    while (binding) {
-        if (binding->event_type == event_type &&
-            (binding->widget == widget || (binding->tag && strcmp(binding->tag,) == 0))) {
-            return binding->callback;
-        }
-        binding = binding->next;
-    }
-    return NULL;
-}
-*/
-/*
-ei_callback_t ei_event_get_callback(ei_eventtype_t event_type,
-                                    ei_widget_t widget,
-                                    ei_user_param_t user_param) {
-    // Obtenir le gestionnaire d'événements pour le type d'événement donné
-    ei_callback_t callback = NULL;
-    switch (event_type) {
-        case ei_ev_keydown:
-            callback = widget->wclass-> //handle_func.keydown;
-            break;
-        case ei_ev_keyup:
-            callback = widget->wclass->handle_func.keyup;
-            break;
-        case ei_ev_mouse_buttondown:
-            callback = widget->wclass->handle_func.mouse_down;
-            break;
-        case ei_ev_mouse_buttonup:
-            callback = widget->wclass->handle_func.mouse_up;
-            break;
-        case ei_ev_mouse_move:
-            callback = widget->wclass->handle_func.mouse_move;
-            break;
-        case ei_ev_mouse_wheel:
-            callback = widget->wclass->handle_func.mouse_wheel;
-            break;
-        default:
-            // Si aucun gestionnaire d'événements n'est défini pour ce type d'événement, utiliser la fonction de gestion par défaut
-            callback = ei_event_get_default_handle_func();
-            break;
-    }
-    return callback;
-}*/
+// extern ei_event_t *event;
+extern uint32_t compteur_pick_id;
+
+ei_color_t* map_pick_id_to_color(ei_surface_t surface, uint32_t pick_id);
+extern ei_surface_t offscreen;
+
+extern bool down_toplevel ;
+extern ei_point_t pt_init_toplevel;
+
+typedef struct link_widget {
+    ei_widget_t widget;
+    struct link_widget* next;
+}link_widget;
+extern link_widget* liste_des_widgets;
 
 #endif

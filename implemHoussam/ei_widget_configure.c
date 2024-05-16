@@ -4,7 +4,11 @@
 
 #include "ei_widget_configure.h"
 #include "ei_implementation.h"
+#include "ei_event.h"
+#include "ei_application.h"
 #include <stdbool.h>
+#include "stdio.h"
+#include "ei_placer.h"
 
 
 bool verifie_si_null(void* chose_a_tester){
@@ -67,11 +71,43 @@ void			ei_frame_configure		(ei_widget_t		widget,
     if ( !verifie_si_null(img_anchor) ) {
         frame->img_anchor = *img_anchor;
     }
-
-
 }
 
 // bouton configure
+bool events_button(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
+    /*ei_impl_button_t * button = (ei_impl_button_t *) widget;
+    if (event != NULL) {
+        if (event->type == ei_ev_mouse_buttondown && ei_widget_pick(&(event->param.mouse.where)) == button) {
+            button->relief = ei_relief_sunken;
+            //ei_app_invalidate_rect(widget->content_rect);
+            (*(root_widget->wclass->drawfunc))(root_widget, root_window, offscreen, root_widget->content_rect);
+            hw_surface_update_rects(root_window, NULL);
+            printf("appui");
+            return true;
+        } else if (event->type == ei_ev_mouse_buttonup) {
+            button->relief = ei_relief_raised;
+            //ei_app_invalidate_rect(widget->content_rect);
+            return true;
+        }
+    } else {
+        button->relief = ei_relief_none;
+        return false;
+    }*/
+    ei_impl_button_t* bouton = (ei_impl_button_t*) widget;
+    if (event->type == ei_ev_mouse_buttondown) {
+        bouton->relief = ei_relief_sunken;
+        printf("\n Button appuyé \n");
+        ei_app_invalidate_rect(&widget->screen_location);
+        return false;
+    }
+    else if (event->type == ei_ev_mouse_buttonup) {
+        bouton->relief = ei_relief_raised;
+        printf("\n Button relaché \n");
+        ei_app_invalidate_rect(&widget->screen_location);
+        return false;
+    }
+    return true;
+}
 
 void			ei_button_configure		(ei_widget_t		widget,
                                             ei_size_t*		requested_size,
@@ -94,7 +130,15 @@ void			ei_button_configure		(ei_widget_t		widget,
     widget = (ei_widget_t) widget;
     if (requested_size != NULL) {
         widget->requested_size = *requested_size;
+    } else{
+        if (*text) {
+            int width_text;
+            int height_text;
+            hw_text_compute_size( *text,  (((ei_impl_button_t*)widget)->text_font), &width_text, &height_text);
+            widget->requested_size = (ei_size_t){width_text,height_text};
+        }
     }
+
 
     // on fait un transcriptage pour avoir accés aux autres champs
     ei_impl_button_t* button = (ei_impl_button_t*) widget;
@@ -141,10 +185,60 @@ void			ei_button_configure		(ei_widget_t		widget,
         button->user_param = *user_param;
     }
     //un problème user_param
-
+    ei_bind(ei_ev_mouse_buttondown, widget, NULL, events_button,(user_param != NULL)?*user_param: NULL);
+    ei_bind(ei_ev_mouse_buttonup, widget, NULL, events_button,(user_param != NULL)?*user_param: NULL);
 }
 
-// configuratin d'un widget
+bool events_toplevel_down(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
+    ei_impl_toplevel_t *toplevel = (ei_impl_toplevel_t *) widget;
+    //if (toplevel->resizable != ei_axis_none) {
+        if (event->type == ei_ev_mouse_buttondown) {
+            printf("\n mouse down on toplevel\n ");
+            down_toplevel = true;
+            pt_init_toplevel = event->param.mouse.where;
+            return true;
+        } else if (event->type == ei_ev_mouse_buttonup) {
+            down_toplevel = false;
+            printf("\n mouse up from toplevel\n ");
+            return true;
+        }
+    //}
+    return false;
+}
+
+bool events_toplevel_place(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
+    //ei_impl_toplevel_t *toplevel = (ei_impl_toplevel_t *) widget;
+    if (event->type == ei_ev_mouse_move && down_toplevel == true) {
+        printf("\n mouse is moving on toplevel\n");
+        ei_point_t pt_last_toplevel = event->param.mouse.where;
+        int new_x = widget->screen_location.top_left.x + (pt_last_toplevel.x - pt_init_toplevel.x);
+        int new_y = widget->screen_location.top_left.y + (pt_last_toplevel.y - pt_init_toplevel.y);
+        new_x = (new_x>0 && new_x<(root_widget->requested_size.width - widget->requested_size.width))?new_x:0;
+        new_y = (new_y>0 && new_y< (root_widget->requested_size.height - widget->requested_size.height))?new_y:0;
+
+        ei_place_xy(widget, new_x, new_y>0?new_y:0);
+        pt_init_toplevel = event->param.mouse.where;
+    }
+    return true;
+}
+
+
+/*
+           switch (toplevel->resizable) {
+               case ei_axis_both:
+                   toplevel->widget.screen_location.top_left.x += new_x;
+                   toplevel->widget.screen_location.top_left.y += new_y;
+                   break;
+               case ei_axis_x:
+                   toplevel->widget.screen_location.top_left.x += new_x;
+                   break;
+               case ei_axis_y:
+                   toplevel->widget.screen_location.top_left.y += new_y;
+                   break;
+               case ei_axis_none:
+                   break;
+           }*/
+//ei_app_invalidate_rect(&widget->screen_location);
 void			ei_toplevel_configure		(ei_widget_t		widget,
                                               ei_size_t*		requested_size,
                                               const ei_color_t*	color,
@@ -156,11 +250,12 @@ void			ei_toplevel_configure		(ei_widget_t		widget,
 
     if (requested_size != NULL) {
         widget->requested_size = *requested_size;
+        widget->content_rect->size = *requested_size;
     }
 
-    ei_impl_toplevel_t* toplevel = (ei_impl_toplevel_t*) widget;
+    ei_impl_toplevel_t *toplevel = (ei_impl_toplevel_t *) widget;
 
-    if(color != NULL) {
+    if (color != NULL) {
         toplevel->color = *color;
     }
     if (!verifie_si_null(border_width)) {
@@ -178,4 +273,8 @@ void			ei_toplevel_configure		(ei_widget_t		widget,
     if (!verifie_si_null(resizable)) {
         toplevel->resizable = *resizable;
     }
+
+    ei_bind(ei_ev_mouse_buttondown, widget, NULL, events_toplevel_down, NULL);
+    ei_bind(ei_ev_mouse_buttonup, widget, NULL, events_toplevel_down, NULL);
+    ei_bind(ei_ev_mouse_move, widget, NULL, events_toplevel_place, NULL);
 }
