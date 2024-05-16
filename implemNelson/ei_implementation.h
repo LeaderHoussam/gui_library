@@ -40,6 +40,10 @@ ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_f
 
 ei_rect_ptr_t place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t img_rect, ei_anchor_t img_anchor);
 
+void free_arc(ei_arc_t* arc);
+
+void free_arc_bg(ei_arc_bg_t* arc);
+
 void free_place_text( ei_point_t* point );
 
 void free_place_img( ei_rect_ptr_t rect );
@@ -211,6 +215,7 @@ extern uint32_t compteur_pick_id;
 
 //fonction pour transformer un pick_id en couleur
 ei_color_t* map_pick_id_to_color(ei_surface_t surface, uint32_t pick_id);
+void free_color(ei_color_t* color);
 
 
 // pour capter les données de l'evenement:
@@ -260,4 +265,5 @@ typedef struct link_widget {
 }link_widget;
 extern link_widget* liste_des_widgets;
 bool bouton_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+
 #endif

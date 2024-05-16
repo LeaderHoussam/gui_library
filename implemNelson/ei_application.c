@@ -7,6 +7,7 @@
 
 #include "ei_application.h"
 
+#include <ei_utils.h>
 #include <ei_widget_configure.h>
 
 #include "hw_interface.h"
@@ -14,6 +15,7 @@
 #include "ei_widgetclass.h"
 #include "ei_geometrymanager.h"
 #include "ei_implementation.h"
+#include "ei_placer.h"
 
 ei_surface_t root_window = NULL;
 ei_surface_t surface_arriere = NULL;
@@ -21,6 +23,7 @@ ei_widget_t root_widget = NULL;
 ei_linked_rect_t* surfaces_mise_a_jour = NULL;
 ei_rect_t* clipper_final = NULL;
 uint32_t compteur_pick_id = 256;
+ei_point_t pos_mouse = (ei_point_t){0,0};
 
 bool quitter = false;
 
@@ -64,6 +67,7 @@ void ei_app_create(ei_size_t main_window_size, bool fullscreen){
 
     ei_bind(ei_ev_mouse_buttondown, NULL, "button",bouton_handler, NULL);
     ei_bind(ei_ev_mouse_buttonup, NULL, "button",bouton_handler, NULL);
+
 }
 
 ei_widget_t ei_app_root_widget(void) {

@@ -60,6 +60,19 @@ ei_arc_t* arc(int32_t rayon, ei_point_t centre, double angle_debut, double angle
     return arcc;
 }
 
+void free_arc(ei_arc_t* arc){
+    free(arc->points);
+    free(arc);
+}
+
+
+void free_arc_bg(ei_arc_bg_t* arc_bg){
+    free(arc_bg->points_down);
+    free(arc_bg->points_up);
+    free(arc_bg);
+}
+
+
 
 ei_point_t* concatenation_tab(ei_point_t* tab1, int32_t taille1, ei_point_t* tab2, int32_t taille2)
 {
@@ -191,7 +204,7 @@ ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle, int32_t h) {
     int x = rectangle.top_left.x;
     int y = rectangle.top_left.y;
 
-    ei_arc_bg_t *arcc = malloc(sizeof(ei_arc_t));
+    ei_arc_bg_t *arcc = malloc(sizeof(ei_arc_bg_t));
 
 
     ei_point_t c1 = {x + rayon, y + rayon};
@@ -393,6 +406,9 @@ ei_color_t* map_pick_id_to_color(ei_surface_t surface, uint32_t pick_id){
     return color;
 }
 
+void free_color(ei_color_t* color){
+    free(color);
+}
 
 ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_font_t	font, ei_anchor_t text_anchor){
 
