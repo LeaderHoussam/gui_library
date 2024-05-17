@@ -105,3 +105,129 @@ void	ei_fill			(ei_surface_t		surface,
     hw_surface_unlock(surface);
 
 }
+
+
+
+void copy_surface (ei_surface_t source, const ei_point_t origine_src, ei_surface_t destination, const ei_point_t origine_dst, ei_size_t size, bool alpha){
+    //on suppose que les deux sources sont de même taille "à partir des origines considérées" et que toute la surface est utilisée
+    hw_surface_lock(source);
+    hw_surface_lock(destination);
+
+
+    ei_size_t size_src = hw_surface_get_size( source);
+    ei_size_t size_dst = hw_surface_get_size( destination);
+    //ei_size_t size_dst = hw_surface_get_size( source);
+
+
+
+    hw_surface_set_origin(destination, origine_dst);
+    uint8_t* ptr_dst = hw_surface_get_buffer(destination);
+
+    uint8_t* ptr_src = hw_surface_get_buffer(source);
+    //ptr_src = ptr_src + 4*(size_src.width * origine_src.y + origine_src.x);
+    //hw_surface_set_origin(source, origine_src);
+    //uint8_t* ptr_src = hw_surface_get_buffer(source);
+
+
+    int i;
+    int j;
+    int ir, ig, ib, ia;
+    int r_s, g_s, b_s, r_d, g_d, b_d, a_s, a_d;
+
+    if (alpha == false){a_s = 255;}
+
+
+    hw_surface_get_channel_indices(source, &ir, &ig, &ib, &ia);
+
+    for(j=0; j < size.height; j++){
+
+        for(i=0;i < size.width;i++) {
+
+            r_s = ptr_src[ir];
+            g_s = ptr_src[ig];
+            b_s = ptr_src[ib];
+            a_s = ptr_src[ia];
+
+
+            ptr_dst[ir] = (ptr_dst[ir] * (255 - a_s) + r_s * a_s) / 255;
+            ptr_dst[ig] = (ptr_dst[ig] * (255 - a_s) + g_s * a_s) / 255;
+            ptr_dst[ib] = (ptr_dst[ib] * (255 - a_s) + b_s * a_s) / 255;
+
+            ptr_dst += 4;
+            ptr_src += 4;
+        }
+
+
+
+
+        ptr_dst = ptr_dst + 4*(size_dst.width - size.width );
+        ptr_src = ptr_src + 4*(size_src.width - size.width );
+
+    }
+
+    hw_surface_unlock(source);
+    hw_surface_unlock(destination);
+
+}
+
+
+int	ei_copy_surface		(ei_surface_t		destination,
+                               const ei_rect_t*	dst_rect,
+                               ei_surface_t		source,
+                               const ei_rect_t*	src_rect,
+                               bool			alpha) {
+
+    ei_size_t size_source = hw_surface_get_size(source);
+    ei_size_t size_destination = hw_surface_get_size(destination);
+
+    ei_rect_t source_rect = hw_surface_get_rect(source);
+    ei_rect_t destination_rect = hw_surface_get_rect(destination);
+
+    if (src_rect == NULL && dst_rect == NULL) {
+        if (size_source.width != size_destination.width || size_source.height != size_destination.height) {
+            return 1;
+        } else if (size_source.width == size_destination.width && size_source.height == size_destination.height) {
+            const ei_point_t origine_src = source_rect.top_left;
+            const ei_point_t origine_dst = destination_rect.top_left;
+            copy_surface(source, origine_src, destination, origine_dst, destination_rect.size, alpha);
+            return 0;
+        }
+
+    } else if (src_rect == NULL && dst_rect != NULL) {
+        if (size_source.width != dst_rect->size.width || size_source.height != dst_rect->size.height) {
+            return 1;
+        } else if (size_source.width == dst_rect->size.width && size_source.height == dst_rect->size.height) {
+            const ei_point_t origine_src = source_rect.top_left;
+            const ei_point_t origine_dst = dst_rect->top_left;
+            copy_surface(source, origine_src, destination, origine_dst, dst_rect->size, alpha);
+            return 0;
+        }
+
+    } else if (src_rect != NULL && dst_rect == NULL) {
+        if (src_rect->size.width != size_destination.width || src_rect->size.height != size_destination.height) {
+            return 1;
+        } else if (src_rect->size.width == size_destination.width && src_rect->size.height == size_destination.height) {
+            const ei_point_t origine_src = src_rect->top_left;
+            const ei_point_t origine_dst = destination_rect.top_left;
+            copy_surface(source, origine_src, destination, origine_dst, size_destination, alpha);
+            return 0;
+        }
+
+    } else if (src_rect != NULL && dst_rect != NULL) {
+        if (src_rect->size.width != dst_rect->size.width || src_rect->size.height != dst_rect->size.height) {
+            //compare_rect(src_rect, dst_rect);
+            //const ei_point_t origine_src = src_rect->top_left;
+            //const ei_point_t origine_dst = dst_rect->top_left;
+            //copy_surface(source, origine_src, destination, origine_dst, dst_rect->size, alpha);
+
+            return 1;
+        } else if (src_rect->size.width == dst_rect->size.width && src_rect->size.height == dst_rect->size.height) {
+            const ei_point_t origine_src = src_rect->top_left;
+            const ei_point_t origine_dst = dst_rect->top_left;
+            copy_surface(source, origine_src, destination, origine_dst, dst_rect->size, alpha);
+            return 0;
+        }
+
+    }
+
+}

@@ -104,6 +104,7 @@ void ei_unbind(ei_eventtype_t eventtype,
                 } else {
                     event_ptr->liste_des_traitants = traitant_ptr->next;
                 }
+
                 free(traitant_ptr);
                 return; // Sortie de la fonction une fois que le traitant est supprimé
                 }
@@ -157,19 +158,19 @@ ei_color_t* get_pick_screen_color(ei_point_t pos_souris) {
 }
 bool execute_traitant(ei_event_t* event,traitant_t traitant) {
 
-
+    ei_widget_t le_widget = get_widget_actuel(event);
     if(traitant.tag == NULL && traitant.widget != NULL) {
-        if(get_widget_actuel(event) == traitant.widget) {
+        if(le_widget == traitant.widget) {
             return traitant.callback(traitant.widget, event, traitant.user_param);
         }
         //return true;
     }
-    if (traitant.tag != NULL && traitant.widget == NULL){
+    else if (traitant.tag != NULL && traitant.widget == NULL){
             if(strcmp(traitant.tag,"all") == 0){
-                return traitant.callback(get_widget_actuel(event), event, traitant.user_param);
+                return traitant.callback(le_widget, event, traitant.user_param);
             }
-            if( get_widget_actuel(event) != NULL && strcmp(get_widget_actuel(event)->wclass->name,traitant.tag) == 0) {
-                    return traitant.callback(get_widget_actuel(event),event, traitant.user_param);
+            if( le_widget != NULL && strcmp(le_widget->wclass->name,traitant.tag) == 0) {
+                    return traitant.callback(le_widget,event, traitant.user_param);
 
             }
         //return true;

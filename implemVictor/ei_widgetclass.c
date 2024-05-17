@@ -128,14 +128,44 @@ void drawfunc_frame(ei_widget_t		widget,
         free(clipper_pour_text);
     }
 
-    ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
+    if (frame->img) {
+        ei_surface_t source = frame->img;
+        //ei_point_t pt = {300,300};
+        //ei_rect_t dst_rect = (ei_rect_t){ei_point_neg(widget->screen_location.top_left), widget->requested_size};
+        //ei_rect_t dst_rect = (ei_rect_t){ei_point_neg(pt), widget->requested_size};
+        /*
+                ei_rect_ptr_t src_rect = frame->img_rect;
+                ei_rect_ptr_t dst_rect = place_img ( widget, frame->img, frame->img_rect, frame->img_anchor);
+
+                compare_rect(widget, src_rect, dst_rect, frame->img_anchor);
+        */
+
+        ei_rect_ptr_t src_rect = frame->img_rect;
+        compare_rect(widget, src_rect, frame->img_anchor);
+        ei_rect_ptr_t dst_rect = place_img ( widget, frame->img, frame->img_rect, frame->img_anchor);
+        //ei_rect_ptr_t dst_rect = place_img ( widget, frame->img, frame->img_rect, frame->img_anchor);
+        //ei_point_t pt = { 212,0 };
+        //ei_rect_t src_rect = (ei_rect_t){ei_point_neg(pt), widget->requested_size};
+
+
+        ei_copy_surface(surface, dst_rect, source, src_rect, false);
+
+        free_place_img(dst_rect);
+
+    }
+    ei_rect_t* clip_enfant = trouve_inter_rect(*widget->content_rect, *clipper);
+    ei_impl_widget_draw_children(widget, surface, pick_surface, clip_enfant);
+    free(clip_enfant);
 
     if (widget->next_sibling != NULL) {
         widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
     }
+
+
     if (widget->children_tail != NULL) {
         widget->children_tail->wclass->drawfunc(widget->children_tail, surface, pick_surface, widget->content_rect);
     }
+
 
 
 
@@ -314,7 +344,27 @@ void drawfunc_button(ei_widget_t		widget,
         free(clipper_pour_text);
     }
 
-    ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
+
+
+    if (button->img) {
+
+        ei_surface_t source = button->img;
+        ei_rect_ptr_t src_rect = button->img_rect;
+        compare_rect(widget, src_rect, button->img_anchor);
+        ei_rect_ptr_t dst_rect = place_img ( widget, button->img, button->img_rect, button->img_anchor);
+
+        ei_copy_surface(surface, dst_rect, source, src_rect, false);
+
+        free_place_img(dst_rect);
+
+    }
+
+
+
+    ei_rect_t* clip_enfant = trouve_inter_rect(*widget->content_rect, *clipper);
+    ei_impl_widget_draw_children(widget, surface, pick_surface, clip_enfant);
+    free(clip_enfant);
+
 
     if (widget->next_sibling != NULL) {
         widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
@@ -412,6 +462,12 @@ void drawfunc_toplevel(ei_widget_t		widget,
 
     //geomnotifyfunc_toplevel(widget);
 
+    /*
+    if(widget->geom_params == NULL) {
+        return;
+    }
+    */
+
     hw_surface_lock(surface);
     hw_surface_lock(pick_surface);
 
@@ -483,7 +539,9 @@ void drawfunc_toplevel(ei_widget_t		widget,
         double angle_fin = 2*M_PI;
         ei_point_t* cercle = arc(rayon_cercle, centre, angle_debut, angle_fin)->points;
         int32_t	taille_cercle = arc(rayon_cercle, centre, angle_debut, angle_fin)->taille;
-        ei_draw_polygon(surface,cercle, taille_cercle, (ei_color_t){255,50,0,255}, &widget->screen_location);
+        ei_rect_t* clip_ferm = trouve_inter_rect(widget->screen_location, *widget->parent->content_rect);
+        ei_draw_polygon(surface,cercle, taille_cercle, (ei_color_t){255,50,0,255}, clip_ferm);
+        free(clip_ferm);
 
     }
     // dessin de la zone cliquable à droite
@@ -496,7 +554,9 @@ void drawfunc_toplevel(ei_widget_t		widget,
     //nouveau_content->size = dim;
     //ei_rect_t* clipper_pour_enfants = widget->content_rect;
     //clipper_pour_enfants->top_left = pos_debut;
-    ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
+    ei_rect_t* clip_enfant = trouve_inter_rect(*widget->content_rect, *clipper);
+    ei_impl_widget_draw_children(widget, surface, pick_surface, clip_enfant);
+    free(clip_enfant);
     //widget->children_tail->wclass->drawfunc(widget->children_tail, surface, pick_surface, widget->content_rect);
 
 
@@ -513,9 +573,11 @@ void drawfunc_toplevel(ei_widget_t		widget,
     place.x = widget->screen_location.top_left.x + 3*rayon_cercle;
     place.y = widget->screen_location.top_left.y;
 
-    const ei_point_t*	where = &(place);
+    const ei_point_t*	where = &place;
 
-    ei_draw_text(surface, where, toplevel->title, font, ei_font_default_color,&widget->screen_location);
+    ei_rect_t* clip_text = trouve_inter_rect(widget->screen_location, *widget->parent->content_rect);
+    ei_draw_text(surface, where, toplevel->title, font, ei_font_default_color,clip_text);
+    free(clip_text);
 
     hw_text_font_free(font);
 
@@ -558,7 +620,16 @@ void setdefaultsfunc_toplevel(ei_widget_t widget) {
     le_toplevel->border_width = 4;
     le_toplevel->closable = true ;
     le_toplevel->color = ei_default_background_color;
-    le_toplevel->min_size = &((ei_size_t) {160, 120});
+
+    le_toplevel->min_size = malloc(sizeof(ei_size_t));
+    if (le_toplevel->min_size != NULL) {
+        le_toplevel->min_size->width = 160;
+        le_toplevel->min_size->height = 120;
+    } else {
+        // Gestion de l'échec de l'allocation mémoire
+        perror("echec");
+    }
+
     le_toplevel->resizable = ei_axis_both;
     le_toplevel->title = "Toplevel";
 

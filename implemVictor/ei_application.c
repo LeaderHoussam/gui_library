@@ -133,7 +133,11 @@ void ei_app_run(void){
 */
     //surfaces_mise_a_jour = NULL;
     //clipper_final = NULL;
+    liberer_ei_rect(&clipper_final);
+    liberer_ei_linked_rect(&surfaces_mise_a_jour);
     ei_event_t* evenement = calloc(1,sizeof(ei_event_t));
+
+
     while(!quitter) {
 
         if (surfaces_mise_a_jour != NULL) {
@@ -142,8 +146,8 @@ void ei_app_run(void){
             //hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
 
 
-            (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere, clipper_final);
-            hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+            (*(racine->wclass->drawfunc))(racine, surface_principale, surface_arriere,clipper_final);
+            hw_surface_update_rects(surface_principale,surfaces_mise_a_jour);
             liberer_ei_linked_rect(&surfaces_mise_a_jour);
             liberer_ei_rect(&clipper_final);
         }
@@ -164,7 +168,8 @@ void ei_app_run(void){
         traitant_t* liste = trouve_traitant(type_event);
         //traitant_t* liste = type_evenement->liste_des_traitants;
         while( liste != NULL && !execute_traitant(evenement, *liste)) {
-            liste = liste->next;
+
+                liste = liste->next;
         }
 
 
@@ -192,6 +197,7 @@ void ei_app_quit_request(void) {
 
 // chaque fois qu'on rentre dans cette fonction
 // on actualise le clipper final ou refaire nos dessin
+
 void ei_app_invalidate_rect(const ei_rect_t* rect) {
     if(clipper_final == NULL) {
         clipper_final = malloc(sizeof(ei_rect_t));
@@ -206,43 +212,47 @@ void ei_app_invalidate_rect(const ei_rect_t* rect) {
 
     if (surfaces_mise_a_jour == NULL) {
         surfaces_mise_a_jour = nouveau;
-        int x_more_left = rect->top_left.x;
-        int new_width =  rect->size.width+30; // j'ajoute ces plus trente pour tenir compte du top level
-        int y_more_top = rect->top_left.y;
-        int new_height = rect->size.height+30;
+       // int x_more_left = rect->top_left.x;
+        //int new_width =  rect->size.width+30; // j'ajoute ces plus trente pour tenir compte du top level
+        //int y_more_top = rect->top_left.y;
+        //int new_height = rect->size.height+30;
 
-        clipper_final->top_left = (ei_point_t){x_more_left, y_more_top};
-        clipper_final->size = (ei_size_t) {new_width,new_height};
+        //clipper_final->top_left = (ei_point_t){x_more_left, y_more_top};
+        //clipper_final->size = (ei_size_t) {new_width,new_height};
+        *clipper_final = nouveau->rect;
     }
     else {
-        /*
-        int actual_x = clipper_final->top_left.x;
-        int actual_y = clipper_final->top_left.y;
-        int actual_width = clipper_final->size.width;
-        int actual_height = clipper_final->size.height;
 
-        int final_x =min(x_more_left, actual_x);
-        int final_y =min(y_more_top, actual_y);
-        int final_width = max(actual_width, new_width);
-        int final_height = max(actual_height, new_height);
-
-        clipper_final->top_left.x = final_x;
-        clipper_final->top_left.y = final_y;
-        clipper_final->size.width = final_width;
-        clipper_final->size.height= final_height;
-        */
-        ei_rect_t* clip = trouve_rect_contenant(*clipper_final, *rect);
-        clipper_final->top_left = clip->top_left;
-        clipper_final->size = clip->size;
+        ei_rect_t* clip = trouve_rect_contenant(*clipper_final, nouveau->rect);
+        ei_rect_t* final = trouve_inter_rect(root_widget->screen_location, *clip);
+        clipper_final->top_left = final->top_left;
+        clipper_final->size = final->size;
         free(clip);
-        ei_linked_rect_t* copie = surfaces_mise_a_jour;
+        free(final);
+
+        /*
+        ei_rect_t* surf_final = trouve_rect_contenant(surfaces_mise_a_jour->rect, nouveau->rect);
+        surfaces_mise_a_jour->rect = *surf_final;
+        */
+       // ei_linked_rect_t* copie = surfaces_mise_a_jour;
+        /*
         while(copie->next != NULL) {
             copie = copie->next;
 
-        }
-        copie->next = nouveau;
+        }*/
+
+        //ei_linked_rect_t* copie = surfaces_mise_a_jour;
+        ei_rect_t* fin = trouve_inter_rect(root_widget->screen_location, nouveau->rect);
+        nouveau->rect = *fin;
+        nouveau->next = surfaces_mise_a_jour;
+        surfaces_mise_a_jour = nouveau;
+        free(fin);
+        //copie->next = nouveau;
+
     }
 }
+
+
 
 // fonction min et max
 int min(int a, int b) {
@@ -275,10 +285,11 @@ void liberer_ei_rect(ei_rect_t** clip) {
     *clip = NULL;
 }
 
+
+
 ei_rect_t* trouve_rect_contenant(ei_rect_t rec1, ei_rect_t rec2) {
     ei_point_t coin_gauche;
     ei_size_t dim;
-
     ei_rect_t* retour = malloc(sizeof(ei_rect_t));
 
     // Trouver les coordonnées du coin supérieur gauche
@@ -300,14 +311,16 @@ ei_rect_t* trouve_rect_contenant(ei_rect_t rec1, ei_rect_t rec2) {
     return retour;
 }
 
+
+
 ei_rect_t* trouve_inter_rect(ei_rect_t rect1, ei_rect_t rect2) {
     ei_rect_t* retour = malloc(sizeof(ei_rect_t));
     ei_rect_t result;
 
     // Calcul des coordonnées du coin supérieur gauche du rectangle d'intersection
+
     result.top_left.x = (rect1.top_left.x > rect2.top_left.x) ? rect1.top_left.x : rect2.top_left.x;
     result.top_left.y = (rect1.top_left.y > rect2.top_left.y) ? rect1.top_left.y : rect2.top_left.y;
-
     // Calcul des coordonnées du coin inférieur droit du rectangle d'intersection
     int right1 = rect1.top_left.x + rect1.size.width;
     int right2 = rect2.top_left.x + rect2.size.width;
@@ -324,3 +337,112 @@ ei_rect_t* trouve_inter_rect(ei_rect_t rect1, ei_rect_t rect2) {
     *retour = result;
     return retour;
 }
+
+
+
+/*
+ei_rect_t* trouve_rect_contenant(ei_rect_t rect1, ei_rect_t rect2) {
+    // Allocation dynamique du rectangle d'intersection
+    ei_rect_t* intersection_rect = malloc(sizeof(ei_rect_t));
+    if (intersection_rect == NULL) {
+        // Gestion de l'échec de l'allocation mémoire
+        return NULL;
+    }
+
+    // Calcul des coordonnées du rectangle d'intersection
+    int x1 = rect1.top_left.x;
+    int y1 = rect1.top_left.y;
+    int x2 = rect1.top_left.x + rect1.size.width;
+    int y2 = rect1.top_left.y + rect1.size.height;
+    int x3 = rect2.top_left.x;
+    int y3 = rect2.top_left.y;
+    int x4 = rect2.top_left.x + rect2.size.width;
+    int y4 = rect2.top_left.y + rect2.size.height;
+
+    // Trouver les limites du rectangle d'intersection
+    int x_left = max(x1, x3);
+    int y_top = max(y1, y3);
+    int x_right = min(x2, x4);
+    int y_bottom = min(y2, y4);
+
+    // Calculer la largeur et la hauteur du rectangle d'intersection
+    int width = max(0, x_right - x_left);
+    int height = max(0, y_bottom - y_top);
+
+    // Réajuster les coordonnées si elles sont négatives
+    if (x_left < 0) {
+        width -= abs(x_left);
+        x_left = 0;
+    }
+    if (y_top < 0) {
+        height -= abs(y_top);
+        y_top = 0;
+    }
+
+    // Déterminer si les coordonnées du coin supérieur gauche doivent être ajustées
+    if (x_left < 0) {
+        x_left = 0;
+    }
+    if (y_top < 0) {
+        y_top = 0;
+    }
+
+    // Remplir le rectangle d'intersection
+    intersection_rect->top_left.x = x_left;
+    intersection_rect->top_left.y = y_top;
+    intersection_rect->size.width = width;
+    intersection_rect->size.height = height;
+
+    // Retourner le pointeur vers le rectangle d'intersection
+    return intersection_rect;
+}
+*/
+/*
+ei_rect_t* trouve_inter_rect(ei_rect_t rect1, ei_rect_t rect2) {
+    // Allocation dynamique du rectangle d'intersection
+    ei_rect_t* intersection_rect = malloc(sizeof(ei_rect_t));
+    if (intersection_rect == NULL) {
+        // Gestion de l'échec de l'allocation mémoire
+        return NULL;
+    }
+
+    // Calcul des coordonnées du rectangle d'intersection
+    int x1 = rect1.top_left.x;
+    int y1 = rect1.top_left.y;
+    int x2 = rect1.top_left.x + rect1.size.width;
+    int y2 = rect1.top_left.y + rect1.size.height;
+    int x3 = rect2.top_left.x;
+    int y3 = rect2.top_left.y;
+    int x4 = rect2.top_left.x + rect2.size.width;
+    int y4 = rect2.top_left.y + rect2.size.height;
+
+    // Trouver les limites du rectangle d'intersection
+    int x_left = max(x1, x3);
+    int y_top = max(y1, y3);
+    int x_right = min(x2, x4);
+    int y_bottom = min(y2, y4);
+
+    // Calculer la largeur et la hauteur du rectangle d'intersection
+    int width = max(0, x_right - x_left);
+    int height = max(0, y_bottom - y_top);
+
+    // Réajuster les coordonnées si elles sont négatives
+    if (x_left < 0) {
+        width -= abs(x_left);
+        x_left = 0;
+    }
+    if (y_top < 0) {
+        height -= abs(y_top);
+        y_top = 0;
+    }
+
+    // Remplir le rectangle d'intersection
+    intersection_rect->top_left.x = x_left;
+    intersection_rect->top_left.y = y_top;
+    intersection_rect->size.width = width;
+    intersection_rect->size.height = height;
+
+    // Retourner le pointeur vers le rectangle d'intersection
+    return intersection_rect;
+}
+*/

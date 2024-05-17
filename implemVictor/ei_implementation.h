@@ -36,6 +36,15 @@ ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle);
 ei_arc_bg_t* triangle_frame_bg(ei_rect_t rectangle);
 ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_font_t	font, ei_anchor_t text_anchor);
 
+ei_rect_ptr_t place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t img_rect, ei_anchor_t img_anchor);
+
+void free_place_text( ei_point_t* point );
+
+void free_place_img( ei_rect_ptr_t rect );
+
+void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anchor);
+
+
 
 /* fin par Nelson*/
 
@@ -244,4 +253,7 @@ void liberer_ei_linked_rect(ei_linked_rect_t** liste);
 void liberer_ei_rect(ei_rect_t** clip);
 ei_rect_t* trouve_rect_contenant(ei_rect_t rec1, ei_rect_t rec2);
 ei_rect_t* trouve_inter_rect(ei_rect_t rect1, ei_rect_t rect2);
+
+int min(int a, int b);
+int max(int a, int b);
 #endif
