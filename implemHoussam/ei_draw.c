@@ -11,8 +11,7 @@
 
 #include "ei_implementation.h"
 #include "ei_draw.h"
-
-
+#include "ei_utils.h"
 #include "hw_interface.h"
 
 void	ei_draw_text	(ei_surface_t		surface,
@@ -51,6 +50,7 @@ void	ei_draw_text	(ei_surface_t		surface,
     hw_surface_get_channel_indices(surf, &ir, &ig, &ib, &ia);
     int x_i = where->x;
     int y_i = where->y;
+    ei_size_t taille_prin = hw_surface_get_size(root_window);
     for(j=0; j < size_surf.height; j++){
 
         for(i=0;i < size_surf.width;i++) {
@@ -60,7 +60,8 @@ void	ei_draw_text	(ei_surface_t		surface,
             //int valeur_alpha = (*pointeur_surf>>24) & 0xFF;
             //uint8_t tab[4] = {couleur->blue, couleur->green, couleur->red, couleur->alpha};
 
-            if(x_i+i >= pos_deb.x && x_i+i <= pos_deb.x + dim_clip.width && y_i+j >= pos_deb.y && y_i+j <= pos_deb.y + dim_clip.height) {
+            if(x_i+i >= 0 &&  y_i+j>=0 && x_i+i < taille_prin.width && y_i+j < taille_prin.height&&
+               x_i+i >= pos_deb.x && x_i+i <= pos_deb.x + dim_clip.width && y_i+j >= pos_deb.y && y_i+j <= pos_deb.y + dim_clip.height) {
                 r_s = pointeur_surf[ir];
                 g_s = pointeur_surf[ig];
                 b_s = pointeur_surf[ib];
@@ -88,7 +89,7 @@ void	ei_draw_text	(ei_surface_t		surface,
 
 void copy_surface (ei_surface_t source, const ei_point_t origine_src, ei_surface_t destination, const ei_point_t origine_dst, ei_size_t size, bool alpha){
     //on suppose que les deux sources sont de même taille "à partir des origines considérées" et que toute la surface est utilisée
-    hw_surface_lock(source);
+    //hw_surface_lock(source);
     hw_surface_lock(destination);
 
 
@@ -151,7 +152,6 @@ int	ei_copy_surface		(ei_surface_t		destination,
                                ei_surface_t		source,
                                const ei_rect_t*	src_rect,
                                bool			alpha) {
-
     ei_size_t size_source = hw_surface_get_size(source);
     ei_size_t size_destination = hw_surface_get_size(destination);
 

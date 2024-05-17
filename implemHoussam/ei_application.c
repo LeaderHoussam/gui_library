@@ -127,7 +127,8 @@ void ei_app_run(void){
                     break;
                 }
             }
-            event_bind->callback(current_widget, event, NULL);
+            //event_bind->callback(current_widget, event, current_widget->user_data);
+            execute_traitant(event, *event_bind);
             //current_widget->wclass->drawfunc(current_widget, );
             (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
             hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
@@ -140,14 +141,43 @@ void ei_app_run(void){
                     break;
                 }
             }
-            event_bind->callback(current_widget, event, NULL);
+            //event_bind->callback(current_widget, event, NULL);
+            execute_traitant(event, *event_bind);
             (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
             hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+            liberer_ei_linked_rect(&surfaces_mise_a_jour);
+            liberer_ei_rect(&clipper_final);
         }
     }
     //ei_unbind(ei_ev_mouse_move, NULL, "all", do_nothing,NULL);
     free(event);
     hw_surface_free(offscreen);
+}
+
+bool execute_traitant(ei_event_t* event,ei_event_binding traitant) {
+
+
+    if(traitant.tag == NULL && traitant.widget != NULL) {
+        if(ei_widget_pick(&(event->param.mouse.where)) == traitant.widget) {
+            return traitant.callback(traitant.widget, event, traitant.user_param);
+        }
+        //return true;
+    }
+    if (traitant.tag != NULL && traitant.widget == NULL){
+        if(strcmp(traitant.tag,"all") == 0){
+            return traitant.callback(ei_widget_pick(&(event->param.mouse.where)), event, traitant.user_param);
+        }
+        if( ei_widget_pick(&(event->param.mouse.where)) != NULL && strcmp(ei_widget_pick(&(event->param.mouse.where))->wclass->name,traitant.tag) == 0) {
+            return traitant.callback(ei_widget_pick(&(event->param.mouse.where)),event, traitant.user_param);
+
+        }
+        //return true;
+
+    }
+    return false;
+    //return true;
+
+    //return traitant.callback(root_widget->children_head, event, traitant.user_param);
 }
 
 void ei_app_free(void){
@@ -216,3 +246,70 @@ int max(int a, int b) {
  * je mets à jour les coordonnée du clipper final.
  */
 //ei_rect_t* clipper_mise_à_jour(ei_linked_rect_t*) {}
+
+
+void liberer_ei_linked_rect(ei_linked_rect_t** liste) {
+    ei_linked_rect_t* current = *liste;
+    while (current != NULL) {
+        ei_linked_rect_t* next = current->next;
+        free(current);
+        current = next;
+    }
+    *liste = NULL;
+}
+
+void liberer_ei_rect(ei_rect_t** clip) {
+    ei_rect_t* current = *clip;
+    free(current);
+    *clip = NULL;
+}
+
+ei_rect_t* trouve_rect_contenant(ei_rect_t rec1, ei_rect_t rec2) {
+    ei_point_t coin_gauche;
+    ei_size_t dim;
+
+    ei_rect_t* retour = malloc(sizeof(ei_rect_t));
+
+    // Trouver les coordonnées du coin supérieur gauche
+    coin_gauche.x = (rec1.top_left.x < rec2.top_left.x) ? rec1.top_left.x : rec2.top_left.x;
+    coin_gauche.y = (rec1.top_left.y < rec2.top_left.y) ? rec1.top_left.y : rec2.top_left.y;
+
+    retour->top_left = coin_gauche;
+    // les coordonnes en bas à droite
+    int droit1 = rec1.top_left.x + rec1.size.width;
+    int droit2 = rec2.top_left.x + rec2.size.width;
+    int bas1 = rec1.top_left.y + rec1.size.height;
+    int bas2 = rec2.top_left.y + rec1.size.height;
+
+    dim.width =  (droit1 > droit2) ? (droit1 - coin_gauche.x) : (droit2 - coin_gauche.x);
+    dim.height = (bas1 > bas2) ? (bas1 - coin_gauche.y) : (bas2 - coin_gauche.y);
+
+    retour->size = dim;
+
+    return retour;
+}
+
+ei_rect_t* trouve_inter_rect(ei_rect_t rect1, ei_rect_t rect2) {
+    ei_rect_t* retour = malloc(sizeof(ei_rect_t));
+    ei_rect_t result;
+
+    // Calcul des coordonnées du coin supérieur gauche du rectangle d'intersection
+    result.top_left.x = (rect1.top_left.x > rect2.top_left.x) ? rect1.top_left.x : rect2.top_left.x;
+    result.top_left.y = (rect1.top_left.y > rect2.top_left.y) ? rect1.top_left.y : rect2.top_left.y;
+
+    // Calcul des coordonnées du coin inférieur droit du rectangle d'intersection
+    int right1 = rect1.top_left.x + rect1.size.width;
+    int right2 = rect2.top_left.x + rect2.size.width;
+    int bottom1 = rect1.top_left.y + rect1.size.height;
+    int bottom2 = rect2.top_left.y + rect2.size.height;
+    result.size.width = (right1 < right2) ? (right1 - result.top_left.x) : (right2 - result.top_left.x);
+    result.size.height = (bottom1 < bottom2) ? (bottom1 - result.top_left.y) : (bottom2 - result.top_left.y);
+
+    // Si les rectangles ne se chevauchent pas, le rectangle d'intersection est vide
+    if (result.size.width < 0 || result.size.height < 0) {
+        result.top_left.x = result.top_left.y = result.size.width = result.size.height = 0;
+    }
+
+    *retour = result;
+    return retour;
+}

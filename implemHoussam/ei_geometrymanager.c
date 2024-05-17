@@ -27,7 +27,12 @@ void ei_geometry_run_finalize(ei_widget_t widget, ei_rect_t* new_screen_location
         new_screen_location->size.height != widget->screen_location.size.height) {
 
         //schedule a redraw of the screen on the old and new screen location
-        ei_app_invalidate_rect(&(widget->screen_location));
+        ei_rect_t* old_screen_location = malloc(sizeof(ei_rect_t));
+        *old_screen_location = widget->screen_location;
+        if(old_screen_location->size.width != 0 && old_screen_location->size.height != 0
+           && old_screen_location->top_left.x != 0 && old_screen_location->top_left.y != 0) {
+            ei_app_invalidate_rect(old_screen_location);
+        }
         ei_app_invalidate_rect(new_screen_location);
 
         // notify the widget that it's geometry has changed
@@ -40,11 +45,10 @@ void ei_geometry_run_finalize(ei_widget_t widget, ei_rect_t* new_screen_location
         /* je me demande, que se passe t'il si le fils n'a pas de gestionnaire de geometrie
          AH c'est bon: il n'est pas dessiné
          */
-        if (widget->children_head != NULL) {
+        if (widget->children_head != NULL && widget->children_head->geom_params != NULL) {
             widget->children_head->geom_params->manager->runfunc(widget->children_head);
         }
-
-        if (widget->next_sibling != NULL) {
+        if (widget->next_sibling != NULL && widget->next_sibling->geom_params != NULL) {
             widget->next_sibling->geom_params->manager->runfunc(widget->next_sibling);
         }
     }
@@ -196,23 +200,50 @@ ei_geometrymanager_t*	ei_geometrymanager_from_name	(ei_geometrymanager_name_t na
     return NULL;
 }
 
-ei_geometrymanager_t*	ei_widget_get_geom_manager	(ei_widget_t widget){
-    return widget->geom_params->manager;
+/*
+ei_geom_param_t		ei_widget_get_geom_params	(ei_widget_t widget){
+    if (widget->geom_params != NULL) {
+        return widget->geom_params->manager;
+    }
+    return NULL;
+}*/
+
+
+size_t		ei_geom_param_size() {
+    return sizeof(*((ei_impl_geom_param_t*)NULL));
 }
 
-ei_geom_param_t		ei_widget_get_geom_params	(ei_widget_t widget){
+ei_geometrymanager_t*	ei_widget_get_geom_manager	(ei_widget_t widget) {
     if (widget->geom_params != NULL) {
         return widget->geom_params->manager;
     }
     return NULL;
 }
 
-void			ei_widget_set_geom_manager	(ei_widget_t widget, ei_geometrymanager_t* manager){
+void	ei_widget_set_geom_manager	(ei_widget_t widget, ei_geometrymanager_t* manager) {
+    if (widget->geom_params != NULL) {
+        free(widget->geom_params->manager);
+        widget->geom_params->manager = manager;
+    }
+    ei_impl_geom_param_t* new_geo = malloc(sizeof(ei_impl_geom_param_t));
+    new_geo->manager = manager;
+    widget->geom_params = new_geo;
 
 }
 
-void			ei_widget_set_geom_params	(ei_widget_t widget, ei_geom_param_t geom_param){
+ei_geom_param_t		ei_widget_get_geom_params	(ei_widget_t widget) {
+    return widget->geom_params;
+}
 
+
+void			ei_widget_set_geom_params	(ei_widget_t widget, ei_geom_param_t geom_param) {
+    if (widget->geom_params != NULL) {
+        widget->geom_params = geom_param;
+    } else {
+        ei_geom_param_t new_geo = malloc(sizeof(ei_impl_geom_param_t));
+        *new_geo = *geom_param;
+        widget->geom_params = geom_param;
+    }
 }
 
 void			ei_geometrymanager_unmap	(ei_widget_t widget){

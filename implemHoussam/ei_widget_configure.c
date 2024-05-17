@@ -51,7 +51,8 @@ void			ei_frame_configure		(ei_widget_t		widget,
         frame->relief = *relief;
     }
     if ( !verifie_si_null(text) ) {
-        frame->text = *text;
+        frame->text = strdup(*text);
+        //frame->text = *text;
     }
     if ( !verifie_si_null(text_font) ) {
         frame->text_font = *text_font;
@@ -66,7 +67,12 @@ void			ei_frame_configure		(ei_widget_t		widget,
         frame->img = *img;
     }
     if ( !verifie_si_null(img_rect) ) {
-        frame->img_rect = *img_rect;
+        if (frame->img_rect){
+            free(*img_rect);
+        }
+        ei_rect_t *new_img_rect = malloc(sizeof(ei_rect_t));
+        *new_img_rect = *(*img_rect);
+        frame->img_rect = new_img_rect;
     }
     if ( !verifie_si_null(img_anchor) ) {
         frame->img_anchor = *img_anchor;
@@ -157,7 +163,7 @@ void			ei_button_configure		(ei_widget_t		widget,
         button->relief = *relief;
     }
     if ( !verifie_si_null(text) ) {
-        button->text = *text;
+        button->text = strdup(*text);
     }
     if ( !verifie_si_null(text_font) ) {
         button->text_font = *text_font;
@@ -172,8 +178,10 @@ void			ei_button_configure		(ei_widget_t		widget,
         button->img = *img;
     }
     if ( !verifie_si_null(img_rect) ) {
-        if (button->img_rect ){free(*img_rect);}
-        ei_rect_t* new_img_rect = malloc(sizeof(ei_rect_t) );
+        if (button->img_rect){
+            free(*img_rect);
+        }
+        ei_rect_t *new_img_rect = malloc(sizeof(ei_rect_t));
         *new_img_rect = *(*img_rect);
         button->img_rect = new_img_rect;
     }
@@ -182,14 +190,15 @@ void			ei_button_configure		(ei_widget_t		widget,
     }
     if ( !verifie_si_null(callback) ) {
         button->callback = *callback;
+        //ei_bind(ei_ev_mouse_buttondown, widget, NULL, events_button,(user_param != NULL)?*user_param: NULL);
+        ei_bind(ei_ev_mouse_buttondown, widget, NULL, button->callback,(user_param != NULL)?*user_param: NULL);
+
     }
 
     if ( !verifie_si_null(user_param) ) {
         button->user_param = *user_param;
     }
     //un problème user_param
-    ei_bind(ei_ev_mouse_buttondown, widget, NULL, events_button,(user_param != NULL)?*user_param: NULL);
-    ei_bind(ei_ev_mouse_buttonup, widget, NULL, events_button,(user_param != NULL)?*user_param: NULL);
 }
 
 
@@ -300,7 +309,6 @@ void			ei_toplevel_configure		(ei_widget_t		widget,
     if (!verifie_si_null(resizable)) {
         toplevel->resizable = *resizable;
     }
-
     ei_bind(ei_ev_mouse_buttondown, widget, NULL, events_toplevel_down, NULL);
     ei_bind(ei_ev_mouse_buttonup, widget, NULL, events_toplevel_down, NULL);
     ei_bind(ei_ev_mouse_move, widget, NULL, events_toplevel_place, NULL);

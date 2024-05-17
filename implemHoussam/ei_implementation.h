@@ -39,6 +39,10 @@ ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_f
 
 ei_rect_ptr_t place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t img_rect, ei_anchor_t img_anchor);
 
+void free_arc(ei_arc_t* arc);
+
+void free_arc_bg(ei_arc_bg_t* arc);
+
 void free_place_text( ei_point_t* point );
 
 void free_place_img( ei_rect_ptr_t rect );
@@ -210,13 +214,13 @@ typedef struct ei_event_binding {
     void* user_param;
     struct ei_event_binding* next;
 }ei_event_binding;
-
+bool execute_traitant(ei_event_t* event,ei_event_binding traitant);
 extern   ei_event_binding* EVENT_BINDINGS;
 extern ei_linked_rect_t* surfaces_mise_a_jour;
 
 // extern ei_event_t *event;
 extern uint32_t compteur_pick_id;
-
+void free_color(ei_color_t* color);
 ei_color_t* map_pick_id_to_color(ei_surface_t surface, uint32_t pick_id);
 extern ei_surface_t offscreen;
 
@@ -233,5 +237,10 @@ typedef struct link_widget {
     struct link_widget* next;
 }link_widget;
 extern link_widget* liste_des_widgets;
+
+void liberer_ei_linked_rect(ei_linked_rect_t** liste);
+void liberer_ei_rect(ei_rect_t** clip);
+ei_rect_t* trouve_rect_contenant(ei_rect_t rec1, ei_rect_t rec2);
+ei_rect_t* trouve_inter_rect(ei_rect_t rect1, ei_rect_t rect2);
 
 #endif

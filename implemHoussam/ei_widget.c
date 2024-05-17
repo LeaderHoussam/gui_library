@@ -186,3 +186,7 @@ void ei_widget_destroy(ei_widget_t widget) {
     // Free the memory used by the widget
     free(widget);
 }
+
+bool	 		ei_widget_is_displayed		(ei_widget_t		widget) {
+    return (widget->geom_params != NULL);
+}

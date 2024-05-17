@@ -1,19 +1,12 @@
 //
 // Created by ensimag on 5/6/24.
 //
+#include "ei_implementation.h"
+
+#include <ei_placer.h>
+#include <ei_utils.h>
 
 #include "ei_application.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include "ei_widgetclass.h"
-
-#include <ei_widget_attributes.h>
-#include <locale.h>
-
-#include "ei_implementation.h"
-#include "ei_draw.h"
-#include "ei_types.h"
-#include "ei_utils.h"
 
 void		ei_impl_widget_draw_children	(ei_widget_t		widget,
                                              ei_surface_t		surface,
@@ -50,7 +43,7 @@ ei_arc_t* arc(int32_t rayon, ei_point_t centre, double angle_debut, double angle
 
         points[taille-1] = point;
 
-        angle_debut = angle_debut + delta/10;
+        angle_debut = angle_debut + delta/200;
     }
 
     ei_arc_t* arcc = malloc(sizeof(ei_arc_t));
@@ -58,6 +51,18 @@ ei_arc_t* arc(int32_t rayon, ei_point_t centre, double angle_debut, double angle
     arcc->points = points;
 
     return arcc;
+}
+
+void free_arc(ei_arc_t* arc){
+    free(arc->points);
+    free(arc);
+}
+
+
+void free_arc_bg(ei_arc_bg_t* arc_bg){
+    free(arc_bg->points_down);
+    free(arc_bg->points_up);
+    free(arc_bg);
 }
 
 
@@ -191,7 +196,7 @@ ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle, int32_t h) {
     int x = rectangle.top_left.x;
     int y = rectangle.top_left.y;
 
-    ei_arc_bg_t *arcc = malloc(sizeof(ei_arc_t));
+    ei_arc_bg_t *arcc = malloc(sizeof(ei_arc_bg_t));
 
 
     ei_point_t c1 = {x + rayon, y + rayon};
@@ -284,7 +289,7 @@ ei_arc_bg_t* triangle_frame_bg(ei_rect_t rectangle)
     int x = rectangle.top_left.x;
     int y = rectangle.top_left.y;
 
-    ei_arc_bg_t* arcc = malloc(sizeof(ei_arc_t));
+    ei_arc_bg_t* arcc = malloc(sizeof(ei_arc_bg_t));
 
 
 
@@ -308,9 +313,6 @@ ei_arc_bg_t* triangle_frame_bg(ei_rect_t rectangle)
 
     arcc->taille_down = taille_down;
     arcc->points_down = triangle_down;
-
-
-
     return arcc;
 
 }
@@ -393,6 +395,9 @@ ei_color_t* map_pick_id_to_color(ei_surface_t surface, uint32_t pick_id){
     return color;
 }
 
+void free_color(ei_color_t* color){
+    free(color);
+}
 
 ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_font_t	font, ei_anchor_t text_anchor){
 
@@ -438,10 +443,10 @@ ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_f
         where->y = widget->screen_location.top_left.y;
     }
 
+
     return where;
 
 }
-
 
 ei_rect_ptr_t  place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t img_rect, ei_anchor_t img_anchor){
 
@@ -596,19 +601,3 @@ void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anch
 
 }
 
-bool bouton_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
-    ei_impl_button_t* bouton = (ei_impl_button_t*) widget;
-    if (event->type == ei_ev_mouse_buttondown) {
-        bouton->relief = ei_relief_sunken;
-        printf("\n jai appuyé \n");
-        ei_app_invalidate_rect(&widget->screen_location);
-        return false;
-    }
-    else if (event->type == ei_ev_mouse_buttonup) {
-        bouton->relief = ei_relief_raised;
-        printf("\njai relaché\n");
-        ei_app_invalidate_rect(&widget->screen_location);
-        return false;
-    }
-    return true;
-}
