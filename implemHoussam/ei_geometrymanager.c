@@ -61,7 +61,7 @@ void set_value(int *x, int *y, ei_point_t pos_parent, ei_size_t dim_parent) {
 
 void placeur_runfunc(ei_widget_t widget) {
     // les paramètre du parent:
-    if(widget->parent != NULL) {
+    if(widget->parent != NULL && widget->geom_params != NULL) {
         ei_widget_t parent = widget->parent;
         ei_point_t pos_parent = parent->content_rect->top_left;
         ei_size_t dim_parent = parent->content_rect->size;
@@ -271,4 +271,13 @@ void			ei_geometrymanager_unmap	(ei_widget_t widget){
     // Réinitialisation de la position du widget à 0
     widget->screen_location.top_left.x = 0;
     widget->screen_location.top_left.y = 0;
+}
+
+void			ei_geometrymanager_unmap2	(ei_widget_t widget) {
+
+    if(widget->geom_params != NULL) {
+        widget->geom_params = NULL;
+        widget->screen_location.top_left = (ei_point_t ){0,0};
+        widget->screen_location.size = (ei_size_t){0,0};
+    }
 }

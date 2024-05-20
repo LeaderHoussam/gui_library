@@ -48,6 +48,10 @@ void drawfunc_frame(ei_widget_t		widget,
     // cette fonction est chargée de dessiner sur notre frame:
     // on y reviendra
 
+    if(widget->geom_params == NULL && widget!= root_widget) {
+        return;
+    }
+
     hw_surface_lock(surface);
     hw_surface_lock(pick_surface);
 
@@ -74,12 +78,12 @@ void drawfunc_frame(ei_widget_t		widget,
     ei_color_t couleur_fonce = {couleur.red*0.7, couleur.green*0.7, couleur.blue*0.7, couleur.alpha};
     ei_color_t couleur_clair = {couleur.red*1.3, couleur.green*1.3, couleur.blue*1.3, couleur.alpha};
 
+    ei_arc_bg_t* arc_bg = triangle_frame_bg(rectangle_bg);
+    ei_point_t* debut_surface_up = arc_bg->points_up;
+    int32_t	taille_up = arc_bg->taille_up;
 
-    ei_point_t* debut_surface_up = triangle_frame_bg(rectangle_bg)->points_up;
-    int32_t	taille_up = triangle_frame_bg(rectangle_bg)->taille_up;
-
-    ei_point_t* debut_surface_down = triangle_frame_bg(rectangle_bg)->points_down;
-    int32_t	taille_down = triangle_frame_bg(rectangle_bg)->taille_down;
+    ei_point_t* debut_surface_down = arc_bg->points_down;
+    int32_t	taille_down = arc_bg->taille_down;
 
     ei_point_t debut_surface[4] = {top_left, {top_left.x + size.width,top_left.y}, {top_left.x + size.width, top_left.y + size.height}, {top_left.x, top_left.y + size.height} };
     int32_t	taille = 4;
@@ -95,6 +99,7 @@ void drawfunc_frame(ei_widget_t		widget,
         ei_draw_polygon(surface, debut_surface_down, taille_down, couleur_clair, clipper);
         ei_draw_polygon(surface,debut_surface, taille, couleur, clipper);
     }
+
     else if (rel == ei_relief_raised)
     {
         ei_draw_polygon(surface, debut_surface_down, taille_down, couleur_fonce, clipper);
@@ -107,6 +112,8 @@ void drawfunc_frame(ei_widget_t		widget,
         ei_draw_polygon(surface,debut_surface_bg, taille, couleur, clipper);
     }
     ei_draw_polygon(pick_surface,debut_surface_bg, taille, *(widget->pick_color), clipper);
+
+    free_arc_bg(arc_bg);
 
 
 
@@ -121,34 +128,25 @@ void drawfunc_frame(ei_widget_t		widget,
         ei_rect_t* clipper_pour_text;
         if(widget->parent != NULL) {
             clipper_pour_text = trouve_inter_rect(*widget->content_rect, *widget->parent->content_rect);
-        }else {
+        }
+        else {
             clipper_pour_text = widget->content_rect;
         }
+
         ei_draw_text(surface, where, frame->text, frame->text_font, frame->text_color, clipper_pour_text);
         free(clipper_pour_text);
+        free_place_text( where );
     }
 
     if (frame->img) {
         ei_surface_t source = frame->img;
-        //ei_point_t pt = {300,300};
-        //ei_rect_t dst_rect = (ei_rect_t){ei_point_neg(widget->screen_location.top_left), widget->requested_size};
-        //ei_rect_t dst_rect = (ei_rect_t){ei_point_neg(pt), widget->requested_size};
-        /*
-                ei_rect_ptr_t src_rect = frame->img_rect;
-                ei_rect_ptr_t dst_rect = place_img ( widget, frame->img, frame->img_rect, frame->img_anchor);
-
-                compare_rect(widget, src_rect, dst_rect, frame->img_anchor);
-        */
 
         ei_rect_ptr_t src_rect = frame->img_rect;
         compare_rect(widget, src_rect, frame->img_anchor);
         ei_rect_ptr_t dst_rect = place_img ( widget, frame->img, frame->img_rect, frame->img_anchor);
-        //ei_rect_ptr_t dst_rect = place_img ( widget, frame->img, frame->img_rect, frame->img_anchor);
-        //ei_point_t pt = { 212,0 };
-        //ei_rect_t src_rect = (ei_rect_t){ei_point_neg(pt), widget->requested_size};
 
-
-        ei_copy_surface(surface, dst_rect, source, src_rect, false);
+        copy_surface(source, src_rect->top_left,  surface, dst_rect->top_left, src_rect->size, false);
+        //ei_copy_surface(surface, dst_rect, source, src_rect, false);
 
         free_place_img(dst_rect);
 
@@ -255,6 +253,10 @@ void drawfunc_button(ei_widget_t		widget,
     // cette fonction est chargée de dessiner sur notre button:
     // on y reviendra
 
+    if(widget->geom_params == NULL) {
+        return;
+    }
+
     hw_surface_lock(surface);
     hw_surface_lock(pick_surface);
 
@@ -277,7 +279,6 @@ void drawfunc_button(ei_widget_t		widget,
 
     ei_rect_t rectangle = {top_left, size};
 
-    int32_t h = size_bg.height/2;
 
     // transformation du widget en button
     ei_impl_button_t* button = (ei_impl_button_t*) widget;
@@ -286,17 +287,19 @@ void drawfunc_button(ei_widget_t		widget,
     ei_color_t couleur_fonce = {couleur.red*0.7, couleur.green*0.7, couleur.blue*0.7, couleur.alpha};
     ei_color_t couleur_clair = {couleur.red*1.3, couleur.green*1.3, couleur.blue*1.3, couleur.alpha};
 
-    ei_point_t* debut_surface_up = rounded_frame_bg(rayon, rectangle_bg, h)->points_up;
-    int32_t	taille_up = rounded_frame_bg(rayon, rectangle_bg, h)->taille_up;
+    ei_arc_bg_t* arc_bg = rounded_frame_bg(rayon, rectangle_bg);
+    ei_point_t* debut_surface_up = arc_bg->points_up;
+    int32_t	taille_up = arc_bg->taille_up;
+    ei_point_t* debut_surface_down = arc_bg->points_down;
+    int32_t	taille_down = arc_bg->taille_down;
 
-    ei_point_t* debut_surface_down = rounded_frame_bg(rayon, rectangle_bg, h)->points_down;
-    int32_t	taille_down = rounded_frame_bg(rayon, rectangle_bg, h)->taille_down;
+    ei_arc_t* arc_1 = rounded_frame(rayon, rectangle);
+    ei_point_t* debut_surface = arc_1->points;
+    int32_t	taille = arc_1->taille;
 
-    ei_point_t* debut_surface = rounded_frame(rayon, rectangle)->points;
-    int32_t	taille = rounded_frame(rayon, rectangle)->taille;
-
-    ei_point_t* debut_surface_bg = rounded_frame(rayon, rectangle_bg)->points;
-    int32_t	taille_bg = rounded_frame(rayon, rectangle_bg)->taille;
+    ei_arc_t* arc_2 = rounded_frame(rayon, rectangle_bg);
+    ei_point_t* debut_surface_bg = arc_2->points;
+    int32_t	taille_bg = arc_2->taille;
 
 
     ei_relief_t rel = ((ei_impl_button_t*)widget)->relief;
@@ -308,6 +311,7 @@ void drawfunc_button(ei_widget_t		widget,
         ei_draw_polygon(surface,debut_surface, taille, couleur, clipper);
 
     }
+
     else if (rel == ei_relief_raised)
     {
         ei_draw_polygon(surface, debut_surface_down, taille_down, couleur_fonce, clipper);
@@ -322,13 +326,10 @@ void drawfunc_button(ei_widget_t		widget,
 
     ei_draw_polygon(pick_surface,debut_surface_bg, taille_bg, *widget->pick_color, clipper);
 
+    free_arc_bg(arc_bg);
+    free_arc(arc_1);
+    free_arc(arc_2);
 
-
-    //ei_font_t font = hw_text_font_create( ei_default_font_filename, ei_style_normal, size.height/2);
-
-
-    //ei_surface_t surf = hw_text_create_surface(button->text, button->text_font, button->text_color);
-    //ei_size_t size_surf = hw_surface_get_size 	( surf);
 
     if (button->text) {
         ei_point_t *where;
@@ -337,11 +338,13 @@ void drawfunc_button(ei_widget_t		widget,
         ei_rect_t* clipper_pour_text;
         if(widget->parent != NULL) {
             clipper_pour_text = trouve_inter_rect(*widget->content_rect, *widget->parent->content_rect);
-        }else {
+        }
+        else {
             clipper_pour_text = widget->content_rect;
         }
         ei_draw_text(surface, where, button->text, button->text_font, button->text_color, clipper_pour_text);
         free(clipper_pour_text);
+        free_place_text( where );
     }
 
 
@@ -354,13 +357,12 @@ void drawfunc_button(ei_widget_t		widget,
         compare_rect(widget, src_rect, button->img_anchor);
         ei_rect_ptr_t dst_rect = place_img ( widget, button->img, button->img_rect, button->img_anchor);
 
-
-        ei_copy_surface(surface, dst_rect, source, src_rect, false);
+        copy_surface(source, src_rect->top_left,  surface, dst_rect->top_left, src_rect->size, false);
+        //ei_copy_surface(surface, dst_rect, source, src_rect, false);
 
         free_place_img(dst_rect);
 
     }
-
 
 
     ei_rect_t* clip_enfant = trouve_inter_rect(*widget->content_rect, *clipper);
@@ -385,7 +387,6 @@ void drawfunc_button(ei_widget_t		widget,
 
 
 }
-
 
 void setdefaultsfunc_button(ei_widget_t widget) {
     // fonction chargée d'initialisée les valeurs par défauts d'un button
@@ -455,6 +456,7 @@ void geomnotifyfunc_toplevel(ei_widget_t widget) {
     widget->content_rect->size.height = widget->screen_location.size.height;
 
 }
+
 void drawfunc_toplevel(ei_widget_t		widget,
                        ei_surface_t		surface,
                        ei_surface_t		pick_surface,
@@ -516,11 +518,12 @@ void drawfunc_toplevel(ei_widget_t		widget,
     ei_draw_polygon(surface,cercle, taille_cercle, couleur, clipper);
     */
 
-    ei_point_t* debut_surface = rounded_top_level(rayon, rectangle_bg)->points;
-    int32_t	taille = rounded_top_level(rayon, rectangle_bg)->taille;
+    ei_arc_t* arcc = rounded_top_level(rayon, rectangle_bg);
+    ei_point_t* debut_surface = arcc->points;
+    int32_t	taille = arcc->taille;
     ei_draw_polygon(surface,debut_surface, taille, (ei_color_t){238,130,238,255}, clipper);
     ei_draw_polygon(pick_surface,debut_surface, taille, *widget->pick_color, clipper);
-
+    free_arc(arcc);
 
     // on va dessiner le rectangle interieur maintenant:
     if (toplevel->resizable != ei_axis_none) {
@@ -539,11 +542,13 @@ void drawfunc_toplevel(ei_widget_t		widget,
         ei_point_t centre = {top_left.x +10, top_left.y + 10};
         double angle_debut = 0;
         double angle_fin = 2*M_PI;
-        ei_point_t* cercle = arc(rayon_cercle, centre, angle_debut, angle_fin)->points;
-        int32_t	taille_cercle = arc(rayon_cercle, centre, angle_debut, angle_fin)->taille;
+        ei_arc_t* arccc = arc(rayon_cercle, centre, angle_debut, angle_fin);
+        ei_point_t* cercle = arccc->points;
+        int32_t	taille_cercle = arccc->taille;
         ei_rect_t* clip_ferm = trouve_inter_rect(widget->screen_location, *widget->parent->content_rect);
         ei_draw_polygon(surface,cercle, taille_cercle, (ei_color_t){255,50,0,255}, clip_ferm);
         free(clip_ferm);
+        free_arc(arccc);
 
     }
     // dessin de la zone cliquable à droite

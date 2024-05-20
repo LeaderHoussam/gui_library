@@ -171,8 +171,8 @@ void			ei_widget_destroy		(ei_widget_t		widget) {
     // à modifier
     //widget->geom_params = NULL;
     //widget->wclass->releasefunc(widget);
-    delete_widget(widget);
     ei_app_invalidate_rect(&widget->screen_location);
+    delete_widget(widget);
 }
 // strcmp
 /*

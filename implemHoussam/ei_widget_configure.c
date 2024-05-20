@@ -17,6 +17,15 @@ bool verifie_si_null(void* chose_a_tester){
 bool verifie_si_null_text(const char* text) {
     return (text == NULL || text[0] == '\0');
 }
+/*    if (text != NULL && !verifie_si_null_text(*text)) {
+        frame->text = strdup(*text);
+        if (frame->text == NULL) {
+            printf("Erreur Impossible d'allouer \n");
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        frame->text = NULL;
+    }*/
 
 void			ei_frame_configure		(ei_widget_t		widget,
                                            ei_size_t*		requested_size,
@@ -34,6 +43,11 @@ void			ei_frame_configure		(ei_widget_t		widget,
 
 
     widget = (ei_widget_t) widget;
+    ei_impl_frame_t* frame = (ei_impl_frame_t*) widget;
+    if ( !verifie_si_null(text_font) ) {
+        frame->text_font = *text_font;
+    }
+
     if (requested_size != NULL) {
         widget->requested_size = *requested_size;
         if(widget->geom_params != NULL) {
@@ -44,9 +58,18 @@ void			ei_frame_configure		(ei_widget_t		widget,
             widget->screen_location.size = *requested_size;
         }
     }
+    else{
+        if (text != NULL) {
+
+            int width_text;
+            int height_text;
+            hw_text_compute_size( *text,  (((ei_impl_frame_t*)widget)->text_font), &width_text, &height_text);
+            widget->requested_size = (ei_size_t){width_text,height_text};
+        }
+    }
 
     // on fait un transcriptage pour avoir accés aux autres champs
-    ei_impl_frame_t* frame = (ei_impl_frame_t*) widget;
+
 
     if ( color != NULL){
         frame->color = *color;
@@ -59,20 +82,23 @@ void			ei_frame_configure		(ei_widget_t		widget,
         frame->relief = *relief;
     }
     if ( !verifie_si_null(text) ) {
-/*    if (text != NULL && !verifie_si_null_text(*text)) {
-        frame->text = strdup(*text);
-        if (frame->text == NULL) {
-            printf("Erreur Impossible d'allouer \n");
-            exit(EXIT_FAILURE);
+
+        /*
+        if(frame->text != NULL) {
+            free(frame->text);
         }
-    } else {
-        frame->text = NULL;
-    }*/
+        frame->text = (char*)malloc(strlen(*text) + 1);
+        if (frame->text == NULL) {
+            printf("Erreur d'allocation de mémoire pour le texte.\n");
+            return;
+        }
+
+        // Copier le texte dans le widget
+        strcpy(frame->text, *text);
+        */
         frame->text = strdup(*text);
     }
-    if ( !verifie_si_null(text_font) ) {
-        frame->text_font = *text_font;
-    }
+
     if ( !verifie_si_null(text_color) ) {
         frame->text_color = *text_color;
     }
@@ -96,6 +122,7 @@ void			ei_frame_configure		(ei_widget_t		widget,
 
     ei_app_invalidate_rect(&widget->screen_location);
 }
+
 
 // bouton configure
 
@@ -134,7 +161,15 @@ bool events_button(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_p
     }
     return true;
 }
+/* if ( !verifie_si_null(callback) ) {
+        button->callback = *callback;
+        //ei_bind(ei_ev_mouse_buttondown, widget, NULL, events_button,(user_param != NULL)?*user_param: NULL);
+        ei_bind(ei_ev_mouse_buttondown, widget, NULL, button->callback,(user_param != NULL)?*user_param: NULL);
 
+    } else {
+        ei_bind(ei_ev_mouse_buttondown, widget, NULL, events_button,(user_param != NULL)?*user_param: NULL);
+        ei_bind(ei_ev_mouse_buttonup, widget, NULL, events_button,(user_param != NULL)?*user_param: NULL);
+    }*/
 
 void			ei_button_configure		(ei_widget_t		widget,
                                             ei_size_t*		requested_size,
@@ -154,13 +189,17 @@ void			ei_button_configure		(ei_widget_t		widget,
 
 
 
-    widget = (ei_widget_t) widget;
+    ei_impl_button_t* button = (ei_impl_button_t*) widget;
+
+    if ( !verifie_si_null(text_font) ) {
+        button->text_font = *text_font;
+    }
     if (requested_size != NULL) {
         widget->requested_size = *requested_size;
     }
 
     else{
-        if (  *text) {
+        if (text != NULL) {
 
             int width_text;
             int height_text;
@@ -172,7 +211,7 @@ void			ei_button_configure		(ei_widget_t		widget,
     }
 
     // on fait un transcriptage pour avoir accés aux autres champs
-    ei_impl_button_t* button = (ei_impl_button_t*) widget;
+
 
     if ( color != NULL){
         button->color = *color;
@@ -190,9 +229,7 @@ void			ei_button_configure		(ei_widget_t		widget,
     if ( !verifie_si_null(text) ) {
         button->text = strdup(*text);
     }
-    if ( !verifie_si_null(text_font) ) {
-        button->text_font = *text_font;
-    }
+
     if ( !verifie_si_null(text_color) ) {
         button->text_color = *text_color;
     }
@@ -303,6 +340,14 @@ bool events_toplevel_down(ei_widget_t widget, ei_event_t* event, ei_user_param_t
     pos_carre.x = widget->screen_location.top_left.x + widget->screen_location.size.width+ 2*toplevel->border_width -10;
     pos_carre.y = widget->screen_location.top_left.y + widget->screen_location.size.height + 10 + toplevel->border_width;
 
+    // fermer la toplevel
+    if(event->type == ei_ev_mouse_buttondown && (pos_souri.x >= coin_gauche.x+3) &&
+       (pos_souri.x <= coin_gauche.x+17) && (pos_souri.y <= coin_gauche.y+17)  &&
+       (pos_souri.y >= coin_gauche.y+3)) {
+        ei_widget_destroy(widget);
+        return false;
+    }
+    // les cliques sur la toplevel
     //if (toplevel->resizable != ei_axis_none) {
     if (event->type == ei_ev_mouse_buttondown &&
         (pos_souri.x >= coin_gauche.x) &&
