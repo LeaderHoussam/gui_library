@@ -79,7 +79,6 @@ ei_point_t* concatenation_tab(ei_point_t* tab1, int32_t taille1, ei_point_t* tab
     return tableau;
 }
 
-
 ei_arc_t* rounded_frame(int32_t rayon, ei_rect_t rectangle)
 {
     int	width = rectangle.size.width;
@@ -89,52 +88,58 @@ ei_arc_t* rounded_frame(int32_t rayon, ei_rect_t rectangle)
 
 
     ei_point_t c1 = {x + rayon, y + rayon};
-    ei_point_t* points_1 = arc(rayon, c1, -M_PI, -M_PI/2)->points;
-    int32_t	taille1 = arc(rayon, c1, -M_PI, -M_PI/2)->taille;
+    ei_arc_t*  arc_1 = arc(rayon, c1, -M_PI, -M_PI/2);
+    ei_point_t* points_1 = arc_1->points;
+    int32_t	taille1 = arc_1->taille;
 
 
     ei_point_t c2 = {x + width - rayon, y + rayon};
-    ei_point_t* points_2 = arc(rayon, c2, -M_PI/2, -M_PI/4)->points;
-    int32_t	taille2 = arc(rayon, c2, -M_PI/2, -M_PI/4)->taille;
+    ei_arc_t*  arc_2 = arc(rayon, c2, -M_PI/2, -M_PI/4);
+    ei_point_t* points_2 = arc_2->points;
+    int32_t	taille2 = arc_2->taille;
 
 
     ei_point_t c3 = {x + width - rayon, y + rayon};
-    ei_point_t* points_3 = arc(rayon, c3, -M_PI/4, 0)->points;
-    int32_t	taille3 = arc(rayon, c3, -M_PI/4, 0)->taille;
+    ei_arc_t*  arc_3 = arc(rayon, c3, -M_PI/4, 0);
+    ei_point_t* points_3 = arc_3->points;
+    int32_t	taille3 = arc_3->taille;
 
     ei_point_t c4 = {x + width - rayon, y + height - rayon};
-    ei_point_t* points_4 = arc(rayon, c4, -2*M_PI, -3*M_PI/2)->points;
-    int32_t	taille4 = arc(rayon, c4, -2*M_PI, -3*M_PI/2)->taille;
+    ei_arc_t*  arc_4 = arc(rayon, c4, -2*M_PI, -3*M_PI/2);
+    ei_point_t* points_4 = arc_4->points;
+    int32_t	taille4 = arc_4->taille;
 
 
     ei_point_t c5 = {x + rayon, y + height - rayon};
-    ei_point_t* points_5 = arc(rayon, c5, -3*M_PI/2, -5*M_PI/4)->points;
-    int32_t	taille5 = arc(rayon, c5, -3*M_PI/2, -5*M_PI/4)->taille;
+    ei_arc_t*  arc_5 = arc(rayon, c5, -3*M_PI/2, -5*M_PI/4);
+    ei_point_t* points_5 = arc_5->points;
+    int32_t	taille5 = arc_5->taille;
 
 
     ei_point_t c6 = {x + rayon, y + height - rayon};
-    ei_point_t* points_6 = arc(rayon, c6, -5*M_PI/4, -M_PI)->points;
-    int32_t	taille6 = arc(rayon, c6, -5*M_PI/4, -M_PI)->taille;
+    ei_arc_t*  arc_6 = arc(rayon, c6, -5*M_PI/4, -M_PI);
+    ei_point_t* points_6 = arc_6->points;
+    int32_t	taille6 = arc_6->taille;
 
-
-
-    ei_point_t* points = concatenation_tab( points_1, taille1, points_2, taille2);
+    ei_point_t* concatenation = concatenation_tab( points_1, taille1, points_2, taille2);
+    ei_point_t* points = concatenation;
     int32_t taille = taille1 + taille2;
 
-
-    points = concatenation_tab(points, taille, points_3, taille3);
+    concatenation = concatenation_tab(points, taille, points_3, taille3);
+    points = concatenation;
     taille = taille + taille3;
 
 
-    points = concatenation_tab(points, taille, points_4, taille4);
+    concatenation = concatenation_tab(points, taille, points_4, taille4);
+    points = concatenation;
     taille = taille + taille4;
 
-
-    points = concatenation_tab(points, taille, points_5, taille5);
+    concatenation = concatenation_tab(points, taille, points_5, taille5);
+    points = concatenation;
     taille = taille + taille5;
 
-
-    points = concatenation_tab(points, taille, points_6, taille6);
+    concatenation = concatenation_tab(points, taille, points_6, taille6);
+    points = concatenation;
     taille = taille + taille6;
 
 
@@ -142,43 +147,22 @@ ei_arc_t* rounded_frame(int32_t rayon, ei_rect_t rectangle)
     arcc->taille = taille;
     arcc->points = points;
 
+
+    free_arc(arc_1);
+    free_arc(arc_2);
+    free_arc(arc_3);
+    free_arc(arc_4);
+    free_arc(arc_5);
+    free_arc(arc_6);
+    //free(concatenation);
+
     return arcc;
 
 }
 
 
-ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle, int32_t h) {
-    /*
-     int	width = rectangle.size.width;
-    int	height = rectangle.size.height;
-    int x = rectangle.top_left.x;
-    int y = rectangle.top_left.y;
+ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle) {
 
-    ei_arc_bg_t* arcc = malloc(sizeof(ei_arc_t));
-
-
-
-    ei_point_t* triangle_up = malloc(3 * sizeof(ei_point_t));
-    triangle_up[0] = rectangle.top_left;
-    triangle_up[1]  = (ei_point_t) {x + width, y};
-    triangle_up[2] = (ei_point_t) {x + width, y + height};
-    int32_t	taille_up = 3;
-
-
-    ei_point_t* triangle_down = malloc(3 * sizeof(ei_point_t));
-    triangle_down[0] = rectangle.top_left;
-    triangle_down[1] =(ei_point_t) {x, y + height};
-    triangle_down[2] = triangle_up[2];
-    int32_t	taille_down = 3;
-
-    arcc->taille_up = taille_up;
-    arcc->points_up = triangle_up;
-
-
-
-    arcc->taille_down = taille_down;
-    arcc->points_down = triangle_down;
-     */
     int width = rectangle.size.width;
     int height = rectangle.size.height;
     int x = rectangle.top_left.x;
@@ -188,41 +172,27 @@ ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle, int32_t h) {
 
 
     ei_point_t c1 = {x + rayon, y + rayon};
-    ei_point_t *points_1 = arc(rayon, c1, -M_PI, -M_PI / 2)->points;
-    int32_t taille1 = arc(rayon, c1, -M_PI, -M_PI / 2)->taille;
+    ei_arc_t* arc_1 = arc(rayon, c1, -M_PI, -M_PI / 2);
+    ei_point_t *points_1 = arc_1->points;
+    int32_t taille1 = arc_1->taille;
 
 
     ei_point_t c2 = {x + width - rayon, y + rayon};
-    ei_point_t *points_2 = arc(rayon, c2, -M_PI / 2, -M_PI / 4)->points;
-    int32_t taille2 = arc(rayon, c2, -M_PI / 2, -M_PI / 4)->taille;
-    /*
-    ei_point_t pt3 = {x + width - h, y + h};
-    ei_point_t *point3 = malloc(sizeof(ei_point_t));
-    point3[0] = pt3;
-    int32_t taille3 = 1;
-
-
-    ei_point_t pt4 = {x + h, y + h};
-    ei_point_t *point4 = malloc(sizeof(ei_point_t));
-    point4[0] = pt4;
-    int32_t taille4 = 1;
-     */
+    ei_arc_t* arc_2 = arc(rayon, c2, -M_PI / 2, -M_PI / 4);
+    ei_point_t *points_2 = arc_2->points;
+    int32_t taille2 = arc_2->taille;
 
     ei_point_t c5 = {x + rayon, y + height - rayon};
-    ei_point_t *points_5 = arc(rayon, c5, -5 * M_PI / 4, -M_PI)->points;
-    int32_t taille5 = arc(rayon, c5, -5 * M_PI / 4, -M_PI)->taille;
+    ei_arc_t* arc_5 = arc(rayon, c5, -5 * M_PI / 4, -M_PI);
+    ei_point_t *points_5 = arc_5->points;
+    int32_t taille5 = arc_5->taille;
 
-    ei_point_t *points_up = concatenation_tab(points_1, taille1, points_2, taille2);
+    ei_point_t* concatenation_up = concatenation_tab(points_1, taille1, points_2, taille2);
+    ei_point_t *points_up = concatenation_up;
     int32_t taille_up = taille1 + taille2;
-/*
-    points_up = concatenation_tab(points_up, taille_up, point3, taille3);
-    taille_up = taille_up + taille3;
 
-    points_up = concatenation_tab(points_up, taille_up, point4, taille4);
-    taille_up = taille_up + taille4;
-    */
-
-    points_up = concatenation_tab(points_up, taille_up, points_5, taille5);
+    concatenation_up = concatenation_tab(points_up, taille_up, points_5, taille5);
+    points_up = concatenation_up;
     taille_up = taille_up + taille5;
 
     arcc->taille_up = taille_up;
@@ -230,42 +200,42 @@ ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle, int32_t h) {
 
 
     ei_point_t c6 = {x + width - rayon, y + rayon};
-    ei_point_t *points_6 = arc(rayon, c6, -M_PI / 4, 0)->points;
-    int32_t taille6 = arc(rayon, c6, -M_PI / 4, 0)->taille;
+    ei_arc_t* arc_6 = arc(rayon, c6, -M_PI / 4, 0);
+    ei_point_t *points_6 = arc_6->points;
+    int32_t taille6 = arc_6->taille;
 
     ei_point_t c7 = {x + width - rayon, y + height - rayon};
-    ei_point_t *points_7 = arc(rayon, c7, -2 * M_PI, -3 * M_PI / 2)->points;
-    int32_t taille7 = arc(rayon, c7, -2 * M_PI, -3 * M_PI / 2)->taille;
+    ei_arc_t* arc_7 = arc(rayon, c7, -2 * M_PI, -3 * M_PI / 2);
+    ei_point_t *points_7 = arc_7->points;
+    int32_t taille7 = arc_7->taille;
 
 
     ei_point_t c8 = {x + rayon, y + height - rayon};
-    ei_point_t *points_8 = arc(rayon, c8, -3 * M_PI / 2, -5 * M_PI / 4)->points;
-    int32_t taille8 = arc(rayon, c8, -3 * M_PI / 2, -5 * M_PI / 4)->taille;
-/*
-    ei_point_t *point9 = point4;
-    int32_t taille9 = 1;
+    ei_arc_t* arc_8 = arc(rayon, c8, -3 * M_PI / 2, -5 * M_PI / 4);
+    ei_point_t *points_8 = arc_8->points;
+    int32_t taille8 = arc_8->taille;
 
-    ei_point_t *point10 = point3;
-    int32_t taille10 = 1;
-    */
-
-    ei_point_t *points_down = concatenation_tab(points_6, taille6, points_7, taille7);
+    ei_point_t* concatenation_down = concatenation_tab(points_6, taille6, points_7, taille7);
+    ei_point_t *points_down = concatenation_down;
     int32_t taille_down = taille6 + taille7;
 
-    points_down = concatenation_tab(points_down, taille_down, points_8, taille8);
+    concatenation_down = concatenation_tab(points_down, taille_down, points_8, taille8);
+    points_down = concatenation_down;
     taille_down = taille_down + taille8;
-/*
-    points_down = concatenation_tab(points_down, taille_down, point9, taille9);
-    taille_down = taille_down + taille9;
 
-    points_down = concatenation_tab(points_down, taille_down, point10, taille10);
-    taille_down = taille_down + taille10;
-    */
 
     arcc->taille_down = taille_down;
     arcc->points_down = points_down;
 
 
+    free_arc(arc_1);
+    free_arc(arc_2);
+    free_arc(arc_5);
+    free_arc(arc_6);
+    free_arc(arc_7);
+    free_arc(arc_8);
+    //free(concatenation_up);
+    //free(concatenation_down);
     return arcc;
 }
 
@@ -298,7 +268,6 @@ ei_arc_bg_t* triangle_frame_bg(ei_rect_t rectangle)
     arcc->points_up = triangle_up;
 
 
-
     arcc->taille_down = taille_down;
     arcc->points_down = triangle_down;
 
@@ -318,13 +287,15 @@ ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle)
 
 
     ei_point_t c1 = {x + rayon, y + rayon};
-    ei_point_t* points_1 = arc(rayon, c1, -M_PI, -M_PI/2)->points;
-    int32_t	taille1 = arc(rayon, c1, -M_PI, -M_PI/2)->taille;
+    ei_arc_t* arc_1 = arc(rayon, c1, -M_PI, -M_PI/2);
+    ei_point_t* points_1 = arc_1->points;
+    int32_t	taille1 = arc_1->taille;
 
 
     ei_point_t c2 = {x + width - rayon, y + rayon};
-    ei_point_t* points_2 = arc(rayon, c2, -M_PI/2, 0)->points;
-    int32_t	taille2 = arc(rayon, c2, -M_PI/2, 0)->taille;
+    ei_arc_t* arc_2 = arc(rayon, c2, -M_PI/2, 0);
+    ei_point_t* points_2 = arc_2->points;
+    int32_t	taille2 = arc_2->taille;
 
 
     ei_point_t pt3 = {x + width, y + height};
@@ -338,16 +309,16 @@ ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle)
     point4[0] = pt4;
     int32_t taille4 = 1;
 
-
-    ei_point_t* points = concatenation_tab( points_1, taille1, points_2, taille2);
+    ei_point_t* concatenation = concatenation_tab( points_1, taille1, points_2, taille2);
+    ei_point_t* points = concatenation;
     int32_t taille = taille1 + taille2;
 
-
-    points = concatenation_tab(points, taille, point3, taille3);
+    concatenation = concatenation_tab(points, taille, point3, taille3);
+    points = concatenation;
     taille = taille + taille3;
 
-
-    points = concatenation_tab(points, taille, point4, taille4);
+    concatenation = concatenation_tab(points, taille, point4, taille4);
+    points = concatenation;
     taille = taille + taille4;
 
 
@@ -355,9 +326,29 @@ ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle)
     arcc->taille = taille;
     arcc->points = points;
 
+    free_arc(arc_1);
+    free_arc(arc_2);
+    free(point3);
+    free(point4);
+    //free(concatenation);
+
     return arcc;
 
 }
+
+
+void free_arc(ei_arc_t* arc){
+    free(arc->points);
+    free(arc);
+};
+
+void free_arc_bg(ei_arc_bg_t* arc_bg){
+    free(arc_bg->points_down);
+    free(arc_bg->points_up);
+    free(arc_bg);
+}
+
+
 
 //Cette fonction transforme un entier sur 32 bits en une couleur
 
@@ -393,42 +384,73 @@ ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_f
     int width_text;
     int height_text;
     hw_text_compute_size(text, font, &width_text, &height_text);
+    int x = widget->content_rect->top_left.x;
+    int y = widget->content_rect->top_left.y;
+    int w = widget->content_rect->size.width;
+    int h = widget->content_rect->size.height;
 
     if (text_anchor == ei_anc_none || text_anchor == ei_anc_center){
-        where->x = widget->screen_location.top_left.x + widget->screen_location.size.width/2 - width_text/2;
-        where->y = widget->screen_location.top_left.y + widget->screen_location.size.height/2 - height_text/2;
+        //where->x = widget->screen_location.top_left.x + widget->screen_location.size.width/2 - width_text/2;
+        //where->y = widget->screen_location.top_left.y + widget->screen_location.size.height/2 - height_text/2;
+
+        where->x = x + w/2 - width_text/2;
+        where->y = y + h/2 - height_text/2;
     }
     else if (text_anchor == ei_anc_south){
-        where->x = widget->screen_location.top_left.x + widget->screen_location.size.width/2 - width_text/2;
-        where->y = widget->screen_location.top_left.y + widget->screen_location.size.height - height_text;
+        //where->x = widget->screen_location.top_left.x + widget->screen_location.size.width/2 - width_text/2;
+        //where->y = widget->screen_location.top_left.y + widget->screen_location.size.height - height_text;
+
+        where->x = x + w/2 - width_text/2;
+        where->y = y + h - height_text;
     }
     else if (text_anchor == ei_anc_north){
-        where->x = widget->screen_location.top_left.x + widget->screen_location.size.width/2 - width_text/2;
-        where->y = widget->screen_location.top_left.y ;
+        //where->x = widget->screen_location.top_left.x + widget->screen_location.size.width/2 - width_text/2;
+        //where->y = widget->screen_location.top_left.y ;
+
+        where->x = x + w/2 - width_text/2;
+        where->y = y ;
     }
     else if (text_anchor == ei_anc_east){
-        where->x = widget->screen_location.top_left.x + widget->screen_location.size.width - width_text;
-        where->y = widget->screen_location.top_left.y + widget->screen_location.size.height/2 - height_text/2;
+        //where->x = widget->screen_location.top_left.x + widget->screen_location.size.width - width_text;
+        //where->y = widget->screen_location.top_left.y + widget->screen_location.size.height/2 - height_text/2;
+
+        where->x = x + w - width_text;
+        where->y = y + h/2 - height_text/2;
     }
     else if (text_anchor == ei_anc_west){
-        where->x = widget->screen_location.top_left.x;
-        where->y = widget->screen_location.top_left.y + widget->screen_location.size.height/2 - height_text/2;
+        //where->x = widget->screen_location.top_left.x;
+        //where->y = widget->screen_location.top_left.y + widget->screen_location.size.height/2 - height_text/2;
+
+        where->x = x;
+        where->y = y + h/2 - height_text/2;
     }
     else if (text_anchor == ei_anc_southwest){
-        where->x = widget->screen_location.top_left.x;
-        where->y = widget->screen_location.top_left.y + widget->screen_location.size.height - height_text;
+        //where->x = widget->screen_location.top_left.x;
+        // where->y = widget->screen_location.top_left.y + widget->screen_location.size.height - height_text;
+
+        where->x = x;
+        where->y = y + h - height_text;
     }
     else if (text_anchor == ei_anc_southeast){
-        where->x = widget->screen_location.top_left.x + widget->screen_location.size.width - width_text;
-        where->y = widget->screen_location.top_left.y + widget->screen_location.size.height - height_text;
+        //where->x = widget->screen_location.top_left.x + widget->screen_location.size.width - width_text;
+        //where->y = widget->screen_location.top_left.y + widget->screen_location.size.height - height_text;
+
+        where->x = x + w - width_text;
+        where->y = y + h - height_text;
     }
     else if (text_anchor == ei_anc_northeast){
-        where->x = widget->screen_location.top_left.x + widget->screen_location.size.width - width_text;
-        where->y = widget->screen_location.top_left.y;
+        //where->x = widget->screen_location.top_left.x + widget->screen_location.size.width - width_text;
+        //where->y = widget->screen_location.top_left.y;
+
+        where->x = x + w - width_text;
+        where->y = y;
     }
     else if (text_anchor == ei_anc_northwest){
-        where->x = widget->screen_location.top_left.x;
-        where->y = widget->screen_location.top_left.y;
+        // where->x = widget->screen_location.top_left.x;
+        //where->y = widget->screen_location.top_left.y;
+
+        where->x = x;
+        where->y = y;
     }
 
 
@@ -654,13 +676,11 @@ bool toplevel_redimension(ei_widget_t widget, ei_event_t* event, ei_user_param_t
 }
 */
 
-
 ei_rect_ptr_t  place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t img_rect, ei_anchor_t img_anchor){
-
+    //agit sur la partie du widget sur lequel on doit dessiner l'image
     ei_rect_ptr_t where = malloc(sizeof(ei_rect_t)); //le rectangle sur la frame sur lequel on va dessiner l'image
 
-    //if (strcmp(widget->wclass->name, "frame") == 0){
-    if (compare_widget_class_name_and_tag(widget->wclass->name, "frame") == 0){
+    if (strcmp(widget->wclass->name, "frame") == 0){
 
         ei_impl_frame_t* new_widget = (ei_impl_frame_t*) widget;
         if (new_widget->img_rect->size.width <= widget->requested_size.width){
@@ -680,8 +700,8 @@ ei_rect_ptr_t  place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t 
 
     }
 
-    //else if (strcmp(widget->wclass->name, "button") == 0){
-    else if (compare_widget_class_name_and_tag(widget->wclass->name, "button") == 0){
+    else if (strcmp(widget->wclass->name, "button") == 0){
+
         ei_impl_button_t* new_widget = (ei_impl_button_t*) widget;
         //si la source est plus petite que la destination
         if (new_widget->img_rect->size.width <= widget->requested_size.width){
@@ -690,8 +710,12 @@ ei_rect_ptr_t  place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t 
         if (new_widget->img_rect->size.height <= widget->requested_size.height){
             where->size.height = img_rect->size.height;
         }
-        else{
-            where->size = widget->requested_size;
+
+        if (new_widget->img_rect->size.width > widget->requested_size.width){
+            where->size.width = widget->requested_size.width;
+        }
+        if (new_widget->img_rect->size.height > widget->requested_size.height){
+            where->size.height = widget->requested_size.height;
         }
     }
 
@@ -747,6 +771,7 @@ ei_rect_ptr_t  place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t 
 }
 
 
+
 void free_place_text( ei_point_t* point ){ free(point);}
 
 
@@ -754,7 +779,7 @@ void free_place_img( ei_rect_ptr_t rect ){ free(rect);}
 
 
 void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anchor){
-
+    //agit sur l'image à dessiner sur le widget en fonction de l'anchor
     if (img_anchor == ei_anc_northeast) {
         if (source->size.width > widget->requested_size.width) {
             source->top_left.x = source->size.width - widget->requested_size.width;
@@ -772,6 +797,7 @@ void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anch
         if (source->size.height > widget->requested_size.height) {
             source->size.height = widget->requested_size.height;
         }
+
     }
 
     if (img_anchor == ei_anc_southwest) {
@@ -797,14 +823,23 @@ void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anch
         }
     }
 
+    if (img_anchor == ei_anc_south){
+
+    }
     if (img_anchor == ei_anc_north){
+
+    }
+    if (img_anchor == ei_anc_west){
+
+    }
+    if (img_anchor == ei_anc_east){
 
     }
 
 
 
 
-    source->top_left = ei_point_neg(source->top_left);
+    //source->top_left = ei_point_neg(source->top_left);
 
 }
 
@@ -836,8 +871,19 @@ void delete_widget(ei_widget_t widget) {
             }
 
             // Libérer la mémoire du widget
-            free(widget);
 
+            ei_event_binding* event_bind;
+            event_bind = EVENT_BINDINGS;
+
+            while (event_bind->next != NULL){
+                if (event_bind->widget == widget){
+                    ei_unbind(event_bind->event_type, widget, event_bind->tag, event_bind->callback, event_bind->user_param);
+                    event_bind = EVENT_BINDINGS;
+                } else {
+                    event_bind = event_bind->next;
+                }
+            }
+            free(widget);
             return;
         }
         prev = current;

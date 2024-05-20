@@ -4,6 +4,7 @@
 #include "ei_event.h"
 #include "ei_types.h"
 #include "ei_implementation.h"
+#include "string.h"
 
 ei_event_binding* EVENT_BINDINGS = NULL;
 
@@ -43,7 +44,7 @@ void		ei_bind			(ei_eventtype_t		eventtype,
         EVENT_BINDINGS = new_binding;
     }
     }
-
+//free(widget)
 void		ei_unbind		(ei_eventtype_t		eventtype,
                               ei_widget_t		widget,
                               ei_tag_t		tag,

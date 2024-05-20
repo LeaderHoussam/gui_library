@@ -31,18 +31,25 @@ typedef struct {
 ei_arc_t* arc(int32_t rayon, ei_point_t centre, double angle_debut, double angle_fin);
 
 ei_arc_t* rounded_frame(int32_t rayon, ei_rect_t rectangle);
-ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle, int32_t h);
+ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle);
 ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle);
 ei_arc_bg_t* triangle_frame_bg(ei_rect_t rectangle);
 ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_font_t	font, ei_anchor_t text_anchor);
 
 ei_rect_ptr_t place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t img_rect, ei_anchor_t img_anchor);
 
+
+void free_arc(ei_arc_t* arc);
+
+void free_arc_bg(ei_arc_bg_t* arc_bg);
+
 void free_place_text( ei_point_t* point );
 
 void free_place_img( ei_rect_ptr_t rect );
 
 void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anchor);
+
+void copy_surface (ei_surface_t source, const ei_point_t origine_src, ei_surface_t destination, const ei_point_t origine_dst, ei_size_t size, bool alpha);
 
 
 

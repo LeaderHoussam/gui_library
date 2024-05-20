@@ -116,16 +116,12 @@ void copy_surface (ei_surface_t source, const ei_point_t origine_src, ei_surface
 
     ei_size_t size_src = hw_surface_get_size( source);
     ei_size_t size_dst = hw_surface_get_size( destination);
-    //ei_size_t size_dst = hw_surface_get_size( source);
 
 
 
     hw_surface_set_origin(destination, origine_dst);
     uint32_t* ptr_dst =(uint32_t*) hw_surface_get_buffer(destination);
-    //ptr_dst = ptr_dst + (size_dst.width * origine_dst.y +origine_dst.x);
-    //uint8_t* ptr_src = hw_surface_get_buffer(source);
-    //ptr_src = ptr_src + 4*(size_src.width * origine_src.y + origine_src.x);
-    //hw_surface_set_origin(source, origine_src);
+
     uint32_t* ptr_src = (uint32_t*) hw_surface_get_buffer(source);
     ptr_src = ptr_src + (size_src.width * origine_src.y +origine_src.x);
 
@@ -153,19 +149,6 @@ void copy_surface (ei_surface_t source, const ei_point_t origine_src, ei_surface
             dst[ib] = src[ib];
             dst[ia] = src[ia];
 
-/*
-            r_s = ptr_src[ir];
-            g_s = ptr_src[ig];
-            b_s = ptr_src[ib];
-            a_s = ptr_src[ia];
-
-
-            ptr_dst[ir] =  (ptr_dst[ir] * (255 - a_s) + r_s * a_s) / 255;
-            ptr_dst[ig] =  (ptr_dst[ig] * (255 - a_s) + g_s * a_s) / 255;
-            ptr_dst[ib] =  (ptr_dst[ib] * (255 - a_s) + b_s * a_s) / 255;
-    */
-
-            //*ptr_dst = *ptr_src;
             ptr_dst++;
             ptr_src++;
 
