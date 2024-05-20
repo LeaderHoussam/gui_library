@@ -10,13 +10,8 @@
 #include "ei_application.h"
 #include "ei_implementation.h"
 
-ei_geometrymanager_t* liste_de_gestionnaires = NULL;
+ei_geometrymanager_t* liste_de_gestionnaires_geom = NULL;
 
-size_t		ei_geom_param_size();
-
-ei_geometrymanager_runfunc_t geomrunfunc(ei_widget_t widget){
-    widget->screen_location.top_left.x;
-}
 
 void ei_geometry_run_finalize(ei_widget_t widget, ei_rect_t* new_screen_location) {
 
@@ -167,7 +162,7 @@ void placeur_releasefunc( ei_widget_t widget) {
 //création du placeur : gestionaire de géométrie
 ei_geometrymanager_t* init_placeur(void){
     // Créer et initialiser une structure ei_geometrymanager_t pour le placeur
-    ei_geometrymanager_t* placer_manager = calloc(1,sizeof(ei_geometrymanager_t));
+    ei_geometrymanager_t* placer_manager = calloc(sizeof(ei_geometrymanager_t), 1);
     // Remplir les informations du gestionnaire de géométrie "placeur"
     strcpy(placer_manager->name, "placeur");
     placer_manager->runfunc = &(placeur_runfunc);
@@ -177,9 +172,9 @@ ei_geometrymanager_t* init_placeur(void){
 }
 
 void			ei_geometrymanager_register	(ei_geometrymanager_t* geometrymanager){
-    ei_geometrymanager_t* tete = liste_de_gestionnaires;
+    ei_geometrymanager_t* tete = liste_de_gestionnaires_geom;
     if (tete==NULL){
-        liste_de_gestionnaires = geometrymanager;
+        liste_de_gestionnaires_geom = geometrymanager;
     } else{
         while (tete->next != NULL) {
             tete = tete->next;
@@ -189,7 +184,7 @@ void			ei_geometrymanager_register	(ei_geometrymanager_t* geometrymanager){
 }
 
 ei_geometrymanager_t*	ei_geometrymanager_from_name	(ei_geometrymanager_name_t name){
-    ei_geometrymanager_t* tete = liste_de_gestionnaires;
+    ei_geometrymanager_t* tete = liste_de_gestionnaires_geom;
     while(tete != NULL) {
         // ici, on compare le nom de la classe en tête de liste avec le nom de frame rechercher
         if (strcmp(name, tete->name) == 0) {

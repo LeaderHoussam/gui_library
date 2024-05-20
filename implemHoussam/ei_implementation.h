@@ -2,7 +2,7 @@
  * @file	ei_implementation.h
  *
  * @brief 	Private definitions.
- * 
+ *
  */
 
 #ifndef EI_IMPLEMENTATION_H
@@ -13,7 +13,6 @@
 #include "ei_widget.h"
 #include "ei_geometrymanager.h"
 #include "ei_event.h"
-#include "ei_widget_attributes.h"
 #include "ei_placer.h"
 
 /* par Nelson*/
@@ -33,21 +32,19 @@ ei_arc_t* arc(int32_t rayon, ei_point_t centre, double angle_debut, double angle
 
 ei_arc_t* rounded_frame(int32_t rayon, ei_rect_t rectangle);
 ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle, int32_t h);
-ei_arc_bg_t* triangle_frame_bg(ei_rect_t rectangle);
 ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle);
+ei_arc_bg_t* triangle_frame_bg(ei_rect_t rectangle);
 ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_font_t	font, ei_anchor_t text_anchor);
 
 ei_rect_ptr_t place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t img_rect, ei_anchor_t img_anchor);
-
-void free_arc(ei_arc_t* arc);
-
-void free_arc_bg(ei_arc_bg_t* arc);
 
 void free_place_text( ei_point_t* point );
 
 void free_place_img( ei_rect_ptr_t rect );
 
 void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anchor);
+
+
 
 /* fin par Nelson*/
 
@@ -176,30 +173,71 @@ typedef struct ei_impl_toplevel_t{
     ei_size_ptr_t  	min_size;
 }ei_impl_toplevel_t;
 
-typedef struct	ei_impl_entry_t {
-    ei_impl_widget_t widget;
-    int requested_char_size;
-    ei_color_t color;
-    int border_width;
-    ei_font_t text_font;
-    ei_color_t    text_color;
-}ei_impl_entry_t;
 
 // on va ajouter dans ce fichier, l'instanciation  de nos classes
-ei_widgetclass_t* init_button_classe(void);
-ei_widgetclass_t* init_frame_classe(void);
 ei_widgetclass_t* init_toplevel_classe(void);
-
+ei_widgetclass_t* init_button_classe(void );
+ei_widgetclass_t* init_frame_classe(void );
 ei_geometrymanager_t*  init_placeur(void);
-
 extern ei_widgetclass_t* liste_des_classe;
 extern ei_surface_t root_window;
+extern ei_surface_t offscreen;
 extern ei_widget_t root_widget;
-extern ei_geometrymanager_t* liste_de_gestionnaires;
-extern ei_linked_rect_t* surfaces_mises_a_jour;
+
+//extern ei_geometrymanager_t* liste_des_geometrie;
+extern ei_geometrymanager_t* liste_de_gestionnaires_geom;
+extern ei_linked_rect_t* surfaces_mise_a_jour;
 extern ei_rect_t* clipper_final;
 
-// event gestion
+
+extern uint32_t compteur_pick_id;
+
+//fonction pour transformer un pick_id en couleur
+ei_color_t* map_pick_id_to_color(ei_surface_t surface, uint32_t pick_id);
+
+/*
+// pour capter les données de l'evenement:
+extern ei_event_t* evenement;
+
+// ICI JE VAIS DEFINIR DES TYPES GENERAUX POUR CAPTER
+// POUR LIER DES TRAITANTS À CHAQUE ÉVÈNEMENTS
+// ON PENSERA BIEN À CE QUE NOS TRAITANTS INTERNES RENVOIE
+// FALSE POUR POUVOIR TRAITER LES TRAITANTS EXTERNES
+// QUE L'UTILISATEUR AJOUTERA
+
+// concretement, chaque évènement aura une liste chainées de traitants
+// et ei_bind va ajouter des traitants à la liste des traitants d'un évènement
+// on va créer une structure xxx dont les elements sont les paramètres de bind ou unbind
+// on va aussi créer une fonction execute structure qui verifie si le traitant doit etre executer et le fait:
+// donc chaque evènements aura une liste chainées de xxx
+// bind ajoute un éléments de type xxx à cette liste et unbid l'en suprimme
+// on et on appelera execute sur les évènements de cette liste
+
+// j'appelle la structure traitant_t
+typedef struct traitant_t {
+    //ei_eventtype_t evenement;
+    ei_widget_t widget;
+    ei_tag_t tag;
+    ei_callback_t callback;
+    void* user_param;
+    struct traitant_t* next;
+}traitant_t;
+
+// on cree aussi une structure de transcriptage d'un évènement
+typedef struct event_with_callback {
+    ei_eventtype_t event;
+    traitant_t* liste_des_traitants;
+    struct event_with_callback* next;
+}event_with_callback;
+
+extern event_with_callback* liste_des_events_enregistres;
+bool execute_traitant(ei_event_t* event, traitant_t traitant);
+traitant_t* trouve_traitant(ei_eventtype_t eventtype);
+ei_widget_t get_widget_actuel(ei_event_t* event);
+ei_color_t* get_pick_screen_color(ei_point_t pos_souris);
+ei_widget_t get_widget_from_pick_color(ei_color_t pick_color);
+*/
+
 
 /*
  * une structure ei_event_binding qui stocke les informations de liaison,
@@ -216,12 +254,7 @@ typedef struct ei_event_binding {
 }ei_event_binding;
 bool execute_traitant(ei_event_t* event,ei_event_binding traitant);
 extern   ei_event_binding* EVENT_BINDINGS;
-extern ei_linked_rect_t* surfaces_mise_a_jour;
 
-// extern ei_event_t *event;
-extern uint32_t compteur_pick_id;
-void free_color(ei_color_t* color);
-ei_color_t* map_pick_id_to_color(ei_surface_t surface, uint32_t pick_id);
 extern ei_surface_t offscreen;
 
 extern bool top_toplevel;
@@ -230,17 +263,35 @@ extern ei_point_t pt_init_toplevel;
 static inline void ei_place_wh		(ei_widget_t widget, int w, int h){
     ei_place(widget, NULL, NULL, NULL, &w, &h, NULL, NULL, NULL, NULL);
 }
-
-
 typedef struct link_widget {
     ei_widget_t widget;
     struct link_widget* next;
 }link_widget;
 extern link_widget* liste_des_widgets;
+bool bouton_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool bouton_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool toplevel_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool toplevel_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool toplevel_handler_2(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool toplevel_redimension(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
 
+extern ei_point_t pos_mouse;
+
+//static inline void ei_place_wh		(ei_widget_t widget, int w, int h)			{ ei_place(widget, NULL, NULL, NULL, &w, &h, NULL, NULL, NULL, NULL); }
 void liberer_ei_linked_rect(ei_linked_rect_t** liste);
 void liberer_ei_rect(ei_rect_t** clip);
 ei_rect_t* trouve_rect_contenant(ei_rect_t rec1, ei_rect_t rec2);
 ei_rect_t* trouve_inter_rect(ei_rect_t rect1, ei_rect_t rect2);
 
+int min(int a, int b);
+int max(int a, int b);
+
+void delete_widget(ei_widget_t widget);
+bool color_equal(ei_color_t *widget_color, ei_color_t pixel_color);
+ei_widget_t pick_recursive(ei_widget_t widget, ei_color_t* color);
+void move_widget_to_end(ei_widget_t widget);
+void append_widget(ei_widget_t parent, ei_widget_t widget);
+
+//strcmp
+bool compare_widget_class_name_and_tag(ei_widgetclass_name_t name, char *tag);
 #endif

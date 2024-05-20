@@ -6,14 +6,14 @@
 #include <stdio.h>
 #include "ei_widgetclass.h"
 
+#include <ei_utils.h>
 #include <ei_widget_attributes.h>
-#include "ei_widget_configure.h"
+#include <ei_widget_configure.h>
 #include <locale.h>
 
 #include "ei_implementation.h"
 #include "ei_draw.h"
 #include "ei_types.h"
-#include "ei_utils.h"
 
 //extern ei_widgetclass_t* liste_des_classe =calloc(sizeof(ei_widgetclass_t), 1);
 ei_widgetclass_t* liste_des_classe = NULL;
@@ -75,13 +75,11 @@ void drawfunc_frame(ei_widget_t		widget,
     ei_color_t couleur_clair = {couleur.red*1.3, couleur.green*1.3, couleur.blue*1.3, couleur.alpha};
 
 
-    ei_arc_bg_t* arc_bg = triangle_frame_bg(rectangle_bg);
+    ei_point_t* debut_surface_up = triangle_frame_bg(rectangle_bg)->points_up;
+    int32_t	taille_up = triangle_frame_bg(rectangle_bg)->taille_up;
 
-    ei_point_t* debut_surface_up = arc_bg->points_up;
-    int32_t	taille_up = arc_bg->taille_up;
-
-    ei_point_t* debut_surface_down = arc_bg->points_down;
-    int32_t	taille_down = arc_bg->taille_down;
+    ei_point_t* debut_surface_down = triangle_frame_bg(rectangle_bg)->points_down;
+    int32_t	taille_down = triangle_frame_bg(rectangle_bg)->taille_down;
 
     ei_point_t debut_surface[4] = {top_left, {top_left.x + size.width,top_left.y}, {top_left.x + size.width, top_left.y + size.height}, {top_left.x, top_left.y + size.height} };
     int32_t	taille = 4;
@@ -97,7 +95,6 @@ void drawfunc_frame(ei_widget_t		widget,
         ei_draw_polygon(surface, debut_surface_down, taille_down, couleur_clair, clipper);
         ei_draw_polygon(surface,debut_surface, taille, couleur, clipper);
     }
-
     else if (rel == ei_relief_raised)
     {
         ei_draw_polygon(surface, debut_surface_down, taille_down, couleur_fonce, clipper);
@@ -109,9 +106,8 @@ void drawfunc_frame(ei_widget_t		widget,
     {
         ei_draw_polygon(surface,debut_surface_bg, taille, couleur, clipper);
     }
-
     ei_draw_polygon(pick_surface,debut_surface_bg, taille, *(widget->pick_color), clipper);
-    free_arc_bg(arc_bg);
+
 
 
     //const ei_point_t*	where = &(widget->screen_location.top_left);
@@ -125,32 +121,24 @@ void drawfunc_frame(ei_widget_t		widget,
         ei_rect_t* clipper_pour_text;
         if(widget->parent != NULL) {
             clipper_pour_text = trouve_inter_rect(*widget->content_rect, *widget->parent->content_rect);
-        }
-        else {
+        }else {
             clipper_pour_text = widget->content_rect;
         }
         ei_draw_text(surface, where, frame->text, frame->text_font, frame->text_color, clipper_pour_text);
         free(clipper_pour_text);
     }
-/*
-    if (frame->text) {
-        ei_point_t *where;
-        where = place_text(widget, frame->text, frame->text_font, frame->text_anchor);
-        ei_draw_text(surface, where, frame->text, frame->text_font, frame->text_color, clipper);
-        free_place_text(where);
-    }*/
 
     if (frame->img) {
         ei_surface_t source = frame->img;
         //ei_point_t pt = {300,300};
         //ei_rect_t dst_rect = (ei_rect_t){ei_point_neg(widget->screen_location.top_left), widget->requested_size};
         //ei_rect_t dst_rect = (ei_rect_t){ei_point_neg(pt), widget->requested_size};
-/*
-        ei_rect_ptr_t src_rect = frame->img_rect;
-        ei_rect_ptr_t dst_rect = place_img ( widget, frame->img, frame->img_rect, frame->img_anchor);
+        /*
+                ei_rect_ptr_t src_rect = frame->img_rect;
+                ei_rect_ptr_t dst_rect = place_img ( widget, frame->img, frame->img_rect, frame->img_anchor);
 
-        compare_rect(widget, src_rect, dst_rect, frame->img_anchor);
-*/
+                compare_rect(widget, src_rect, dst_rect, frame->img_anchor);
+        */
 
         ei_rect_ptr_t src_rect = frame->img_rect;
         compare_rect(widget, src_rect, frame->img_anchor);
@@ -165,16 +153,21 @@ void drawfunc_frame(ei_widget_t		widget,
         free_place_img(dst_rect);
 
     }
-
-    ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
+    ei_rect_t* clip_enfant = trouve_inter_rect(*widget->content_rect, *clipper);
+    ei_impl_widget_draw_children(widget, surface, pick_surface, clip_enfant);
+    free(clip_enfant);
 
     if (widget->next_sibling != NULL) {
         widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
     }
 
+    /*
     if (widget->children_tail != NULL) {
-         widget->children_tail->wclass->drawfunc(widget->children_tail, surface, pick_surface, widget->content_rect);
+        widget->children_tail->wclass->drawfunc(widget->children_tail, surface, pick_surface, widget->content_rect);
     }
+
+*/
+
 
     //ei_surface_t surf	(ei_const_string_t	text, const ei_font_t	font, ei_color_t		color);
 
@@ -293,24 +286,9 @@ void drawfunc_button(ei_widget_t		widget,
     ei_color_t couleur_fonce = {couleur.red*0.7, couleur.green*0.7, couleur.blue*0.7, couleur.alpha};
     ei_color_t couleur_clair = {couleur.red*1.3, couleur.green*1.3, couleur.blue*1.3, couleur.alpha};
 
-    //ei_point_t* debut_surface_up = rounded_frame_bg(rayon, rectangle_bg, h)->points_up;
-    //int32_t	taille_up = rounded_frame_bg(rayon, rectangle_bg, h)->taille_up;
-    ei_arc_bg_t* arc_bg = rounded_frame_bg(rayon, rectangle_bg, h);
-    ei_point_t* debut_surface_up = arc_bg->points_up;
-    int32_t	taille_up = arc_bg->taille_up;
-    ei_point_t* debut_surface_down = arc_bg->points_down;
-    int32_t	taille_down = arc_bg->taille_down;
+    ei_point_t* debut_surface_up = rounded_frame_bg(rayon, rectangle_bg, h)->points_up;
+    int32_t	taille_up = rounded_frame_bg(rayon, rectangle_bg, h)->taille_up;
 
-
-    ei_arc_t* arc_1 = rounded_frame(rayon, rectangle);
-    ei_point_t* debut_surface = arc_1->points;
-    int32_t	taille = arc_1->taille;
-
-
-    ei_arc_t* arc_2 = rounded_frame(rayon, rectangle_bg);
-    ei_point_t* debut_surface_bg = arc_2->points;
-    int32_t	taille_bg = arc_2->taille;
-/*
     ei_point_t* debut_surface_down = rounded_frame_bg(rayon, rectangle_bg, h)->points_down;
     int32_t	taille_down = rounded_frame_bg(rayon, rectangle_bg, h)->taille_down;
 
@@ -319,7 +297,7 @@ void drawfunc_button(ei_widget_t		widget,
 
     ei_point_t* debut_surface_bg = rounded_frame(rayon, rectangle_bg)->points;
     int32_t	taille_bg = rounded_frame(rayon, rectangle_bg)->taille;
-*/
+
 
     ei_relief_t rel = ((ei_impl_button_t*)widget)->relief;
 
@@ -344,9 +322,7 @@ void drawfunc_button(ei_widget_t		widget,
 
     ei_draw_polygon(pick_surface,debut_surface_bg, taille_bg, *widget->pick_color, clipper);
 
-    free_arc_bg(arc_bg);
-    free_arc(arc_1);
-    free_arc(arc_2);
+
 
     //ei_font_t font = hw_text_font_create( ei_default_font_filename, ei_style_normal, size.height/2);
 
@@ -368,17 +344,29 @@ void drawfunc_button(ei_widget_t		widget,
         free(clipper_pour_text);
     }
 
+
+
     if (button->img) {
+
         ei_surface_t source = button->img;
         ei_rect_ptr_t src_rect = button->img_rect;
+
         compare_rect(widget, src_rect, button->img_anchor);
         ei_rect_ptr_t dst_rect = place_img ( widget, button->img, button->img_rect, button->img_anchor);
+
+
         ei_copy_surface(surface, dst_rect, source, src_rect, false);
+
         free_place_img(dst_rect);
 
     }
 
-    ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
+
+
+    ei_rect_t* clip_enfant = trouve_inter_rect(*widget->content_rect, *clipper);
+    ei_impl_widget_draw_children(widget, surface, pick_surface, clip_enfant);
+    free(clip_enfant);
+
 
     if (widget->next_sibling != NULL) {
         widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
@@ -419,6 +407,10 @@ void setdefaultsfunc_button(ei_widget_t widget) {
     le_button->img = NULL;
     le_button->img_rect = NULL;
     le_button->img_anchor = ei_anc_center;
+
+
+
+
 }
 
 void geomnotifyfunc_button(ei_widget_t widget) {
@@ -453,10 +445,28 @@ void releasefunc_toplevel(ei_widget_t widget) {
     // à completer après
 }
 
+void geomnotifyfunc_toplevel(ei_widget_t widget) {
+
+    ei_impl_toplevel_t*   top_level = (ei_impl_toplevel_t*) widget;
+
+    widget->content_rect->top_left.x = widget->screen_location.top_left.x + top_level->border_width;
+    widget->content_rect->top_left.y = widget->screen_location.top_left.y + 20;
+    widget->content_rect->size.width = widget->screen_location.size.width;
+    widget->content_rect->size.height = widget->screen_location.size.height;
+
+}
 void drawfunc_toplevel(ei_widget_t		widget,
                        ei_surface_t		surface,
                        ei_surface_t		pick_surface,
                        ei_rect_t*		clipper) {
+
+
+
+
+
+    if(widget->geom_params == NULL) {
+        return;
+    }
 
 
 
@@ -484,6 +494,9 @@ void drawfunc_toplevel(ei_widget_t		widget,
     //pos_debut.x += border_width;
     //pos_debut.y += espace;
 
+    //ei_size_t dim = widget->content_rect->size;
+
+
 
     ei_size_t dimension = widget->screen_location.size;
     //ei_size_t dim_contenant = widget->content_rect->size;
@@ -503,13 +516,10 @@ void drawfunc_toplevel(ei_widget_t		widget,
     ei_draw_polygon(surface,cercle, taille_cercle, couleur, clipper);
     */
 
-    ei_arc_t* arc_toplevel = rounded_top_level(rayon, rectangle_bg);
-    ei_point_t* debut_surface = arc_toplevel->points;
-    int32_t	taille = arc_toplevel->taille;
-
+    ei_point_t* debut_surface = rounded_top_level(rayon, rectangle_bg)->points;
+    int32_t	taille = rounded_top_level(rayon, rectangle_bg)->taille;
     ei_draw_polygon(surface,debut_surface, taille, (ei_color_t){238,130,238,255}, clipper);
     ei_draw_polygon(pick_surface,debut_surface, taille, *widget->pick_color, clipper);
-    free_arc(arc_toplevel);
 
 
     // on va dessiner le rectangle interieur maintenant:
@@ -531,37 +541,48 @@ void drawfunc_toplevel(ei_widget_t		widget,
         double angle_fin = 2*M_PI;
         ei_point_t* cercle = arc(rayon_cercle, centre, angle_debut, angle_fin)->points;
         int32_t	taille_cercle = arc(rayon_cercle, centre, angle_debut, angle_fin)->taille;
-        ei_draw_polygon(surface,cercle, taille_cercle, (ei_color_t){255,50,0,255}, clipper);
+        ei_rect_t* clip_ferm = trouve_inter_rect(widget->screen_location, *widget->parent->content_rect);
+        ei_draw_polygon(surface,cercle, taille_cercle, (ei_color_t){255,50,0,255}, clip_ferm);
+        free(clip_ferm);
 
     }
     // dessin de la zone cliquable à droite
     //on transforme juste le rectangle d'inclusion
 
     //widget->content_rect->top_left = pos_debut;
+
+    //ei_rect_t* nouveau_content = malloc(sizeof(ei_rect_t));
+    //nouveau_content->top_left = pos_debut;
+    //nouveau_content->size = dim;
     //ei_rect_t* clipper_pour_enfants = widget->content_rect;
     //clipper_pour_enfants->top_left = pos_debut;
-    ei_impl_widget_draw_children(widget, surface, pick_surface, widget->content_rect);
+    ei_rect_t* clip_enfant = trouve_inter_rect(*widget->content_rect, *clipper);
+    ei_impl_widget_draw_children(widget, surface, pick_surface, clip_enfant);
+    free(clip_enfant);
+    //widget->children_tail->wclass->drawfunc(widget->children_tail, surface, pick_surface, widget->content_rect);
+
 
 
     //dessin du titre
+
+
 
     ei_font_t font = hw_text_font_create( ei_default_font_filename, ei_style_normal, 5*espace/7);
 
     ei_point_t place;
     place.x = widget->screen_location.top_left.x + 3*rayon_cercle;
-    //place.y = widget->screen_location.top_left.y - espace + espace/7;
     place.y = widget->screen_location.top_left.y;
 
-    const ei_point_t*	where = &(place);
+    const ei_point_t*	where = &place;
 
-    ei_draw_text(surface, where, toplevel->title, font, ei_font_default_color,&widget->screen_location);
+    ei_rect_t* clip_text = trouve_inter_rect(widget->screen_location, *widget->parent->content_rect);
+    ei_draw_text(surface, where, toplevel->title, font, ei_font_default_color,clip_text);
+    free(clip_text);
 
     hw_text_font_free(font);
 
 
-    if (widget->next_sibling != NULL) {
-        widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
-    }
+
 
     //après tous les dessins, il faut que je dessine le petit point en bas à droite du top_level
     //à faire
@@ -578,6 +599,10 @@ void drawfunc_toplevel(ei_widget_t		widget,
     }
 
 
+    if (widget->next_sibling != NULL) {
+        widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
+    }
+
     hw_surface_unlock(surface);
     hw_surface_unlock(pick_surface);
     // ei_linked_rect_t* clipp = (ei_linked_rect_t*) clipper;
@@ -592,12 +617,21 @@ void setdefaultsfunc_toplevel(ei_widget_t widget) {
     // les autres parametres non commun aux autres:
     // on fait d'abord un transcriptage avant de les utiliser
 
-    widget->requested_size = (ei_size_t){320,240};
+
     ei_impl_toplevel_t* le_toplevel = (ei_impl_toplevel_t *) widget;
     le_toplevel->border_width = 4;
     le_toplevel->closable = true ;
     le_toplevel->color = ei_default_background_color;
-    le_toplevel->min_size = &((ei_size_t) {160, 120});
+
+    le_toplevel->min_size = malloc(sizeof(ei_size_t));
+    if (le_toplevel->min_size != NULL) {
+        le_toplevel->min_size->width = 160;
+        le_toplevel->min_size->height = 120;
+    } else {
+        // Gestion de l'échec de l'allocation mémoire
+        perror("echec");
+    }
+
     le_toplevel->resizable = ei_axis_both;
     le_toplevel->title = "Toplevel";
 
@@ -609,14 +643,7 @@ void setdefaultsfunc_toplevel(ei_widget_t widget) {
     widget->content_rect = new_cr;
 }
 
-void geomnotifyfunc_toplevel(ei_widget_t widget) {
-    ei_impl_toplevel_t*   top_level = (ei_impl_toplevel_t*) widget;
 
-    widget->content_rect->top_left.x = widget->screen_location.top_left.x + top_level->border_width;
-    widget->content_rect->top_left.y = widget->screen_location.top_left.y + 20;
-    widget->content_rect->size.width = widget->screen_location.size.width;
-    widget->content_rect->size.height = widget->screen_location.size.height;
-}
 
 
 ei_widgetclass_t* init_toplevel_classe() {
@@ -658,6 +685,12 @@ ei_widgetclass_t*	ei_widgetclass_from_name	(ei_const_string_t name){
     return NULL;
 }
 
+size_t		ei_widget_struct_size() {
+    size_t size_of_widget = sizeof(*((ei_impl_widget_t*)NULL));
+    return size_of_widget;
+}
+
+/*
 size_t		ei_widget_struct_size() {
     size_t size_of_widget = sizeof(*((ei_impl_widget_t*)NULL));
     return size_of_widget;
@@ -725,3 +758,4 @@ ei_widgetclass_t* init_entry_classe() {
     return classe_entry;
 }
 
+*/

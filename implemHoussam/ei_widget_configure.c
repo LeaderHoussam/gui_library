@@ -3,17 +3,21 @@
 //
 
 #include "ei_widget_configure.h"
+
+#include <ei_application.h>
+
 #include "ei_implementation.h"
-#include "ei_event.h"
-#include "ei_application.h"
 #include <stdbool.h>
-#include "stdio.h"
-#include "ei_placer.h"
 
 
 bool verifie_si_null(void* chose_a_tester){
     return (chose_a_tester == NULL);
 }
+
+bool verifie_si_null_text(const char* text) {
+    return (text == NULL || text[0] == '\0');
+}
+
 void			ei_frame_configure		(ei_widget_t		widget,
                                            ei_size_t*		requested_size,
                                            const ei_color_t*	color,
@@ -32,6 +36,10 @@ void			ei_frame_configure		(ei_widget_t		widget,
     widget = (ei_widget_t) widget;
     if (requested_size != NULL) {
         widget->requested_size = *requested_size;
+        if(widget->geom_params != NULL) {
+            ei_place_wh(widget,requested_size->width, requested_size->height);
+        }
+        //widget->screen_location.size = *requested_size;
         if(widget == root_widget) {
             widget->screen_location.size = *requested_size;
         }
@@ -51,8 +59,16 @@ void			ei_frame_configure		(ei_widget_t		widget,
         frame->relief = *relief;
     }
     if ( !verifie_si_null(text) ) {
+/*    if (text != NULL && !verifie_si_null_text(*text)) {
         frame->text = strdup(*text);
-        //frame->text = *text;
+        if (frame->text == NULL) {
+            printf("Erreur Impossible d'allouer \n");
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        frame->text = NULL;
+    }*/
+        frame->text = strdup(*text);
     }
     if ( !verifie_si_null(text_font) ) {
         frame->text_font = *text_font;
@@ -68,7 +84,7 @@ void			ei_frame_configure		(ei_widget_t		widget,
     }
     if ( !verifie_si_null(img_rect) ) {
         if (frame->img_rect){
-            free(*img_rect);
+            free(frame->img_rect);
         }
         ei_rect_t *new_img_rect = malloc(sizeof(ei_rect_t));
         *new_img_rect = *(*img_rect);
@@ -77,7 +93,11 @@ void			ei_frame_configure		(ei_widget_t		widget,
     if ( !verifie_si_null(img_anchor) ) {
         frame->img_anchor = *img_anchor;
     }
+
+    ei_app_invalidate_rect(&widget->screen_location);
 }
+
+// bouton configure
 
 // bouton configure
 bool events_button(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
@@ -115,6 +135,7 @@ bool events_button(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_p
     return true;
 }
 
+
 void			ei_button_configure		(ei_widget_t		widget,
                                             ei_size_t*		requested_size,
                                             const ei_color_t*	color,
@@ -136,15 +157,19 @@ void			ei_button_configure		(ei_widget_t		widget,
     widget = (ei_widget_t) widget;
     if (requested_size != NULL) {
         widget->requested_size = *requested_size;
-    } else{
-        if (*text) {
+    }
+
+    else{
+        if (  *text) {
+
             int width_text;
             int height_text;
             hw_text_compute_size( *text,  (((ei_impl_button_t*)widget)->text_font), &width_text, &height_text);
             widget->requested_size = (ei_size_t){width_text,height_text};
+
+
         }
     }
-
 
     // on fait un transcriptage pour avoir accés aux autres champs
     ei_impl_button_t* button = (ei_impl_button_t*) widget;
@@ -174,17 +199,78 @@ void			ei_button_configure		(ei_widget_t		widget,
     if ( !verifie_si_null(text_anchor) ) {
         button->text_anchor = *text_anchor;
     }
-    if ( !verifie_si_null(img) ) {
-        button->img = *img;
-    }
+    /*
     if ( !verifie_si_null(img_rect) ) {
         if (button->img_rect){
-            free(*img_rect);
+            free(button->img_rect);
         }
-        ei_rect_t *new_img_rect = malloc(sizeof(ei_rect_t));
+        ei_rect_t* new_img_rect = malloc(sizeof(ei_rect_t));
+        if(new_img_rect == NULL) {
+            free(new_img_rect);
+            exit(EXIT_FAILURE);
+        }
         *new_img_rect = *(*img_rect);
         button->img_rect = new_img_rect;
     }
+    if ( !verifie_si_null(img) ) {
+        if(button->img) {
+            hw_surface_free(button->img);
+        }
+
+        ei_size_t taille = button->img_rect->size;
+        ei_surface_t copie = hw_surface_create(root_window,taille,false);
+        ei_size_t taille_1 = hw_surface_get_size(copie);
+        int retour = ei_copy_surface(copie,NULL,*img,*img_rect, false);
+        if(retour == 1) {
+            printf("\n\n\n ECHEC COPIE SURFACES\n\n\n");
+            exit(EXIT_FAILURE);
+        }
+        ei_size_t taille_2 = hw_surface_get_size(copie);
+        button->img =copie;
+
+    }
+    */
+
+    if (!verifie_si_null(img_rect)) {
+        if (button->img_rect) {
+            free(button->img_rect);
+        }
+        ei_rect_t *new_img_rect = malloc(sizeof(ei_rect_t));
+        if (new_img_rect == NULL) {
+            fprintf(stderr, "Memory allocation failed for new_img_rect\n");
+            exit(EXIT_FAILURE);
+        }
+        *new_img_rect = *(*img_rect);
+        button->img_rect = new_img_rect;
+    }
+
+    if (!verifie_si_null(img)) {
+        if (button->img) {
+            hw_surface_free(button->img);
+        }
+
+        if (button->img_rect) {
+            ei_size_t taille = button->img_rect->size;
+            ei_surface_t copie = hw_surface_create(root_window, taille, false);
+            if (copie == NULL) {
+                fprintf(stderr, "Failed to create surface\n");
+                exit(EXIT_FAILURE);
+            }
+
+            int retour = ei_copy_surface(copie, NULL, *img, button->img_rect, false);
+            if (retour != 0) {
+                printf("\n\n\n ECHEC COPIE SURFACES\n\n\n");
+                hw_surface_free(copie);
+                exit(EXIT_FAILURE);
+            }
+            button->img_rect->top_left = (ei_point_t){0,0};
+            button->img = copie;
+        } else {
+            fprintf(stderr, "img_rect is NULL while img is not\n");
+            exit(EXIT_FAILURE);
+        }
+    }
+
     if ( !verifie_si_null(img_anchor) ) {
         button->img_anchor = *img_anchor;
     }
@@ -193,14 +279,20 @@ void			ei_button_configure		(ei_widget_t		widget,
         //ei_bind(ei_ev_mouse_buttondown, widget, NULL, events_button,(user_param != NULL)?*user_param: NULL);
         ei_bind(ei_ev_mouse_buttondown, widget, NULL, button->callback,(user_param != NULL)?*user_param: NULL);
 
+    } else {
+        ei_bind(ei_ev_mouse_buttondown, widget, NULL, events_button,(user_param != NULL)?*user_param: NULL);
+        ei_bind(ei_ev_mouse_buttonup, widget, NULL, events_button,(user_param != NULL)?*user_param: NULL);
     }
 
     if ( !verifie_si_null(user_param) ) {
         button->user_param = *user_param;
     }
-    //un problème user_param
+
+    ei_app_invalidate_rect(&widget->screen_location);
+
 }
 
+// configuratin d'un toplevel
 
 bool events_toplevel_down(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
     ei_impl_toplevel_t *toplevel = (ei_impl_toplevel_t *) widget;
@@ -212,26 +304,27 @@ bool events_toplevel_down(ei_widget_t widget, ei_event_t* event, ei_user_param_t
     pos_carre.y = widget->screen_location.top_left.y + widget->screen_location.size.height + 10 + toplevel->border_width;
 
     //if (toplevel->resizable != ei_axis_none) {
-        if (event->type == ei_ev_mouse_buttondown &&
-               (pos_souri.x >= coin_gauche.x) &&
-               (pos_souri.x <= coin_gauche.x+ taille.width) && (pos_souri.y <= coin_gauche.y+20)  &&
-               (pos_souri.y >= coin_gauche.y)) {
-            printf("\n mouse down on top of toplevel\n ");
-            top_toplevel = true;
-            pt_init_toplevel = event->param.mouse.where;
-            return true;
-        } else if (event->type == ei_ev_mouse_buttondown && (pos_souri.x >= pos_carre.x) &&
-                   (pos_souri.x <= pos_carre.x+ 10) && (pos_souri.y <= pos_carre.y+10)  &&
-                   (pos_souri.y >= pos_carre.y)){
-            printf("\n mouse down on bottom of toplevel\n ");
-            btm_toplevel = true;
-            pt_init_toplevel = event->param.mouse.where;
-        } else if (event->type == ei_ev_mouse_buttonup) {
-            top_toplevel = false;
-            btm_toplevel = false;
-            printf("\n mouse up from toplevel\n ");
-            return true;
-        }
+    if (event->type == ei_ev_mouse_buttondown &&
+        (pos_souri.x >= coin_gauche.x) &&
+        (pos_souri.x <= coin_gauche.x+ taille.width) && (pos_souri.y <= coin_gauche.y+20)  &&
+        (pos_souri.y >= coin_gauche.y)) {
+        printf("\n mouse down on top of toplevel\n ");
+        top_toplevel = true;
+        pt_init_toplevel = event->param.mouse.where;
+        return false;
+    } else if (event->type == ei_ev_mouse_buttondown && (pos_souri.x >= pos_carre.x) &&
+               (pos_souri.x <= pos_carre.x+ 10) && (pos_souri.y <= pos_carre.y+10)  &&
+               (pos_souri.y >= pos_carre.y)){
+        printf("\n mouse down on bottom of toplevel\n ");
+        btm_toplevel = true;
+        pt_init_toplevel = event->param.mouse.where;
+        return false;
+    } else if (event->type == ei_ev_mouse_buttonup) {
+        top_toplevel = false;
+        btm_toplevel = false;
+        printf("\n mouse up from toplevel\n ");
+        return true;
+    }
     //}
     return false;
 }
@@ -269,12 +362,12 @@ bool events_toplevel_place(ei_widget_t widget, ei_event_t* event, ei_user_param_
                 break;
         }
         surfaces_mise_a_jour = NULL;
+
     }
     pt_init_toplevel = event->param.mouse.where;
-    return true;
+    return false;
 }
 
-//ei_app_invalidate_rect(&widget->screen_location);
 void			ei_toplevel_configure		(ei_widget_t		widget,
                                               ei_size_t*		requested_size,
                                               const ei_color_t*	color,
@@ -284,14 +377,16 @@ void			ei_toplevel_configure		(ei_widget_t		widget,
                                               ei_axis_set_t*		resizable,
                                               ei_size_ptr_t*		min_size) {
 
+
+
+    ei_impl_toplevel_t* toplevel = (ei_impl_toplevel_t*) widget;
+
     if (requested_size != NULL) {
         widget->requested_size = *requested_size;
         widget->content_rect->size = *requested_size;
     }
 
-    ei_impl_toplevel_t *toplevel = (ei_impl_toplevel_t *) widget;
-
-    if (color != NULL) {
+    if(color != NULL) {
         toplevel->color = *color;
     }
     if (!verifie_si_null(border_width)) {
@@ -306,38 +401,21 @@ void			ei_toplevel_configure		(ei_widget_t		widget,
     if (!verifie_si_null(min_size)) {
         toplevel->min_size = *min_size;
     }
+
     if (!verifie_si_null(resizable)) {
         toplevel->resizable = *resizable;
     }
     ei_bind(ei_ev_mouse_buttondown, widget, NULL, events_toplevel_down, NULL);
     ei_bind(ei_ev_mouse_buttonup, widget, NULL, events_toplevel_down, NULL);
     ei_bind(ei_ev_mouse_move, widget, NULL, events_toplevel_place, NULL);
+
+    ei_app_invalidate_rect(&widget->screen_location);
+/*
+        if(*resizable != ei_axis_none) {
+            ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_redimension, NULL);
+        }
+    }
+    else {
+        ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_redimension, NULL);
+    }*/
 }
-
-void			ei_entry_configure		(ei_widget_t		widget,
-                                           int*			requested_char_size,
-                                           const ei_color_t*	color,
-                                           int*			border_width,
-                                           ei_font_t*		text_font,
-                                           ei_color_t*		text_color){
-
-
-    ei_impl_entry_t* entry = (ei_impl_entry_t*) widget;
-
-    if (!verifie_si_null(requested_char_size)) {
-        entry->requested_char_size = *requested_char_size;
-    }
-    if(color != NULL) {
-        entry->color = *color;
-    }
-    if (!verifie_si_null(border_width)) {
-        entry->border_width = *border_width;
-    }
-    if ( !verifie_si_null(text_font) ) {
-        entry->text_font = *text_font;
-    }
-    if ( !verifie_si_null(text_color) ) {
-        entry->text_color = *text_color;
-    }
-}
-

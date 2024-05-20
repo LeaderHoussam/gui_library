@@ -50,7 +50,6 @@ void		ei_place	(ei_widget_t		widget,
             perror("erreur allocation");
             exit(EXIT_FAILURE);
         }
-        // default params
         un_placeur->anchor = (anchor == NULL) ? ei_anc_northwest : *anchor;
         un_placeur->x = (x == NULL) ? 0 : *x;
         un_placeur->y = (y == NULL) ? 0 : *y;

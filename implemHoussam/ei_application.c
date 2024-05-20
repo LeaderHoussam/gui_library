@@ -5,76 +5,80 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include "ei_application.h"
-
+#include <ei_utils.h>
 #include <ei_widget_configure.h>
-#include "ei_widget.h"
 #include "hw_interface.h"
 #include "ei_draw.h"
 #include "ei_widgetclass.h"
-#include "ei_implementation.h"
 #include "ei_geometrymanager.h"
-#include "ei_event.h"
+#include "ei_implementation.h"
+#include "ei_placer.h"
 
 ei_surface_t root_window = NULL;
 ei_widget_t root_widget = NULL;
-ei_linked_rect_t* surfaces_mise_a_jour = NULL;
-ei_rect_t* clipper_final = NULL;
-uint32_t compteur_pick_id = 256;
+ei_surface_t offscreen = NULL;
+
 bool top_toplevel = NULL;
 bool btm_toplevel = NULL;
 ei_point_t pt_init_toplevel = {0,0};
 
+ei_linked_rect_t* surfaces_mise_a_jour = NULL;
+ei_rect_t* clipper_final = NULL;
+uint32_t compteur_pick_id = 256;
+//ei_point_t pos_mouse = (ei_point_t){0,0};
 
-ei_surface_t offscreen = NULL;
-//ei_event_t *event;
+bool quitter = false;
+//ei_font_t ei_default_font = NULL;
 
-extern ei_widgetclass_t* liste_des_classe;
+//extern ei_widgetclass_t* liste_des_classe;
+
 int min(int a, int b);
 int max(int a, int b);
-
 //ei_rect_t* clipper_mise_à_jour(ei_linked_rect_t*);
 void ei_app_create(ei_size_t main_window_size, bool fullscreen){
     hw_init();
 
-    //enregistrement des classes:
-    // pour l'instant, on enregistre  juste la classe frame
-
     // on initialise la liste des classes
-    printf("j'ai bien fait le init");
+    //printf("j'ai bien fait le init");
     ei_widgetclass_t* classe_frame = init_frame_classe();
     ei_widgetclass_register(classe_frame);
 
     ei_widgetclass_t* classe_button = init_button_classe();
     ei_widgetclass_register(classe_button);
-    ei_default_font  = hw_text_font_create	(ei_default_font_filename,ei_style_normal, ei_font_default_size);
 
     ei_widgetclass_t* classe_toplevel = init_toplevel_classe();
     ei_widgetclass_register(classe_toplevel);
-    printf("j'ai reussi à ajouter la classe frame");
 
     // on initialise ici les gestionnaires de geometrie
     ei_geometrymanager_t* placeur = init_placeur();
-    ei_geometrymanager_register (placeur);
+    ei_geometrymanager_register(placeur);
+
+    printf("j'ai reussi à ajouter la classe frame");
 
     //enregistrement des geometry:
-
     root_window =   hw_create_window(main_window_size, fullscreen);
     offscreen = hw_surface_create(root_window, hw_surface_get_size(root_window), false);
-
     //hw_surface_lock(root_window);
     root_widget = ei_widget_create("frame", NULL,NULL, NULL);
+
     ei_size_t taille = hw_surface_get_size(root_window);
     ei_frame_configure(root_widget, &taille, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
     //hw_surface_unlock(root_window);
+
+    //ei_bind(ei_ev_mouse_buttondown, NULL, "button",bouton_handler, NULL);
+    //ei_bind(ei_ev_mouse_buttonup, NULL, "button",bouton_handler, NULL);
+    //ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_handler, NULL);
+    //ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_handler_1, NULL);
+
+
+
 }
 
 ei_widget_t ei_app_root_widget(void) {
     return root_widget;
 
 }
-
 static bool quit_requested = false;
 
 void ei_app_quit_request() {
@@ -89,6 +93,7 @@ bool do_nothing(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_para
     return true;
 }
 
+
 bool search_binding(ei_event_t event, ei_widget_t){
 }
 
@@ -101,8 +106,10 @@ void ei_app_run(void){
     // Redessiner la racine avant d'entrer dans la boucle des événements
     (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
     hw_surface_update_rects(surface_principale, NULL);
-    surfaces_mise_a_jour = NULL;
-    clipper_final = NULL;
+    //surfaces_mise_a_jour = NULL;
+    //clipper_final = NULL;
+    liberer_ei_rect(&clipper_final);
+    liberer_ei_linked_rect(&surfaces_mise_a_jour);
     ei_event_t *event = calloc(1, sizeof(ei_event_t));
     //hw_event_post_app(EVENT_BINDINGS);
     ei_widget_t current_widget;
@@ -110,7 +117,14 @@ void ei_app_run(void){
     while (!quit_requested) {
         // Attendre le prochain événement utilisateur
         //ei_eventtype_t event;
+        if (surfaces_mise_a_jour != NULL) {
 
+
+            (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen,clipper_final);
+            hw_surface_update_rects(surface_principale,surfaces_mise_a_jour);
+            liberer_ei_linked_rect(&surfaces_mise_a_jour);
+            liberer_ei_rect(&clipper_final);
+        }
         hw_event_wait_next(event);
         //On parcours toute la liste des bindings, c'est pas trop optimisé mais on fait comme ça pour le moment
         ei_event_binding *event_bind;
@@ -118,7 +132,14 @@ void ei_app_run(void){
         if (event->type == ei_ev_exposed){
             continue;
         }
-        if (event->type != ei_ev_mouse_move) {
+        switch (event->type) {
+            case ei_ev_exposed:
+                break;
+            case ei_ev_close:
+                ei_app_quit_request();
+                break;
+        }
+        if (event->type != ei_ev_mouse_move && event->type != ei_ev_keydown ) {
             current_widget = ei_widget_pick(&(event->param.mouse.where));
             //while (event->type != event_bind->event_type && current_widget != event_bind->widget) { //
             while (!(event->type == event_bind->event_type && current_widget == event_bind->widget)){
@@ -147,6 +168,18 @@ void ei_app_run(void){
             hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
             liberer_ei_linked_rect(&surfaces_mise_a_jour);
             liberer_ei_rect(&clipper_final);
+        } else if (event->type == ei_ev_keydown){
+            while (!(event->type == event_bind->event_type && event_bind->widget == NULL)){
+                event_bind = event_bind->next;
+                if (event_bind->next == NULL) {
+                    break;
+                }
+            }
+            execute_traitant(event, *event_bind);
+            (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
+            hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+            liberer_ei_linked_rect(&surfaces_mise_a_jour);
+            liberer_ei_rect(&clipper_final);
         }
     }
     //ei_unbind(ei_ev_mouse_move, NULL, "all", do_nothing,NULL);
@@ -154,41 +187,140 @@ void ei_app_run(void){
     hw_surface_free(offscreen);
 }
 
-bool execute_traitant(ei_event_t* event,ei_event_binding traitant) {
+void ei_app_run9(void){
+    ei_widget_t racine = ei_app_root_widget();
+    const ei_surface_t *surface_principale = ei_app_root_surface();
+
+    // Redessiner la racine avant d'entrer dans la boucle des événements
+    (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
+    hw_surface_update_rects(surface_principale, NULL);
+
+    liberer_ei_rect(&clipper_final);
+    liberer_ei_linked_rect(&surfaces_mise_a_jour);
+    ei_event_t *event = calloc(1, sizeof(ei_event_t));
+    //hw_event_post_app(EVENT_BINDINGS);
+    ei_widget_t current_widget;
+
+    while (!quit_requested){
+        if (surfaces_mise_a_jour != NULL) {
 
 
-    if(traitant.tag == NULL && traitant.widget != NULL) {
-        if(ei_widget_pick(&(event->param.mouse.where)) == traitant.widget) {
-            return traitant.callback(traitant.widget, event, traitant.user_param);
+            (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen,clipper_final);
+            hw_surface_update_rects(surface_principale,surfaces_mise_a_jour);
+            liberer_ei_linked_rect(&surfaces_mise_a_jour);
+            liberer_ei_rect(&clipper_final);
         }
-        //return true;
+        hw_event_wait_next(event);
+        ei_event_binding *event_bind;
+        switch (event->type) {
+            case ei_ev_close:
+                quit_requested = true;
+                break;
+            case ei_ev_exposed:
+                break;
+            case ei_ev_mouse_buttondown:
+                current_widget = ei_widget_pick(&(event->param.mouse.where));
+                event_bind = EVENT_BINDINGS;
+                if (current_widget != NULL){
+                    while (!(event->type == event_bind->event_type && current_widget->wclass->name == event_bind->tag)){
+                        event_bind = event_bind->next;
+                        if (event_bind->next == NULL) {
+                            break;
+                        }
+                    }
+                    while (execute_traitant(event, *event_bind)){
+                        event_bind = EVENT_BINDINGS;
+                        while (!(event->type == event_bind->event_type && current_widget == event_bind->widget)){
+                            event_bind = event_bind->next;
+                            if (event_bind->next == NULL) {
+                                break;
+                            }
+                        }
+                    }
+                }
+            default:
+                break;
+        }
+        (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
+        hw_surface_update_rects(surface_principale, surfaces_mise_a_jour);
+        liberer_ei_linked_rect(&surfaces_mise_a_jour);
+        liberer_ei_rect(&clipper_final);
     }
-    if (traitant.tag != NULL && traitant.widget == NULL){
-        if(strcmp(traitant.tag,"all") == 0){
-            return traitant.callback(ei_widget_pick(&(event->param.mouse.where)), event, traitant.user_param);
-        }
-        if( ei_widget_pick(&(event->param.mouse.where)) != NULL && strcmp(ei_widget_pick(&(event->param.mouse.where))->wclass->name,traitant.tag) == 0) {
-            return traitant.callback(ei_widget_pick(&(event->param.mouse.where)),event, traitant.user_param);
+}
 
-        }
-        //return true;
-
+/*
+traitant_t* trouve_traitant(ei_eventtype_t eventtype) {
+    event_with_callback* tete = liste_des_events_enregistres;
+    if (tete == NULL) {
+        return NULL;
     }
-    return false;
-    //return true;
 
-    //return traitant.callback(root_widget->children_head, event, traitant.user_param);
+    while(tete != NULL) {
+        if (tete->event == eventtype) {
+            return tete->liste_des_traitants;
+        }
+        tete = tete->next;
+    }
+    return NULL;
+}
+*/
+
+void ei_app_run0(void){
+    //
+    ei_widget_t racine = ei_app_root_widget();
+    const ei_surface_t surface_principale = ei_app_root_surface();
+
+    (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen, racine->content_rect);
+    hw_surface_update_rects(surface_principale, NULL);
+
+    liberer_ei_rect(&clipper_final);
+    liberer_ei_linked_rect(&surfaces_mise_a_jour);
+    ei_event_t* evenement = calloc(1,sizeof(ei_event_t));
+
+    while(!quitter) {
+
+        if (surfaces_mise_a_jour != NULL) {
+
+
+            (*(racine->wclass->drawfunc))(racine, surface_principale, offscreen,clipper_final);
+            hw_surface_update_rects(surface_principale,surfaces_mise_a_jour);
+            liberer_ei_linked_rect(&surfaces_mise_a_jour);
+            liberer_ei_rect(&clipper_final);
+        }
+        hw_event_wait_next(evenement);
+        ei_event_binding *event_bind;
+        event_bind = EVENT_BINDINGS;
+        ei_eventtype_t type_event = evenement->type;
+        while (!(evenement->type == event_bind->event_type && event_bind->widget == NULL)){
+            event_bind = event_bind->next;
+            if (event_bind->next == NULL) {
+                break;
+            }
+        }
+
+       // traitant_t* liste = trouve_traitant(type_event);
+
+        while(!execute_traitant(evenement, *event_bind)) {
+            event_bind = event_bind->next;
+            if (event_bind->next == NULL) {
+                break;
+            }
+        }
+    }
 }
 
 void ei_app_free(void){
+    free(clipper_final);
     hw_quit();
 }
 
 ei_surface_t ei_app_root_surface(void) {
     return root_window;
 }
+
 // chaque fois qu'on rentre dans cette fonction
 // on actualise le clipper final ou refaire nos dessin
+
 void ei_app_invalidate_rect(const ei_rect_t* rect) {
     if(clipper_final == NULL) {
         clipper_final = malloc(sizeof(ei_rect_t));
@@ -198,39 +330,34 @@ void ei_app_invalidate_rect(const ei_rect_t* rect) {
     nouveau->rect.size.width += 30;
     nouveau->rect.size.height += 30;
     nouveau->next = NULL;
-    int x_more_left = rect->top_left.x;
-    int new_width =  rect->size.width+30; // j'ajoute ces plus trente pour tenir compte du top level
-    int y_more_top = rect->top_left.y;
-    int new_height = rect->size.height+30;
 
+    ei_rect_t* new = trouve_inter_rect(nouveau->rect, root_widget->screen_location);
+    ei_rect_t* final;
     if (surfaces_mise_a_jour == NULL) {
+
+        nouveau->rect = *new;
         surfaces_mise_a_jour = nouveau;
-        clipper_final->top_left = (ei_point_t){x_more_left, y_more_top};
-        clipper_final->size = (ei_size_t) {new_width,new_height};
+        *clipper_final = nouveau->rect;
+        final = trouve_inter_rect(root_widget->screen_location, *clipper_final);
+        *clipper_final = *final;
     }
     else {
-        int actual_x = clipper_final->top_left.x;
-        int actual_y = clipper_final->top_left.y;
-        int actual_width = clipper_final->size.width;
-        int actual_height = clipper_final->size.height;
 
-        int final_x =min(x_more_left, actual_x);
-        int final_y =min(y_more_top, actual_y);
-        int final_width = max(actual_width, new_width);
-        int final_height = max(actual_height, new_height);
+        ei_rect_t* clip = trouve_rect_contenant(*clipper_final, nouveau->rect);
+        final = trouve_inter_rect(root_widget->screen_location, *clip);
+        clipper_final->top_left = final->top_left;
+        clipper_final->size = final->size;
+        free(clip);
 
-        clipper_final->top_left.x = final_x;
-        clipper_final->top_left.y = final_y;
-        clipper_final->size.width = final_width+30;
-        clipper_final->size.height= final_height+30;
-        ei_linked_rect_t* copie = surfaces_mise_a_jour;
-        while(copie->next != NULL) {
-            copie = copie->next;
-
-        }
-        copie->next = nouveau;
+        nouveau->rect = *new;
+        nouveau->next = surfaces_mise_a_jour;
+        surfaces_mise_a_jour = nouveau;
     }
+    free(new);
+    free(final);
 }
+
+
 
 // fonction min et max
 int min(int a, int b) {
@@ -246,7 +373,6 @@ int max(int a, int b) {
  * je mets à jour les coordonnée du clipper final.
  */
 //ei_rect_t* clipper_mise_à_jour(ei_linked_rect_t*) {}
-
 
 void liberer_ei_linked_rect(ei_linked_rect_t** liste) {
     ei_linked_rect_t* current = *liste;
@@ -264,10 +390,11 @@ void liberer_ei_rect(ei_rect_t** clip) {
     *clip = NULL;
 }
 
+
+
 ei_rect_t* trouve_rect_contenant(ei_rect_t rec1, ei_rect_t rec2) {
     ei_point_t coin_gauche;
     ei_size_t dim;
-
     ei_rect_t* retour = malloc(sizeof(ei_rect_t));
 
     // Trouver les coordonnées du coin supérieur gauche
@@ -289,14 +416,16 @@ ei_rect_t* trouve_rect_contenant(ei_rect_t rec1, ei_rect_t rec2) {
     return retour;
 }
 
+
+
 ei_rect_t* trouve_inter_rect(ei_rect_t rect1, ei_rect_t rect2) {
     ei_rect_t* retour = malloc(sizeof(ei_rect_t));
     ei_rect_t result;
 
     // Calcul des coordonnées du coin supérieur gauche du rectangle d'intersection
+
     result.top_left.x = (rect1.top_left.x > rect2.top_left.x) ? rect1.top_left.x : rect2.top_left.x;
     result.top_left.y = (rect1.top_left.y > rect2.top_left.y) ? rect1.top_left.y : rect2.top_left.y;
-
     // Calcul des coordonnées du coin inférieur droit du rectangle d'intersection
     int right1 = rect1.top_left.x + rect1.size.width;
     int right2 = rect2.top_left.x + rect2.size.width;

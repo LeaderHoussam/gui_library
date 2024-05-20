@@ -3,12 +3,13 @@
 //
 
 #include "ei_widget.h"
+
+#include <ei_application.h>
+
 #include "ei_implementation.h"
 #include "ei_widgetclass.h"
-#include "stdio.h"
 
 link_widget* liste_des_widgets = NULL;
-
 // dans cette fonction il faudra revoir comment bien
 // chainer les widgets
 // et aussi comment faire pour refuser la création d'un widget de parent NULL, sauf la racine
@@ -49,11 +50,18 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
             parent->children_head = new_widget;
             parent->children_tail = new_widget;
         }
-        if(parent->children_tail != NULL) {
+            /*
+            if(parent->children_tail != NULL) {
+                parent->children_tail->next_sibling = new_widget;
+            }
+            new_widget->next_sibling = NULL;
+            parent->children_tail = new_widget;
+        */
+        else {
+            // Ajouter à la fin
             parent->children_tail->next_sibling = new_widget;
+            parent->children_tail = new_widget;
         }
-        new_widget->next_sibling = NULL;
-        parent->children_tail = new_widget;
 
     }
     new_widget->destructor = destructor;
@@ -86,6 +94,7 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
     // il faudra ici bien faire les liaisons entres les fils et fréres de widget
     // j'y reviendrai
     //new_widget->next_sibling =
+    /*
     link_widget* new = malloc(sizeof(link_widget));
     new->widget = new_widget;
     new->next = NULL;
@@ -100,7 +109,11 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
         }
         tete->next = new;
     }
+
+    */
+
     return new_widget;
+
 }
 
 
@@ -121,15 +134,19 @@ ei_widget_t pick_recursive(ei_widget_t widget, ei_color_t* color) {
         return widget;
     } else {
         //if (widget != root_widget){
-            while(widget->next_sibling != NULL){
-                return pick_recursive(widget->next_sibling, color);
-            }
+        while(widget->next_sibling != NULL){
+            return pick_recursive(widget->next_sibling, color);
+        }
         //} else
         return pick_recursive(widget->children_head, color);
     }
 }
 
 ei_widget_t ei_widget_pick(ei_point_t *where){
+    if(where->x < 0 || where->y < 0 || where->x > root_widget->screen_location.size.width ||
+       where->y > root_widget->screen_location.size.height){
+        return NULL;
+    }
     hw_surface_lock(offscreen);
     uint32_t* pointeur_surface = (uint32_t*)hw_surface_get_buffer(offscreen);
     ei_size_t size = hw_surface_get_size(offscreen);
@@ -146,9 +163,19 @@ ei_widget_t ei_widget_pick(ei_point_t *where){
     hw_surface_unlock(offscreen);
     ei_widget_t current_widget = pick_recursive(root_widget, couleur);
     //hw_surface_unlock(offscreen);
+    free(couleur);
     return current_widget;
 }
 
+void			ei_widget_destroy		(ei_widget_t		widget) {
+    // à modifier
+    //widget->geom_params = NULL;
+    //widget->wclass->releasefunc(widget);
+    delete_widget(widget);
+    ei_app_invalidate_rect(&widget->screen_location);
+}
+// strcmp
+/*
 void ei_widget_destroy(ei_widget_t widget) {
     if (widget == NULL) {
         return;
@@ -160,11 +187,11 @@ void ei_widget_destroy(ei_widget_t widget) {
         ei_widget_destroy(child);
         child = next_child;
     }
-    /*
-    if (widget->wclass->destructor != NULL) {
-        widget->wclass->destructor(widget);
-    }
-    */
+
+    //if (widget->wclass->destructor != NULL) {
+      //  widget->wclass->destructor(widget);
+    //}
+
     // Remove widget from its parent's child list
     if (widget->parent != NULL) {
         ei_widget_t prev_sibling = NULL;
@@ -184,8 +211,9 @@ void ei_widget_destroy(ei_widget_t widget) {
         }
     }
     // Free the memory used by the widget
-    free(widget);
+    //free(widget);
 }
+*/
 
 bool	 		ei_widget_is_displayed		(ei_widget_t		widget) {
     return (widget->geom_params != NULL);

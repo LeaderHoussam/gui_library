@@ -42,7 +42,7 @@ void		ei_bind			(ei_eventtype_t		eventtype,
         }
         EVENT_BINDINGS = new_binding;
     }
-}
+    }
 
 void		ei_unbind		(ei_eventtype_t		eventtype,
                               ei_widget_t		widget,
@@ -54,7 +54,7 @@ void		ei_unbind		(ei_eventtype_t		eventtype,
     while (current_binding) {
         if (current_binding->event_type == eventtype &&
             current_binding->callback == callback &&
-            (current_binding->widget == &widget || (current_binding->tag && strcmp(current_binding->tag, tag) == 0))) {
+            (current_binding->widget == widget || (current_binding->tag && strcmp(current_binding->tag, tag) == 0))) {
             // Supprimer la liaison courante de la liste
             if (prev_binding)
                 prev_binding->next = current_binding->next;
@@ -70,4 +70,27 @@ void		ei_unbind		(ei_eventtype_t		eventtype,
         prev_binding = current_binding;
         current_binding = current_binding->next;
     }
+}
+
+bool execute_traitant(ei_event_t* event, ei_event_binding traitant) {
+    if(traitant.tag == NULL && traitant.widget != NULL) {
+        if(ei_widget_pick(&(event->param.mouse.where)) == traitant.widget) {
+            return traitant.callback(traitant.widget, event, traitant.user_param);
+        }
+        //return true;
+    }
+    else if (traitant.tag != NULL && traitant.widget == NULL){
+        if(strcmp(traitant.tag,"all") == 0){
+            return traitant.callback(ei_widget_pick(&(event->param.mouse.where)), event, traitant.user_param);
+        }
+        if( ei_widget_pick(&(event->param.mouse.where)) != NULL && strcmp(ei_widget_pick(&(event->param.mouse.where))->wclass->name,traitant.tag) == 0) {
+            return traitant.callback(ei_widget_pick(&(event->param.mouse.where)),event, traitant.user_param);
+
+        }
+        //return true;
+    }
+    return false;
+    //return true;
+
+    //return traitant.callback(root_widget->children_head, event, traitant.user_param);
 }

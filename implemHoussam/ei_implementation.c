@@ -43,7 +43,7 @@ ei_arc_t* arc(int32_t rayon, ei_point_t centre, double angle_debut, double angle
 
         points[taille-1] = point;
 
-        angle_debut = angle_debut + delta/200;
+        angle_debut = angle_debut + delta/10;
     }
 
     ei_arc_t* arcc = malloc(sizeof(ei_arc_t));
@@ -51,18 +51,6 @@ ei_arc_t* arc(int32_t rayon, ei_point_t centre, double angle_debut, double angle
     arcc->points = points;
 
     return arcc;
-}
-
-void free_arc(ei_arc_t* arc){
-    free(arc->points);
-    free(arc);
-}
-
-
-void free_arc_bg(ei_arc_bg_t* arc_bg){
-    free(arc_bg->points_down);
-    free(arc_bg->points_up);
-    free(arc_bg);
 }
 
 
@@ -313,6 +301,9 @@ ei_arc_bg_t* triangle_frame_bg(ei_rect_t rectangle)
 
     arcc->taille_down = taille_down;
     arcc->points_down = triangle_down;
+
+
+
     return arcc;
 
 }
@@ -395,9 +386,6 @@ ei_color_t* map_pick_id_to_color(ei_surface_t surface, uint32_t pick_id){
     return color;
 }
 
-void free_color(ei_color_t* color){
-    free(color);
-}
 
 ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_font_t	font, ei_anchor_t text_anchor){
 
@@ -448,11 +436,231 @@ ei_point_t*  place_text ( ei_widget_t widget, ei_const_string_t	text, const ei_f
 
 }
 
+//void state_button(ei_widget_t widget, ei_relief_t relief ) {
+/*
+bool bouton_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
+    ei_impl_button_t* bouton = (ei_impl_button_t*) widget;
+    if (event->type == ei_ev_mouse_buttondown) {
+        bouton->relief = ei_relief_sunken;
+        printf("\n jai appuyé \n");
+        ei_app_invalidate_rect(&widget->screen_location);
+        ei_bind(ei_ev_mouse_buttonup, NULL, "all", bouton_handler_1, widget);
+        ei_bind(ei_ev_mouse_move, NULL, "all", bouton_handler_1, widget);
+
+    }
+    return false;
+}
+bool bouton_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param){
+    ei_widget_t widget_1 = (ei_widget_t) user_param;
+    ei_impl_button_t* bouton = (ei_impl_button_t*) user_param;
+    ei_rect_t pos_b = widget_1->screen_location;
+    ei_point_t pos_souri = event->param.mouse.where;
+    if (event->type == ei_ev_mouse_buttonup) {
+        bouton->relief = ei_relief_raised;
+        printf("\njai relaché\n");
+        ei_app_invalidate_rect(&widget->screen_location);
+        ei_unbind(ei_ev_mouse_buttonup, NULL, "all", bouton_handler_1, user_param);
+        ei_unbind(ei_ev_mouse_move, NULL, "all", bouton_handler_1, user_param);
+    }
+    else if(event->type == ei_ev_mouse_move && !(pos_souri.x >= pos_b.top_left.x
+                                                 && pos_souri.x <= (pos_b.top_left.x+ pos_b.size.width) &&
+                                                 pos_souri.y >= pos_b.top_left.y && pos_souri.y <= (pos_b.top_left.y + pos_b.size.height))) {
+
+        bouton->relief = ei_relief_raised;
+        printf("\njai relaché\n");
+        ei_app_invalidate_rect(&widget->screen_location);
+        //
+    }
+    else {
+        bouton->relief = ei_relief_sunken;
+        printf("\njai relaché\n");
+        ei_app_invalidate_rect(&widget->screen_location);
+
+    }
+    return false;
+
+}
+bool toplevel_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
+    ei_point_t pos_souri = event->param.mouse.where;
+    ei_point_t coin_gauche = widget->screen_location.top_left;
+    if(event->type == ei_ev_mouse_buttondown && (pos_souri.x >= coin_gauche.x+3) &&
+       (pos_souri.x <= coin_gauche.x+17) && (pos_souri.y <= coin_gauche.y+17)  &&
+       (pos_souri.y >= coin_gauche.y+3)) {
+        printf("\n\nla croix rouge marche\n\n");
+        ei_widget_destroy(widget);
+    }
+    return false;
+}
+
+bool toplevel_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
+    ei_point_t pos_souri = event->param.mouse.where;
+    ei_point_t coin_gauche = widget->screen_location.top_left;
+    ei_size_t taille = widget->screen_location.size;
+    ei_impl_toplevel_t* top_level = (ei_impl_toplevel_t*) widget;
+    ei_point_t pos_carre;
+    pos_carre.x = widget->screen_location.top_left.x + widget->screen_location.size.width+ 2*top_level->border_width -10;
+    pos_carre.y = widget->screen_location.top_left.y + widget->screen_location.size.height + 10 + top_level->border_width;
+
+
+    if(event->type == ei_ev_mouse_buttondown && (pos_souri.x >= coin_gauche.x) &&
+       (pos_souri.x <= coin_gauche.x+ taille.width) && (pos_souri.y <= coin_gauche.y+20)  &&
+       (pos_souri.y >= coin_gauche.y)) {
+        move_widget_to_end(widget);
+        ei_app_invalidate_rect(&widget->screen_location);
+        // à essayer quand j'aurai fait un_bind
+        ei_bind(ei_ev_mouse_buttonup, NULL, "all", toplevel_handler_2, NULL);
+        ei_bind(ei_ev_mouse_move, NULL, "all", toplevel_handler_2, NULL);
+
+
+    }
+    else if(event->type == ei_ev_mouse_buttondown && (pos_souri.x >= pos_carre.x) &&
+            (pos_souri.x <= pos_carre.x+ 10) && (pos_souri.y <= pos_carre.y+10)  &&
+            (pos_souri.y >= pos_carre.y)) {
+        if(top_level->resizable != ei_axis_none) {
+            ei_bind(ei_ev_mouse_buttonup, NULL, "all", toplevel_redimension, NULL);
+            ei_bind(ei_ev_mouse_move, NULL, "all", toplevel_redimension, NULL);
+        }
+
+    }
+
+    pos_mouse = pos_souri;
+    return false;
+}
+
+bool toplevel_handler_2(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
+
+    int new_x, new_y;
+    ei_event_t event_int;
+    ei_point_t pos_int;
+
+    //hw_event_wait_next(&event_int);
+    if(event->type == ei_ev_mouse_move) {
+        pos_int = event->param.mouse.where;
+        new_x =  widget->screen_location.top_left.x + pos_int.x - pos_mouse.x;
+
+        new_y =  widget->screen_location.top_left.y + pos_int.y - pos_mouse.y;
+        ei_place_xy(widget, new_x, new_y);
+        pos_mouse = pos_int;
+    }
+    else if(event->type == ei_ev_mouse_buttonup) {
+        ei_unbind(ei_ev_mouse_buttonup, NULL, "all", toplevel_handler_2, NULL);
+        ei_unbind(ei_ev_mouse_move, NULL, "all", toplevel_handler_2, NULL);
+    }
+    return true;
+}
+
+
+bool toplevel_redimension(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
+
+
+    ei_impl_toplevel_t* top_level = (ei_impl_toplevel_t*) widget;
+    int new_x, new_y;
+    int new_w, new_h;
+
+    ei_point_t pos_int;
+
+    if(event->type == ei_ev_mouse_move) {
+        pos_int = event->param.mouse.where;
+        //new_x =  top_left.x + pos_int.x - pos_mouse.x;
+        new_x =  pos_int.x - pos_mouse.x;
+
+        //new_y =  top_left.y + pos_int.y - pos_mouse.y;
+        new_y =pos_int.y - pos_mouse.y;
+
+
+        new_w = widget->screen_location.size.width + new_x;
+        new_h = widget->screen_location.size.height + new_y;
+        int w = max(new_w,top_level->min_size->width);
+        int h = max(new_h,top_level->min_size->height);
+        if(top_level->resizable == ei_axis_both) {
+            ei_place_wh(widget, w, h);
+        }
+        else if(top_level->resizable == ei_axis_x) {
+
+            ei_place(widget,NULL,NULL, NULL, &w, NULL,NULL,NULL,NULL,NULL);
+        }
+        else {
+
+            ei_place(widget,NULL,NULL, NULL, NULL, &h,NULL,NULL,NULL,NULL);
+        }
+
+        pos_mouse = pos_int;
+    }
+    else if(event->type == ei_ev_mouse_buttonup) {
+        ei_unbind(ei_ev_mouse_buttonup, NULL, "all", toplevel_redimension, NULL);
+        ei_unbind(ei_ev_mouse_move, NULL, "all", toplevel_redimension, NULL);
+    }
+    return true;
+}
+*/
+
+
+
+/*
+
+bool toplevel_redimension(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) {
+    ei_impl_toplevel_t* top_level = (ei_impl_toplevel_t*) widget;
+    ei_point_t pos_souri = event->param.mouse.where;
+    ei_point_t pos_carre;
+    pos_carre.x = widget->screen_location.top_left.x + widget->screen_location.size.width+ 2*top_level->border_width -10;
+    pos_carre.y = widget->screen_location.top_left.y + widget->screen_location.size.height + 10 + top_level->border_width;
+    ei_point_t top_left = widget->screen_location.top_left;
+    ei_impl_placeur_t* geo_par = (ei_impl_placeur_t*)widget->geom_params;
+    int new_x, new_y;
+    int new_w, new_h;
+    ei_event_t event_int;
+    ei_point_t pos_int;
+    if(event->type == ei_ev_mouse_buttondown && (pos_souri.x >= pos_carre.x) &&
+        (pos_souri.x <= pos_carre.x+ 10) && (pos_souri.y <= pos_carre.y+10)  &&
+        (pos_souri.y >= pos_carre.y)) {
+        while(true) {
+            hw_event_wait_next(&event_int);
+            if(event_int.type == ei_ev_mouse_move) {
+                pos_int = event_int.param.mouse.where;
+                new_x =  pos_int.x - pos_souri.x;
+                new_y =  pos_int.y - pos_souri.y;
+
+                //new_x =  (geo_par!= NULL) ? (geo_par->x+ pos_int.x - pos_souri.x): pos_int.x - (pos_souri.x-widget->screen_location.top_left.x);
+                //new_y =  (geo_par!= NULL) ? (geo_par->y+ pos_int.y - pos_souri.y): pos_int.y - (pos_souri.x-widget->screen_location.top_left.y);
+                new_w = widget->screen_location.size.width + new_x;
+                new_h = widget->screen_location.size.height + new_y;
+                int w = max(new_w,top_level->min_size->width);
+                int h = max(new_h,top_level->min_size->height);
+                if(top_level->resizable == ei_axis_both) {
+                    ei_place_wh(widget, w, h);
+                }
+                else if(top_level->resizable == ei_axis_x) {
+                    ei_place(widget,NULL,NULL, NULL, &w, NULL,NULL,NULL,NULL,NULL);
+                }
+                else {
+                    ei_place(widget,NULL,NULL, NULL, NULL, &h,NULL,NULL,NULL,NULL);
+                }
+
+                //(*(root_widget->wclass->drawfunc))(root_widget, root_window, surface_arriere, root_widget->content_rect);
+                //hw_surface_update_rects(root_window, NULL);
+
+                (*(root_widget->wclass->drawfunc))(root_widget, root_window, surface_arriere, clipper_final);
+                hw_surface_update_rects(root_window, surfaces_mise_a_jour);
+                surfaces_mise_a_jour = NULL;
+                pos_souri = pos_int;
+            }
+            else if(event_int.type == ei_ev_mouse_buttonup) {
+                break;
+            }
+        }
+
+    }
+    return false;
+}
+*/
+
+
 ei_rect_ptr_t  place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t img_rect, ei_anchor_t img_anchor){
 
     ei_rect_ptr_t where = malloc(sizeof(ei_rect_t)); //le rectangle sur la frame sur lequel on va dessiner l'image
 
-    if (strcmp(widget->wclass->name, "frame") == 0){
+    //if (strcmp(widget->wclass->name, "frame") == 0){
+    if (compare_widget_class_name_and_tag(widget->wclass->name, "frame") == 0){
 
         ei_impl_frame_t* new_widget = (ei_impl_frame_t*) widget;
         if (new_widget->img_rect->size.width <= widget->requested_size.width){
@@ -472,8 +680,8 @@ ei_rect_ptr_t  place_img (  ei_widget_t widget, ei_surface_t img, ei_rect_ptr_t 
 
     }
 
-    else if (strcmp(widget->wclass->name, "button") == 0){
-
+    //else if (strcmp(widget->wclass->name, "button") == 0){
+    else if (compare_widget_class_name_and_tag(widget->wclass->name, "button") == 0){
         ei_impl_button_t* new_widget = (ei_impl_button_t*) widget;
         //si la source est plus petite que la destination
         if (new_widget->img_rect->size.width <= widget->requested_size.width){
@@ -564,7 +772,6 @@ void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anch
         if (source->size.height > widget->requested_size.height) {
             source->size.height = widget->requested_size.height;
         }
-
     }
 
     if (img_anchor == ei_anc_southwest) {
@@ -601,3 +808,141 @@ void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anch
 
 }
 
+// Fonction pour supprimer un widget
+void delete_widget(ei_widget_t widget) {
+    if (widget == NULL || widget->parent == NULL) {
+        return;
+    }
+
+    ei_widget_t parent = widget->parent;
+    ei_widget_t current = parent->children_head;
+    ei_widget_t prev = NULL;
+
+    // Parcourir les enfants du parent pour trouver le widget à supprimer
+    while (current != NULL) {
+        if (current == widget) {
+            // Trouvé le widget à supprimer
+            if (prev == NULL) {
+                // Widget à supprimer est le premier enfant
+                parent->children_head = current->next_sibling;
+            } else {
+                // Widget à supprimer n'est pas le premier enfant
+                prev->next_sibling = current->next_sibling;
+            }
+
+            if (current->next_sibling == NULL) {
+                // Widget à supprimer est le dernier enfant
+                parent->children_tail = prev;
+            }
+
+            // Libérer la mémoire du widget
+            free(widget);
+
+            return;
+        }
+        prev = current;
+        current = current->next_sibling;
+    }
+
+    printf("Widget not found in the list of children.\n");
+}
+
+// Fonction pour ajouter un widget à la fin des enfants de son parent
+/*
+void append_widget(ei_widget_t parent, ei_widget_t widget) {
+    if (parent == NULL || widget == NULL) {
+        return;
+    }
+
+    widget->parent = parent;
+    widget->next_sibling = NULL;
+
+    if (parent->children_head == NULL) {
+        // Si le parent n'a pas encore d'enfants
+        parent->children_head = widget;
+        parent->children_tail = widget;
+    } else {
+        // Ajouter à la fin
+        parent->children_tail->next_sibling = widget;
+        parent->children_tail = widget;
+    }
+}
+*/
+
+/*
+// Fonction pour déplacer un widget à la fin des enfants de son parent
+void move_widget_to_end(ei_widget_t widget) {
+    if (widget == NULL || widget->parent == NULL) {
+        return;
+    }
+    ei_widget_t parent = widget->parent;
+    ei_widget_t parent_tete = widget->children_head;
+
+        ei_widget_t anc_tail = parent->children_tail;
+        ei_widget_t avant_widget = parent_tete;
+        while(parent_tete != widget && parent_tete != NULL) {
+            avant_widget = parent_tete;
+            parent_tete = parent_tete->next_sibling;
+        }
+        parent->children_tail = widget;
+        avant_widget->next_sibling = widget->next_sibling;
+        widget->next_sibling = NULL;
+        anc_tail->next_sibling = widget;
+
+}
+*/
+
+void move_widget_to_end(ei_widget_t widget) {
+    if (widget == NULL || widget->parent == NULL) {
+        return;
+    }
+
+    ei_widget_t parent = widget->parent;
+
+    // Si le widget est déjà le dernier enfant, rien à faire
+    if (parent->children_tail == widget) {
+        return;
+    }
+
+    // Retirer le widget de sa position actuelle
+    ei_widget_t current = parent->children_head;
+    ei_widget_t previous = NULL;
+
+    while (current != NULL && current != widget) {
+        previous = current;
+        current = current->next_sibling;
+    }
+
+    // Si le widget est trouvé
+    if (current == widget) {
+        // Si le widget est le premier enfant
+        if (previous == NULL) {
+            parent->children_head = widget->next_sibling;
+        } else {
+            previous->next_sibling = widget->next_sibling;
+        }
+
+        // Si le widget est le dernier enfant
+        if (widget->next_sibling == NULL) {
+            parent->children_tail = previous;
+        }
+
+        // Ajouter le widget à la fin de la liste des enfants
+        if (parent->children_tail != NULL) {
+            parent->children_tail->next_sibling = widget;
+        }
+        parent->children_tail = widget;
+        widget->next_sibling = NULL;
+
+        // Si le parent n'avait pas d'enfant (cas rare mais à considérer)
+        if (parent->children_head == NULL) {
+            parent->children_head = widget;
+        }
+    }
+}
+
+
+bool compare_widget_class_name_and_tag(ei_widgetclass_name_t name, char *tag) {
+    size_t tag_length = strlen(tag);
+    return strncmp(name, tag, tag_length) == 0;
+}

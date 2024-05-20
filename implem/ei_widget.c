@@ -3,10 +3,13 @@
 //
 
 #include "ei_widget.h"
+
+#include <ei_application.h>
+
 #include "ei_implementation.h"
 #include "ei_widgetclass.h"
 
-
+link_widget* liste_des_widgets = NULL;
 // dans cette fonction il faudra revoir comment bien
 // chainer les widgets
 // et aussi comment faire pour refuser la création d'un widget de parent NULL, sauf la racine
@@ -27,10 +30,10 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
     new_widget->wclass = classe_du_widget;
 
     //ce bloc est à revoir
-    new_widget->pick_id = 0;
-    new_widget->pick_color = NULL;
+    new_widget->pick_id = compteur_pick_id;
+    new_widget->pick_color = map_pick_id_to_color(offscreen, compteur_pick_id);
     new_widget->user_data = NULL;
-
+    compteur_pick_id += 256;
     // ici, si le parent est NULL
 
     new_widget->parent = parent;
@@ -47,11 +50,18 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
             parent->children_head = new_widget;
             parent->children_tail = new_widget;
         }
-        if(parent->children_tail != NULL) {
+            /*
+            if(parent->children_tail != NULL) {
+                parent->children_tail->next_sibling = new_widget;
+            }
+            new_widget->next_sibling = NULL;
+            parent->children_tail = new_widget;
+        */
+        else {
+            // Ajouter à la fin
             parent->children_tail->next_sibling = new_widget;
+            parent->children_tail = new_widget;
         }
-        new_widget->next_sibling = NULL;
-        parent->children_tail = new_widget;
 
     }
     new_widget->destructor = destructor;
@@ -84,97 +94,127 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
     // il faudra ici bien faire les liaisons entres les fils et fréres de widget
     // j'y reviendrai
     //new_widget->next_sibling =
+    /*
+    link_widget* new = malloc(sizeof(link_widget));
+    new->widget = new_widget;
+    new->next = NULL;
+    if (liste_des_widgets==NULL) {
 
+        liste_des_widgets =  new;
+    }
+    else {
+        link_widget* tete = liste_des_widgets;
+        while (tete->next != NULL) {
+            tete = tete->next;
+        }
+        tete->next = new;
+    }
+
+    */
 
     return new_widget;
+
 }
 
-// à revoir toute la partie au-dessous
 
 //nous devons parcourir la hiérarchie des widgets à partir de la racine,
 // et pour chaque widget, vérifier si le point donné est à l'intérieur de sa zone de dessin.
 
-/*
- * Parcourir récursivement la hiérarchie des widgets, commençant par la racine de l'application
- * et pour chaque widget, vérifie si le point donné est à l'intérieur de sa zone de dessin.
- * Si c'est le cas, elle vérifie également si le point est à l'intérieur des zones de dessin
- * de ses enfants. La fonction retourne le widget le plus haut dans la hiérarchie qui correspond
- * au point donné.
- * Si aucun widget ne correspond, elle retourne NULL.
- */
+bool color_equal(ei_color_t *widget_color, ei_color_t pixel_color){
+    return (widget_color->red == pixel_color.red &&
+            widget_color->green == pixel_color.green &&
+            widget_color->blue == pixel_color.blue);
+}
 
-/*
-ei_widget_t pick_recursive(ei_widget_t widget, ei_point_t *where) {
-    // Vérifier si le point est à l'intérieur de la zone de dessin du widget
-    if (ei_rect_contains(widget->screen_location, *where)) {
-        // Si le widget a des enfants, vérifier s'il y a un widget enfant qui correspond également au point
-        if (widget->children_head != NULL) {
-            // Parcourir tous les enfants, du plus récent au plus ancien, pour respecter l'ordre d'affichage
-            ei_widget_t enfant = widget->children_tail;
-            while (enfant != NULL) {
-                // Appeler récursivement cette fonction pour vérifier le widget enfant
-                ei_widget_t widget_touche = pick_recursive(enfant, where);
-                if (widget_touche != NULL) {
-                    // Si un widget enfant correspond, le retourner
-                    return widget_touche;
-                }
-                // Passer à l'enfant précédent
-                enfant = enfant->prev_sibling;
-            }
-        }
-        // Si aucun enfant ne correspond et que ce widget est touché, le retourner
-        return widget;
+ei_widget_t pick_recursive(ei_widget_t widget, ei_color_t* color) {
+    if (widget == NULL){
+        return NULL;
     }
-    // Si le point n'est pas à l'intérieur de la zone de dessin de ce widget, retourner NULL
-    return NULL;
-}
-
-ei_widget_t		ei_widget_pick			(ei_point_t*		where){
-    // Commencer à partir de la racine de l'application
-    ei_widget_t racine = root_widget;
-    // Appeler une fonction récursive pour parcourir les widgets et choisir celui qui correspond au point donné
-    return pick_recursive(racine, where);
-}*/
-
-bool is_point_inside_widget(ei_widget_t widget, ei_point_t *where) {
-    // Vérifier si le point est à l'intérieur de la zone de dessin du widget
-    return (where->x >= widget->screen_location.top_left.x &&
-            where->x < widget->screen_location.top_left.x + widget->screen_location.size.width &&
-            where->y >= widget->screen_location.top_left.y &&
-            where->y < widget->screen_location.top_left.y + widget->screen_location.size.height &&
-            widget->pick_color != NULL);
-}
-
-ei_widget_t pick_recursive(ei_widget_t widget, ei_point_t *where) {
-    // Vérifier si le point est à l'intérieur de la zone de dessin du widget
-    if (is_point_inside_widget(widget, where)) {
-        // Si le widget a des enfants, vérifier s'il y a un widget enfant qui correspond également au point
-        if (widget->children_head != NULL) {
-            // Parcourir tous les enfants, du plus récent au plus ancien, pour respecter l'ordre d'affichage
-            ei_widget_t enfant = widget->children_head;
-            while (enfant != NULL) {
-                // Appeler récursivement cette fonction pour vérifier le widget enfant
-                ei_widget_t widget_touche = pick_recursive(enfant, where);
-                if (widget_touche != NULL) {
-                    // Si un widget enfant correspond, le retourner
-                    return widget_touche;
-                }
-                // Passer à l'enfant suivant
-                enfant = enfant->next_sibling;
-                // à revoir !
-            }
-        }
-        // Si aucun enfant ne correspond et que ce widget est touché, le retourner
+    if (color_equal(widget->pick_color, *color)){
         return widget;
+    } else {
+        //if (widget != root_widget){
+        while(widget->next_sibling != NULL){
+            return pick_recursive(widget->next_sibling, color);
+        }
+        //} else
+        return pick_recursive(widget->children_head, color);
     }
-    // Si le point n'est pas à l'intérieur de la zone de dessin de ce widget, retourner NULL
-    return NULL;
 }
 
-ei_widget_t ei_widget_pick(ei_point_t *where) {
-    // Commencer à partir de la racine de l'application
-    ei_widget_t racine = root_widget;
+ei_widget_t ei_widget_pick(ei_point_t *where){
+    if(where->x < 0 || where->y < 0 || where->x > root_widget->screen_location.size.width ||
+       where->y > root_widget->screen_location.size.height){
+        return NULL;
+    }
+    hw_surface_lock(offscreen);
+    uint32_t* pointeur_surface = (uint32_t*)hw_surface_get_buffer(offscreen);
+    ei_size_t size = hw_surface_get_size(offscreen);
+    pointeur_surface = pointeur_surface + (size.width*where->y + where->x);
+    int ir, ig, ib, ia;
+    hw_surface_get_channel_indices(offscreen, &ir, &ig, &ib, &ia);
+    uint8_t* tab = (uint8_t*)pointeur_surface;
+    ei_color_t* couleur = malloc(sizeof(ei_color_t));
+    couleur->red = tab[ir];
+    couleur->green = tab[ig];
+    couleur->blue = tab[ib];
+    couleur->alpha = 255;
+    //*couleur = (ei_color_t){ pointeur_surface[ir],pointeur_surface[ig],pointeur_surface[ib],0};
+    hw_surface_unlock(offscreen);
+    ei_widget_t current_widget = pick_recursive(root_widget, couleur);
+    //hw_surface_unlock(offscreen);
+    free(couleur);
+    return current_widget;
+}
 
-    // Appeler une fonction récursive pour parcourir les widgets et choisir celui qui correspond au point donné
-    return pick_recursive(racine, where);
+void			ei_widget_destroy		(ei_widget_t		widget) {
+    // à modifier
+    //widget->geom_params = NULL;
+    //widget->wclass->releasefunc(widget);
+    delete_widget(widget);
+    ei_app_invalidate_rect(&widget->screen_location);
+}
+// strcmp
+/*
+void ei_widget_destroy(ei_widget_t widget) {
+    if (widget == NULL) {
+        return;
+    }
+    // Recursively destroy all descendants
+    ei_widget_t child = widget->children_head;
+    while (child != NULL) {
+        ei_widget_t next_child = child->next_sibling;
+        ei_widget_destroy(child);
+        child = next_child;
+    }
+
+    //if (widget->wclass->destructor != NULL) {
+      //  widget->wclass->destructor(widget);
+    //}
+
+    // Remove widget from its parent's child list
+    if (widget->parent != NULL) {
+        ei_widget_t prev_sibling = NULL;
+        ei_widget_t sibling = widget->parent->children_head;
+
+        while (sibling != NULL) {
+            if (sibling == widget) {
+                if (prev_sibling == NULL) {
+                    widget->parent->children_head = widget->next_sibling;
+                } else {
+                    prev_sibling->next_sibling = widget->next_sibling;
+                }
+                break;
+            }
+            prev_sibling = sibling;
+            sibling = sibling->next_sibling;
+        }
+    }
+    // Free the memory used by the widget
+    //free(widget);
+}
+*/
+
+bool	 		ei_widget_is_displayed		(ei_widget_t		widget) {
+    return (widget->geom_params != NULL);
 }
