@@ -173,8 +173,23 @@ typedef struct ei_impl_toplevel_t{
 	ei_size_ptr_t  	min_size;
 }ei_impl_toplevel_t;
 
+typedef struct	ei_impl_entry_t {
+	ei_impl_widget_t widget;
+	int requested_char_size;
+	ei_color_t color;
+	int border_width;
+	ei_font_t text_font;
+	ei_color_t    text_color;
+	//ajout perso
+	char* text;
+	int pos;
+	int ind_cur;
+	bool focus;
+}ei_impl_entry_t;
+
 
 // on va ajouter dans ce fichier, l'instanciation  de nos classes
+ei_widgetclass_t* init_entry_classe(void);
 ei_widgetclass_t* init_toplevel_classe(void);
 ei_widgetclass_t* init_button_classe(void );
 ei_widgetclass_t* init_frame_classe(void );
@@ -240,12 +255,17 @@ typedef struct link_widget {
 	struct link_widget* next;
 }link_widget;
 extern link_widget* liste_des_widgets;
+
+extern ei_point_t* curseur;
 bool bouton_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool bouton_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
 bool toplevel_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
 bool toplevel_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
 bool toplevel_handler_2(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
 bool toplevel_redimension(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
 
+bool entry_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool entry_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param) ;
 extern ei_point_t pos_mouse;
 
 static inline void ei_place_wh		(ei_widget_t widget, int w, int h)			{ ei_place(widget, NULL, NULL, NULL, &w, &h, NULL, NULL, NULL, NULL); }
@@ -256,4 +276,21 @@ ei_rect_t* trouve_inter_rect(ei_rect_t rect1, ei_rect_t rect2);
 
 int min(int a, int b);
 int max(int a, int b);
+
+void delete_widget(ei_widget_t widget);
+bool color_equal(ei_color_t *widget_color, ei_color_t pixel_color);
+ei_widget_t pick_recursive(ei_widget_t widget, ei_color_t* color);
+void move_widget_to_end(ei_widget_t widget);
+void append_widget(ei_widget_t parent, ei_widget_t widget);
+
+
+void	ei_drawentry_text	(ei_surface_t		surface,
+						 const ei_point_t*	where,
+						 ei_const_string_t	text,
+						 ei_font_t		font,
+						 ei_color_t		color,
+						 const ei_rect_t*	clipper );
+
+void remove_letter(char* str, int index);
+void insert_char(char* str, char char_to_insert, int index, int max_len);
 #endif

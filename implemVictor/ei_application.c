@@ -50,12 +50,16 @@ void ei_app_create(ei_size_t main_window_size, bool fullscreen){
     ei_widgetclass_t* classe_toplevel = init_toplevel_classe();
     ei_widgetclass_register(classe_toplevel);
 
+    ei_widgetclass_t* classe_entry = init_entry_classe();
+    ei_widgetclass_register(classe_entry);
+
     // on initialise ici les gestionnaires de geometrie
     ei_geometrymanager_t* geo_placeur = init_placeur();
     ei_geometrymanager_register(geo_placeur);
 
     printf("j'ai reussi à ajouter la classe frame");
 
+    curseur  = calloc(2, sizeof(ei_point_t));
     //enregistrement des geometry:
 
     root_window =   hw_create_window(main_window_size, fullscreen);
@@ -71,6 +75,7 @@ void ei_app_create(ei_size_t main_window_size, bool fullscreen){
     ei_bind(ei_ev_mouse_buttonup, NULL, "button",bouton_handler, NULL);
     ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_handler, NULL);
     ei_bind(ei_ev_mouse_buttondown, NULL, "toplevel",toplevel_handler_1, NULL);
+    ei_bind(ei_ev_mouse_buttondown,NULL,"entry", entry_handler,NULL);
 
 
 
@@ -161,6 +166,10 @@ void ei_app_run(void){
 
         //ei_app_quit_request(); // à commenter quand tout sera bon
         hw_event_wait_next(evenement);
+        printf("\n\n\nx: %i, y: %i\n\n\n", evenement->param.mouse.where.x,evenement->param.mouse.where.y);
+        if(evenement->type == ei_ev_mouse_buttondown) {
+            printf("il s'ajout d'un bouttondown");
+        }
         //pos_mouse = evenement->param.mouse.where;
         // il faut maintenant traiter l'évènement
         //event_with_callback* mes_types_event = liste_des_events_enregistres;
@@ -208,48 +217,30 @@ void ei_app_invalidate_rect(const ei_rect_t* rect) {
     nouveau->rect.size.height += 30;
     nouveau->next = NULL;
 
-
-
+    ei_rect_t* new = trouve_inter_rect(nouveau->rect, root_widget->screen_location);
+    ei_rect_t* final;
     if (surfaces_mise_a_jour == NULL) {
-        surfaces_mise_a_jour = nouveau;
-       // int x_more_left = rect->top_left.x;
-        //int new_width =  rect->size.width+30; // j'ajoute ces plus trente pour tenir compte du top level
-        //int y_more_top = rect->top_left.y;
-        //int new_height = rect->size.height+30;
 
-        //clipper_final->top_left = (ei_point_t){x_more_left, y_more_top};
-        //clipper_final->size = (ei_size_t) {new_width,new_height};
+        nouveau->rect = *new;
+        surfaces_mise_a_jour = nouveau;
         *clipper_final = nouveau->rect;
+        final = trouve_inter_rect(root_widget->screen_location, *clipper_final);
+        *clipper_final = *final;
     }
     else {
 
         ei_rect_t* clip = trouve_rect_contenant(*clipper_final, nouveau->rect);
-        ei_rect_t* final = trouve_inter_rect(root_widget->screen_location, *clip);
+        final = trouve_inter_rect(root_widget->screen_location, *clip);
         clipper_final->top_left = final->top_left;
         clipper_final->size = final->size;
         free(clip);
-        free(final);
 
-        /*
-        ei_rect_t* surf_final = trouve_rect_contenant(surfaces_mise_a_jour->rect, nouveau->rect);
-        surfaces_mise_a_jour->rect = *surf_final;
-        */
-       // ei_linked_rect_t* copie = surfaces_mise_a_jour;
-        /*
-        while(copie->next != NULL) {
-            copie = copie->next;
-
-        }*/
-
-        //ei_linked_rect_t* copie = surfaces_mise_a_jour;
-        ei_rect_t* fin = trouve_inter_rect(root_widget->screen_location, nouveau->rect);
-        nouveau->rect = *fin;
+        nouveau->rect = *new;
         nouveau->next = surfaces_mise_a_jour;
         surfaces_mise_a_jour = nouveau;
-        free(fin);
-        //copie->next = nouveau;
-
     }
+    free(new);
+    free(final);
 }
 
 

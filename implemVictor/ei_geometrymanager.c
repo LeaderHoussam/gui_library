@@ -72,7 +72,7 @@ void set_value(int *x, int *y, ei_point_t pos_parent, ei_size_t dim_parent) {
 // calculs reste bien dans les bords du parent
 void placeur_runfunc(ei_widget_t widget) {
     // les paramètre du parent:
-    if(widget->parent != NULL) {
+    if(widget->parent != NULL && widget->geom_params != NULL) {
         ei_widget_t parent = widget->parent;
         ei_point_t pos_parent = parent->content_rect->top_left;
         ei_size_t dim_parent = parent->content_rect->size;
@@ -247,5 +247,10 @@ void			ei_widget_set_geom_params	(ei_widget_t widget, ei_geom_param_t geom_param
 }
 
 void			ei_geometrymanager_unmap	(ei_widget_t widget) {
-// je n'ai pas bien compris ce que ça dois faire
+
+    if(widget->geom_params != NULL) {
+        widget->geom_params = NULL;
+        widget->screen_location.top_left = (ei_point_t ){0,0};
+        widget->screen_location.size = (ei_size_t){0,0};
+    }
 }

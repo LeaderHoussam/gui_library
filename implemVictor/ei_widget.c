@@ -50,11 +50,18 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
             parent->children_head = new_widget;
             parent->children_tail = new_widget;
         }
+        /*
         if(parent->children_tail != NULL) {
             parent->children_tail->next_sibling = new_widget;
         }
         new_widget->next_sibling = NULL;
         parent->children_tail = new_widget;
+    */
+    else {
+        // Ajouter à la fin
+        parent->children_tail->next_sibling = new_widget;
+        parent->children_tail = new_widget;
+    }
 
     }
     new_widget->destructor = destructor;
@@ -87,6 +94,7 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
     // il faudra ici bien faire les liaisons entres les fils et fréres de widget
     // j'y reviendrai
     //new_widget->next_sibling =
+    /*
     link_widget* new = malloc(sizeof(link_widget));
     new->widget = new_widget;
     new->next = NULL;
@@ -102,6 +110,7 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
         tete->next = new;
     }
 
+    */
 
     return new_widget;
 
@@ -110,10 +119,56 @@ ei_widget_t		ei_widget_create		(ei_const_string_t	class_name,
 
 void			ei_widget_destroy		(ei_widget_t		widget) {
     // à modifier
-    widget->geom_params = NULL;
+    //widget->geom_params = NULL;
+    //widget->wclass->releasefunc(widget);
+    delete_widget(widget);
     ei_app_invalidate_rect(&widget->screen_location);
 }
 
 bool	 		ei_widget_is_displayed		(ei_widget_t		widget) {
     return (widget->geom_params != NULL);
+}
+
+bool color_equal(ei_color_t *widget_color, ei_color_t pixel_color){
+    return (widget_color->red == pixel_color.red &&
+            widget_color->green == pixel_color.green &&
+            widget_color->blue == pixel_color.blue);
+}
+
+/*
+ei_widget_t pick_recursive(ei_widget_t widget, ei_color_t* color) {
+    if (widget == NULL){
+        return NULL;
+    }
+    if (color_equal(widget->pick_color, *color)){
+        return widget;
+    } else {
+        //if (widget != root_widget){
+        while(widget->next_sibling != NULL){
+            return pick_recursive(widget->next_sibling, color);
+        }
+        //} else
+        return pick_recursive(widget->children_head, color);
+    }
+}
+*/
+
+ei_widget_t pick_recursive(ei_widget_t widget, ei_color_t* color) {
+    if (widget == NULL) {
+        return NULL;
+    }
+
+    // Vérifier si le widget actuel a la couleur de piquage recherchée
+    if (color_equal(widget->pick_color, *color)) {
+        return widget;
+    }
+
+    // Parcourir les enfants du widget actuel
+    ei_widget_t result = pick_recursive(widget->children_head, color);
+    if (result != NULL) {
+        return result;
+    }
+
+    // Parcourir les frères et sœurs du widget actuel
+    return pick_recursive(widget->next_sibling, color);
 }
