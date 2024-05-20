@@ -29,11 +29,12 @@ void ei_geometry_run_finalize(ei_widget_t widget, ei_rect_t* new_screen_location
             ei_app_invalidate_rect(old_screen_location);
         }
         ei_app_invalidate_rect(new_screen_location);
-
         // notify the widget that it's geometry has changed
         // on a modifier les dimensions et positions du widget
         widget->screen_location = *new_screen_location;
         widget->wclass->geomnotifyfunc(widget);
+        free(new_screen_location);
+        free(old_screen_location);
 
         // recompute the geometry of the children
 
