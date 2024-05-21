@@ -96,6 +96,7 @@ void			ei_frame_configure		(ei_widget_t		widget,
         // Copier le texte dans le widget
         strcpy(frame->text, *text);
         */
+        free(frame->text);
         frame->text = strdup(*text);
     }
 
@@ -135,9 +136,12 @@ bool bouton_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_
         bouton->relief = ei_relief_sunken;
         printf("\n jai appuyé \n");
         ei_app_invalidate_rect(&widget->screen_location);
-        ei_bind(ei_ev_mouse_buttonup, NULL, "all", bouton_handler_1, widget);
-        ei_bind(ei_ev_mouse_move, NULL, "all", bouton_handler_1, widget);
-
+        //ei_bind(ei_ev_mouse_buttonup, NULL, "all", bouton_handler_1, widget);
+        //ei_bind(ei_ev_mouse_move, NULL, "all", bouton_handler_1, widget);
+    } else if (event->type == ei_ev_mouse_buttonup) {
+        bouton->relief = ei_relief_raised;
+        printf("\njai relaché\n");
+        ei_app_invalidate_rect(&widget->screen_location);
     }
     return false;
 }
@@ -146,14 +150,14 @@ bool bouton_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t use
     ei_impl_button_t* bouton = (ei_impl_button_t*) user_param;
     ei_rect_t pos_b = widget_1->screen_location;
     ei_point_t pos_souri = event->param.mouse.where;
-    if (event->type == ei_ev_mouse_buttonup) {
+   /* if (event->type == ei_ev_mouse_buttonup) {
         bouton->relief = ei_relief_raised;
         printf("\njai relaché\n");
         ei_app_invalidate_rect(&widget->screen_location);
-        ei_unbind(ei_ev_mouse_buttonup, NULL, "all", bouton_handler_1, user_param);
-        ei_unbind(ei_ev_mouse_move, NULL, "all", bouton_handler_1, user_param);
+        //ei_unbind(ei_ev_mouse_buttonup, NULL, "all", bouton_handler_1, user_param);
+        //ei_unbind(ei_ev_mouse_move, NULL, "all", bouton_handler_1, user_param);
     }
-    else if(event->type == ei_ev_mouse_move && !(pos_souri.x >= pos_b.top_left.x
+    else */if(event->type == ei_ev_mouse_move && !(pos_souri.x >= pos_b.top_left.x
                                                  && pos_souri.x <= (pos_b.top_left.x+ pos_b.size.width) &&
                                                  pos_souri.y >= pos_b.top_left.y && pos_souri.y <= (pos_b.top_left.y + pos_b.size.height))) {
 

@@ -286,7 +286,7 @@ extern event_with_callback* liste_des_events_enregistres;
 bool execute_traitant(ei_event_t* event, traitant_t traitant);
 traitant_t* trouve_traitant(ei_eventtype_t eventtype);
 ei_color_t* get_pick_screen_color(ei_point_t pos_souris);
-ei_widget_t get_widget_from_pick_color(ei_color_t pick_color);
+ei_widget_t get_widget_from_pick_color(ei_color_t* pick_color);
 
 
 

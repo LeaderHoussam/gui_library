@@ -127,11 +127,11 @@ ei_widget_t get_widget_actuel(ei_event_t* event) {
         return NULL;
     }
     ei_color_t* pick_screen_color = get_pick_screen_color(pos_souris);
-    return get_widget_from_pick_color(*pick_screen_color);
+    return get_widget_from_pick_color(pick_screen_color);
     //return root_widget; // à supprimer après
 }
 
-ei_widget_t get_widget_from_pick_color(ei_color_t pick_color) {
+ei_widget_t get_widget_from_pick_color(ei_color_t* pick_color) {
     /*
     link_widget* debut = liste_des_widgets;
     while (debut!= NULL && (debut->widget->pick_color->red != pick_color.red ||
@@ -142,10 +142,10 @@ ei_widget_t get_widget_from_pick_color(ei_color_t pick_color) {
     }
     return (debut==NULL ? NULL: debut->widget);
     */
-    ei_color_t* color = malloc(sizeof(ei_color_t));
-    *color = pick_color;
-    ei_widget_t retour =  pick_recursive(root_widget, color);
-    free(color);
+    //ei_color_t* color = malloc(sizeof(ei_color_t));
+    //*color = pick_color;
+    ei_widget_t retour =  pick_recursive(root_widget, pick_color);
+    free(pick_color);
     return retour;
 }
 ei_color_t* get_pick_screen_color(ei_point_t pos_souris) {

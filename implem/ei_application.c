@@ -118,6 +118,8 @@ void ei_app_run(void){
 }
 
 void ei_app_free(void){
+    ei_unbind(ei_ev_mouse_buttonup, NULL, "all", bouton_handler_1, NULL);
+    ei_unbind(ei_ev_mouse_move, NULL, "all", bouton_handler_1, NULL);
     hw_quit();
 }
 

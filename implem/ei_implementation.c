@@ -123,26 +123,23 @@ ei_arc_t* rounded_frame(int32_t rayon, ei_rect_t rectangle)
     ei_point_t* points_6 = arc_6->points;
     int32_t	taille6 = arc_6->taille;
 
-    ei_point_t* concatenation = concatenation_tab( points_1, taille1, points_2, taille2);
-    ei_point_t* points = concatenation;
-    int32_t taille = taille1 + taille2;
 
-    concatenation = concatenation_tab(points, taille, points_3, taille3);
-    points = concatenation;
-    taille = taille + taille3;
+    ei_point_t* points_01 = concatenation_tab( points_1, taille1, points_2, taille2);
+    int32_t taille01 = taille1 + taille2;
+
+    ei_point_t* points_02 = concatenation_tab( points_3, taille3, points_4, taille4);
+    int32_t taille02 = taille4 + taille4;
+
+    ei_point_t* points_03 = concatenation_tab( points_5, taille5, points_6, taille6);
+    int32_t taille03 = taille5 + taille6;
 
 
-    concatenation = concatenation_tab(points, taille, points_4, taille4);
-    points = concatenation;
-    taille = taille + taille4;
+    ei_point_t* points_001 = concatenation_tab( points_01, taille01, points_02, taille02);
+    int32_t taille001 = taille01 + taille02;
 
-    concatenation = concatenation_tab(points, taille, points_5, taille5);
-    points = concatenation;
-    taille = taille + taille5;
+    ei_point_t* points = concatenation_tab( points_001, taille001, points_03, taille03);
+    int32_t taille = taille001 + taille03;
 
-    concatenation = concatenation_tab(points, taille, points_6, taille6);
-    points = concatenation;
-    taille = taille + taille6;
 
 
     ei_arc_t* arcc = malloc(sizeof(ei_arc_t));
@@ -156,12 +153,14 @@ ei_arc_t* rounded_frame(int32_t rayon, ei_rect_t rectangle)
     free_arc(arc_4);
     free_arc(arc_5);
     free_arc(arc_6);
-    //free(concatenation);
+    free(points_01);
+    free(points_02);
+    free(points_03);
+    free(points_001);
 
     return arcc;
 
 }
-
 
 ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle) {
 
@@ -189,6 +188,7 @@ ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle) {
     ei_point_t *points_5 = arc_5->points;
     int32_t taille5 = arc_5->taille;
 
+    /*
     ei_point_t* concatenation_up = concatenation_tab(points_1, taille1, points_2, taille2);
     ei_point_t *points_up = concatenation_up;
     int32_t taille_up = taille1 + taille2;
@@ -196,6 +196,15 @@ ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle) {
     concatenation_up = concatenation_tab(points_up, taille_up, points_5, taille5);
     points_up = concatenation_up;
     taille_up = taille_up + taille5;
+     */
+
+
+    ei_point_t *points_up_01 = concatenation_tab(points_1, taille1, points_2, taille2);
+    int32_t taille_up_01 = taille1 + taille2;
+
+
+    ei_point_t *points_up = concatenation_tab(points_up_01, taille_up_01, points_5, taille5);
+    int32_t  taille_up = taille_up_01 + taille5;
 
     arcc->taille_up = taille_up;
     arcc->points_up = points_up;
@@ -217,6 +226,7 @@ ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle) {
     ei_point_t *points_8 = arc_8->points;
     int32_t taille8 = arc_8->taille;
 
+    /*
     ei_point_t* concatenation_down = concatenation_tab(points_6, taille6, points_7, taille7);
     ei_point_t *points_down = concatenation_down;
     int32_t taille_down = taille6 + taille7;
@@ -224,6 +234,13 @@ ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle) {
     concatenation_down = concatenation_tab(points_down, taille_down, points_8, taille8);
     points_down = concatenation_down;
     taille_down = taille_down + taille8;
+     */
+
+    ei_point_t *points_down_01 = concatenation_tab(points_6, taille6, points_7, taille7);
+    int32_t taille_down_01 = taille6 + taille7;
+
+    ei_point_t *points_down = concatenation_tab(points_down_01, taille_down_01, points_8, taille8);
+    int32_t taille_down = taille_down_01 + taille8;
 
 
     arcc->taille_down = taille_down;
@@ -236,6 +253,8 @@ ei_arc_bg_t* rounded_frame_bg(int32_t rayon, ei_rect_t rectangle) {
     free_arc(arc_6);
     free_arc(arc_7);
     free_arc(arc_8);
+    free(points_up_01);
+    free(points_down_01);
     //free(concatenation_up);
     //free(concatenation_down);
     return arcc;
@@ -311,6 +330,7 @@ ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle)
     point4[0] = pt4;
     int32_t taille4 = 1;
 
+    /*
     ei_point_t* concatenation = concatenation_tab( points_1, taille1, points_2, taille2);
     ei_point_t* points = concatenation;
     int32_t taille = taille1 + taille2;
@@ -322,6 +342,18 @@ ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle)
     concatenation = concatenation_tab(points, taille, point4, taille4);
     points = concatenation;
     taille = taille + taille4;
+     */
+
+    ei_point_t* points_01 = concatenation_tab( points_1, taille1, points_2, taille2);
+    int32_t taille01 = taille1 + taille2;
+
+
+    ei_point_t* points_02 = concatenation_tab(point3, taille3, point4, taille4);
+    int32_t taille02 = taille3 + taille4;
+
+
+    ei_point_t* points = concatenation_tab(points_01, taille01, points_02, taille02);
+    int32_t taille = taille01 + taille02;
 
 
     ei_arc_t* arcc = malloc(sizeof(ei_arc_t));
@@ -332,12 +364,13 @@ ei_arc_t* rounded_top_level(int32_t rayon, ei_rect_t rectangle)
     free_arc(arc_2);
     free(point3);
     free(point4);
+    free(points_01);
+    free(points_02);
     //free(concatenation);
 
     return arcc;
 
 }
-
 
 void free_arc(ei_arc_t* arc){
     free(arc->points);
@@ -835,6 +868,31 @@ void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anch
 
 }
 
+void free_widget(ei_widget_t widget){
+    free(widget->geom_params);
+    free(widget->pick_color);
+    if (strcmp(widget->wclass->name , "toplevel") == 0){
+        free(widget->content_rect);
+        ei_impl_toplevel_t* top = (ei_impl_toplevel_t*) widget;
+        free(top->min_size);
+        free(top);
+        return;
+    }
+
+    if (strcmp(widget->wclass->name , "frame") == 0){
+        ei_impl_frame_t * frame = (ei_impl_frame_t *) widget;
+        free(frame->img);
+        if (frame->text != NULL) {
+            free(frame->text);
+            frame->text = NULL;
+        }
+        free(frame);
+        return;
+    }
+    free(widget);
+}
+
+
 // Fonction pour supprimer un widget
 void delete_widget(ei_widget_t widget) {
     if (widget == NULL || widget->parent == NULL) {
@@ -875,7 +933,7 @@ void delete_widget(ei_widget_t widget) {
                     event_bind = event_bind->next;
                 }
             }*/
-            free(widget);
+            free_widget(widget);
             return;
         }
         prev = current;

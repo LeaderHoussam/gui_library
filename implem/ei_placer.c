@@ -61,7 +61,8 @@ void		ei_place	(ei_widget_t		widget,
         un_placeur->rel_height = (rel_height == NULL) ? 0.0 : *rel_height;
 
         widget->geom_params = (ei_impl_geom_param_t*) un_placeur;
-        widget->geom_params->manager= ei_geometrymanager_from_name("placeur");
+        ei_geometrymanager_name_t name = "placeur";
+        widget->geom_params->manager = ei_geometrymanager_from_name(name);
     }
     widget->geom_params->manager->runfunc(widget);
 }
