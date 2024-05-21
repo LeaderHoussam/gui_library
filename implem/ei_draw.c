@@ -95,15 +95,30 @@ void	ei_fill			(ei_surface_t		surface,
                             const ei_color_t*	color,
                             const ei_rect_t*	clipper) {
 
+   /* int w = clipper->size.width;
+    int h = clipper->size.height;
+    int x = clipper->top_left.x;
+    int y = clipper->top_left.y;*/
+
+    ei_color_t black = {0,0,0,255};
+    ei_color_t couleur = (color == NULL)?black: *color;
+    /*
     int w = clipper->size.width;
     int h = clipper->size.height;
     int x = clipper->top_left.x;
     int y = clipper->top_left.y;
+     */
     hw_surface_lock(surface);
-    ei_point_t coins[4] = {clipper->top_left,(ei_point_t){x+w,y},(ei_point_t){x+w,y+h} ,(ei_point_t){x,y+h}};
-    ei_draw_polygon(surface,coins,4,*color,clipper);
-    hw_surface_unlock(surface);
+    ei_rect_t surf_rect = hw_surface_get_rect(surface);
 
+    int w = surf_rect.size.width;
+    int h = surf_rect.size.height;
+    int x = surf_rect.top_left.x;
+    int y = surf_rect.top_left.y;
+
+    ei_point_t coins[4] = {surf_rect.top_left,(ei_point_t){x+w,y},(ei_point_t){x+w,y+h} ,(ei_point_t){x,y+h}};
+    ei_draw_polygon(surface,coins,4,couleur,clipper);
+    hw_surface_unlock(surface);
 }
 
 

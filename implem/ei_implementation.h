@@ -14,6 +14,7 @@
 #include "ei_geometrymanager.h"
 #include "ei_event.h"
 #include "ei_placer.h"
+#include "ei_entry.h"
 
 /* par Nelson*/
 typedef struct {
@@ -344,6 +345,8 @@ void	ei_drawentry_text	(ei_surface_t		surface,
 
 void remove_letter(char* str, int index);
 void insert_char(char* str, char char_to_insert, int index, int max_len);
-//strcmp
+
+extern ei_impl_entry_t * last_focused_entry;
+
 bool compare_widget_class_name_and_tag(ei_widgetclass_name_t name, char *tag);
 #endif

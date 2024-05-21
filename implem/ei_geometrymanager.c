@@ -24,8 +24,8 @@ void ei_geometry_run_finalize(ei_widget_t widget, ei_rect_t* new_screen_location
         //schedule a redraw of the screen on the old and new screen location
         ei_rect_t* old_screen_location = malloc(sizeof(ei_rect_t));
         *old_screen_location = widget->screen_location;
-        if(old_screen_location->size.width != 0 && old_screen_location->size.height != 0
-           && old_screen_location->top_left.x != 0 && old_screen_location->top_left.y != 0) {
+        if(old_screen_location->size.width != 0 || old_screen_location->size.height != 0
+           || old_screen_location->top_left.x != 0 || old_screen_location->top_left.y != 0) {
             ei_app_invalidate_rect(old_screen_location);
         }
         ei_app_invalidate_rect(new_screen_location);

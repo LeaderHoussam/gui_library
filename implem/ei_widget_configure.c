@@ -241,6 +241,7 @@ void			ei_button_configure		(ei_widget_t		widget,
         button->relief = *relief;
     }
     if ( !verifie_si_null(text) ) {
+        free(button->text);
         button->text = strdup(*text);
     }
 
@@ -316,10 +317,10 @@ void			ei_button_configure		(ei_widget_t		widget,
             }
             button->img_rect->top_left = (ei_point_t){0,0};
             button->img = copie;
-        } else {
+        } /*else {
             fprintf(stderr, "img_rect is NULL while img is not\n");
             exit(EXIT_FAILURE);
-        }
+        }*/
     }
 
     if ( !verifie_si_null(img_anchor) ) {
@@ -348,6 +349,7 @@ bool toplevel_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t use
        (pos_souri.y >= coin_gauche.y+3)) {
         printf("\n\nla croix rouge marche\n\n");
         ei_widget_destroy(widget);
+        return true;
     }
     return false;
 }
@@ -378,14 +380,12 @@ bool toplevel_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t u
             (pos_souri.y >= pos_carre.y)) {
         if(top_level->resizable != ei_axis_none) {
             //ei_app_invalidate_rect(&widget->screen_location);
-            ei_bind(ei_ev_mouse_buttonup, NULL, "all", toplevel_redimension, NULL);
-            ei_bind(ei_ev_mouse_move, NULL, "all", toplevel_redimension, NULL);
+            ei_bind(ei_ev_mouse_buttonup, NULL, "all", toplevel_redimension, widget);
+            ei_bind(ei_ev_mouse_move, NULL, "all", toplevel_redimension, widget);
         }
-
     }
-
     pos_mouse = pos_souri;
-    return false;
+    return true;
 
 }
 
@@ -423,7 +423,7 @@ bool toplevel_redimension(ei_widget_t widget, ei_event_t* event, ei_user_param_t
 
     ei_point_t pos_int;
 
-    if(event->type == ei_ev_mouse_move) {
+    if(event->type == ei_ev_mouse_move && (void*)widget == (void*)user_param) {
         pos_int = event->param.mouse.where;
         //new_x =  top_left.x + pos_int.x - pos_mouse.x;
         new_x =  pos_int.x - pos_mouse.x;
@@ -436,7 +436,7 @@ bool toplevel_redimension(ei_widget_t widget, ei_event_t* event, ei_user_param_t
         new_h = widget->screen_location.size.height + new_y;
         int w = max(new_w,top_level->min_size->width);
         int h = max(new_h,top_level->min_size->height);
-        if(strcmp(widget->wclass->name , "toplevel") == 0){
+        //if(strcmp(widget->wclass->name , "toplevel") == 0){
             if(top_level->resizable == ei_axis_both) {
                 ei_place_wh(widget, w, h);
             }
@@ -450,13 +450,13 @@ bool toplevel_redimension(ei_widget_t widget, ei_event_t* event, ei_user_param_t
             }
 
             pos_mouse = pos_int;
-        }
+        //}
 
     }
 
-    if(event->type == ei_ev_mouse_buttonup) {
-        ei_unbind(ei_ev_mouse_buttonup, NULL, "all", toplevel_redimension, NULL);
-        ei_unbind(ei_ev_mouse_move, NULL, "all", toplevel_redimension, NULL);
+    else if (event->type == ei_ev_mouse_buttonup) {
+        ei_unbind(ei_ev_mouse_buttonup, NULL, "all", toplevel_redimension, user_param);
+        ei_unbind(ei_ev_mouse_move, NULL, "all", toplevel_redimension, user_param);
     }
     return true;
 }

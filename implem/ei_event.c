@@ -228,7 +228,7 @@ bool entry_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t user
                 char lettre_str[1] = { lettre};
                 //const char l[1] = "";
                 //strncat(entry->text, lettre_str, 1);
-                insert_char(entry->text, lettre, entry->ind_cur+1, entry->requested_char_size);
+                insert_char(entry->text, lettre, entry->ind_cur+1, entry->requested_char_size+1);
                 //strncat(l,lettre_str,1);
                 //strcat(entry->text, lettre_str);
                 int w,h;
@@ -357,10 +357,17 @@ bool entry_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_p
 
         ei_point_t where;
         //where = place_text(widget, entry->text, entry->text_font, ei_anc_northeast);
-        where.x = widget->content_rect->top_left.x+2;
+        int w, h;
+        hw_text_compute_size(entry->text, entry->text_font, &w, &h);
+        where.x = widget->content_rect->top_left.x+2+w;
         where.y = widget->content_rect->top_left.y;
+        if (entry->text != '\0') {
+            int l = strlen((entry->text)) - 1;
+            entry->ind_cur = l;
+        }
 
-        curseur[0]= where;
+
+            curseur[0]= where;
         curseur[1]= (ei_point_t){where.x, where.y + widget->requested_size.height};
         ei_app_invalidate_rect(&widget->screen_location);
         return false;

@@ -22,14 +22,14 @@ ei_point_t* curseur = NULL;
 
 // fonction d'allocation mémoire pour une classe frame
 ei_widget_t allocfunc_frame() {
-    ei_impl_frame_t* espace_pour_frame = calloc(sizeof(ei_impl_frame_t),1);
+    ei_impl_frame_t* espace_pour_frame = calloc(1, sizeof(ei_impl_frame_t));
     ei_widget_t espace = (ei_widget_t) espace_pour_frame;
     return espace;
 
 }
 // cette fonction va supprimer toute les mémoire allouer par des instance de la classe classe frame
 // mais pas la classe frame elle même
-// par exemple, frame va avoir un champ relief,
+// par exemple, frame va avoir un champ relief, hw_surface_update_rects
 // un champ police (ei_font_t) ...
 // il faut supprimer ces champs
 void releasefunc_frame(ei_widget_t  widget) {
@@ -230,7 +230,7 @@ ei_widgetclass_t* init_frame_classe () {
 // fonction d'allocation mémoire pour une classe button
 
 ei_widget_t allocfunc_button() {
-    ei_impl_button_t* espace_pour_button = calloc(sizeof(ei_impl_button_t),1);
+    ei_impl_button_t* espace_pour_button = calloc(1, sizeof(ei_impl_button_t));
     ei_widget_t espace = (ei_widget_t) espace_pour_button;
     return espace;
 
@@ -509,6 +509,7 @@ void drawfunc_toplevel(ei_widget_t		widget,
 
     // encoche:
     ei_color_t couleur = toplevel->color;
+    ei_color_t couleur_fonce = {couleur.red*0.7, couleur.green*0.7, couleur.blue*0.7, couleur.alpha};
 
     /*
     ei_point_t centre = {300, 300};
@@ -522,7 +523,7 @@ void drawfunc_toplevel(ei_widget_t		widget,
     ei_arc_t* arcc = rounded_top_level(rayon, rectangle_bg);
     ei_point_t* debut_surface = arcc->points;
     int32_t	taille = arcc->taille;
-    ei_draw_polygon(surface,debut_surface, taille, (ei_color_t){238,130,238,255}, clipper);
+    ei_draw_polygon(surface,debut_surface, taille, couleur_fonce, clipper);
     ei_draw_polygon(pick_surface,debut_surface, taille, *widget->pick_color, clipper);
     free_arc(arcc);
 
@@ -547,7 +548,7 @@ void drawfunc_toplevel(ei_widget_t		widget,
         ei_point_t* cercle = arccc->points;
         int32_t	taille_cercle = arccc->taille;
         ei_rect_t* clip_ferm = trouve_inter_rect(widget->screen_location, *widget->parent->content_rect);
-        ei_draw_polygon(surface,cercle, taille_cercle, (ei_color_t){255,50,0,255}, clip_ferm);
+        ei_draw_polygon(surface,cercle, taille_cercle, (ei_color_t){255,0,0,255}, clip_ferm);
         free(clip_ferm);
         free_arc(arccc);
 
@@ -600,7 +601,7 @@ void drawfunc_toplevel(ei_widget_t		widget,
 
     //ei_draw_polygon(surface,carre_resize, 4, (ei_color_t){238,0,0,255}, clipper);
     if(toplevel->resizable != ei_axis_none) {
-        ei_draw_polygon(surface,carre_resize, 4, (ei_color_t){238,130,238,255}, clipper);
+        ei_draw_polygon(surface,carre_resize, 4, couleur_fonce, clipper);
         ei_draw_polygon(pick_surface,carre_resize, 4, *widget->pick_color, clipper);
     }
 
@@ -798,7 +799,9 @@ void drawfunc_entry(ei_widget_t		widget,
 
     }
 
-    ei_draw_polyline(surface,curseur,2,black,clipper);
+    if(entry -> focus) {
+        ei_draw_polyline(surface, curseur, 2, black, clipper);
+    }
 
 
     if (widget->next_sibling != NULL) {
@@ -824,7 +827,8 @@ void setdefaultsfunc_entry(ei_widget_t widget) {
     entry->color = ei_default_background_color;
     entry->text_font = ei_default_font;
     entry->text_color = ei_font_default_color;
-    entry->text = calloc(100,sizeof(char));
+    entry->text = calloc(entry->requested_char_size+1,sizeof(char));
+    strncpy(entry->text, "\0",1);
     //strcpy(entry->text, "bonjour monsieur Victor m");
     entry->pos = 0;
     entry->focus = false;
