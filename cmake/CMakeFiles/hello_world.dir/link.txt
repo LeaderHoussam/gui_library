@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/hello_world.dir/tests/hello_world.c.o -o hello_world   -L/home/ah/first_y/gitlab/ig_houssam_victor_nelson/_x11  -Wl,-rpath,/home/ah/first_y/gitlab/ig_houssam_victor_nelson/_x11 libei.a -leibase -lfreeimage -lSDL2 -lSDL2_ttf -lSDL2_gfx -lm 

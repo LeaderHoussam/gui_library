@@ -25,8 +25,8 @@ endif(IG_ASAN)
 
 if(${APPLE})
 	set(HEADER_DIRS			${HEADER_DIRS}
-					"/opt/local/include/SDL2"
-					"/opt/local/include")
+			"/opt/local/include/SDL2"
+			"/opt/local/include")
 	set(PLATFORM_DIR		"${ROOT_DIR}/_macos")
 	set(PLATFORM_LIB_FLAGS		eibase -L/opt/local/lib ${LIB_FLAGS})
 
@@ -35,7 +35,7 @@ if(${APPLE})
 elseif(${UNIX})
 
 	set(HEADER_DIRS			${HEADER_DIRS}
-					"/usr/include/SDL2")
+			"/usr/include/SDL2")
 	set(PLATFORM_DIR		"${ROOT_DIR}/_x11")
 	set(PLATFORM_LIB_FLAGS		eibase ${LIB_FLAGS} -lm)
 
@@ -45,15 +45,15 @@ else()
 
 	set(SDL				"C:/projetc/SDL2_windows")
 	set(HEADER_DIRS			${HEADER_DIRS}
-					"${SDL}/include")
+			"${SDL}/include")
 	add_definitions(-D_AMD64_=1 -D__WIN__=1 -D_CRT_SECURE_NO_WARNINGS=1 /wd4068)
 
 	set(PLATFORM_DIR		"${ROOT_DIR}/_win")
 	set(PLATFORM_LIB_FLAGS		eibase
-					${SDL}/lib/${ARCH}/SDL2.lib
-					${SDL}/lib/${ARCH}/SDL2_gfx.lib
-					${SDL}/lib/${ARCH}/SDL2_ttf.lib
-					${SDL}/lib/${ARCH}/FreeImage.lib)
+			${SDL}/lib/${ARCH}/SDL2.lib
+			${SDL}/lib/${ARCH}/SDL2_gfx.lib
+			${SDL}/lib/${ARCH}/SDL2_ttf.lib
+			${SDL}/lib/${ARCH}/FreeImage.lib)
 
 	message(STATUS "Building for Windows")
 
@@ -68,12 +68,18 @@ link_directories(${PLATFORM_DIR})
 #target ei (libei)
 
 set(LIB_EI_SOURCES
-     ${SRC}/ei_application.c
-	 ${SRC}/ei_widget_configure.c
-	 ${SRC}/ei_widget.c
-	 ${SRC}/ei_widgetclass.c
-	 ${SRC}/ei_placer.c
-	 ${SRC}/ei_implementation.c
+		${SRC}/ei_application.c
+		${SRC}/ei_draw.c
+		${SRC}/ei_entry.c
+		${SRC}/ei_event.c
+		${SRC}/ei_geometrymanager.c
+		${SRC}/ei_implementation.c
+		${SRC}/ei_implementation.h
+		${SRC}/ei_placer.c
+		${SRC}/ei_widget.c
+		${SRC}/ei_widget_attributes.c
+		${SRC}/ei_widget_configure.c
+		${SRC}/ei_widgetclass.c
 )
 
 add_library(ei STATIC			${LIB_EI_SOURCES})
@@ -136,3 +142,5 @@ target_link_libraries(parsing		ei ${PLATFORM_LIB_FLAGS})
 # target to build the documentation
 
 add_custom_target(doc doxygen		${DOCS_DIR}/doxygen.cfg WORKING_DIRECTORY ${ROOT_DIR})
+
+# set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "minimale")

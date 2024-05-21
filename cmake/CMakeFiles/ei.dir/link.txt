@@ -1,0 +1,2 @@
+/usr/bin/ar qc libei.a CMakeFiles/ei.dir/implemHoussam/ei_application.c.o CMakeFiles/ei.dir/implemHoussam/ei_widget_configure.c.o CMakeFiles/ei.dir/implemHoussam/ei_widget.c.o CMakeFiles/ei.dir/implemHoussam/ei_widgetclass.c.o CMakeFiles/ei.dir/implemHoussam/ei_placer.c.o CMakeFiles/ei.dir/implemHoussam/ei_implementation.c.o CMakeFiles/ei.dir/implemHoussam/ei_geometrymanager.c.o CMakeFiles/ei.dir/implemHoussam/ei_event.c.o CMakeFiles/ei.dir/implemHoussam/ei_draw.c.o CMakeFiles/ei.dir/implemHoussam/ei_widget_attributes.c.o
+/usr/bin/ranlib libei.a

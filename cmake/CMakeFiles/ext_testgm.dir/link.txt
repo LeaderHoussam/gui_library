@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/ext_testgm.dir/tests/ext_testgm.c.o -o ext_testgm   -L/home/ah/first_y/gitlab/ig_houssam_victor_nelson/_x11  -Wl,-rpath,/home/ah/first_y/gitlab/ig_houssam_victor_nelson/_x11 -ltestgm libei.a -leibase -lfreeimage -lSDL2 -lSDL2_ttf -lSDL2_gfx -lm 

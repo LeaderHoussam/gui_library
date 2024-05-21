@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/minimal.dir/tests/minimal.c.o -o minimal   -L/home/ah/first_y/gitlab/ig_houssam_victor_nelson/_x11  -Wl,-rpath,/home/ah/first_y/gitlab/ig_houssam_victor_nelson/_x11 -leibase -lfreeimage -lSDL2 -lSDL2_ttf -lSDL2_gfx -lm 
