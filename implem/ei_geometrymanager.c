@@ -33,7 +33,7 @@ void ei_geometry_run_finalize(ei_widget_t widget, ei_rect_t* new_screen_location
         // on a modifier les dimensions et positions du widget
         widget->screen_location = *new_screen_location;
         widget->wclass->geomnotifyfunc(widget);
-        free(new_screen_location);
+        //free(new_screen_location);
         free(old_screen_location);
 
         // recompute the geometry of the children
@@ -153,6 +153,7 @@ void placeur_runfunc(ei_widget_t widget) {
         //widget->screen_location.top_left = (ei_point_t) {x_final, y_final};
 
         ei_geometry_run_finalize(widget, nouveaux_affichage);
+        free(nouveaux_affichage);
     }
 }
 

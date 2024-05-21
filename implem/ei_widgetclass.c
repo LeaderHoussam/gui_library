@@ -17,6 +17,7 @@
 
 //extern ei_widgetclass_t* liste_des_classe =calloc(sizeof(ei_widgetclass_t), 1);
 ei_widgetclass_t* liste_des_classe = NULL;
+ei_point_t* curseur = NULL;
 
 
 // fonction d'allocation mémoire pour une classe frame
@@ -695,13 +696,7 @@ size_t		ei_widget_struct_size() {
     return size_of_widget;
 }
 
-/*
-size_t		ei_widget_struct_size() {
-    size_t size_of_widget = sizeof(*((ei_impl_widget_t*)NULL));
-    return size_of_widget;
-}
 
-// allocation mémoire pour entry
 ei_widget_t allocfunc_entry() {
     ei_impl_entry_t* espace_pour_entry = calloc(1,sizeof(ei_impl_entry_t));
     ei_widget_t espace = (ei_widget_t) espace_pour_entry;
@@ -718,24 +713,107 @@ void drawfunc_entry(ei_widget_t		widget,
                     ei_rect_t*		clipper) {
 
 
+    if(widget->geom_params == NULL) {
+        return;
+    }
 
     hw_surface_lock(surface);
     hw_surface_lock(pick_surface);
 
 
     ei_impl_entry_t* entry = (ei_impl_entry_t *) widget;
+    // il faut après dessiner en tenant compte de la bordure
+    // je vais écrire les évènements: à faire après.
+    /*
+    ei_point_t pos_deb = widget->screen_location.top_left;
+    ei_size_t dim = widget->screen_location.size;
+    ei_point_t points[4] = {pos_deb, (ei_point_t){pos_deb.x+dim.width, pos_deb.y},
+                            (ei_point_t){pos_deb.x+dim.width, pos_deb.y+dim.height},
+                            (ei_point_t){pos_deb.x, pos_deb.y+dim.height}};
+    ei_color_t white = {255,255,255,255};
+
+    int bord = (entry->focus)? entry->border_width: entry->border_width-1;
+    ei_point_t pos_deb_b = (ei_point_t){pos_deb.x -bord,pos_deb.y -bord };
+    ei_size_t dim_bord = (ei_size_t){dim.width+2*bord,dim.height+2*bord};
+    ei_point_t bords[4] = {pos_deb_b, (ei_point_t){pos_deb_b.x+dim_bord.width, pos_deb_b.y},
+                            (ei_point_t){pos_deb_b.x+dim_bord.width, pos_deb_b.y+dim_bord.height},
+                            (ei_point_t){pos_deb_b.x, pos_deb_b.y+dim_bord.height}};
+    ei_color_t black = {0,0,0,255};
+*/
+    int bord = (entry->focus)? entry->border_width: entry->border_width-1;
+    //ei_point_t pos_deb_b = (ei_point_t){pos_deb.x -bord,pos_deb.y -bord };
+    //ei_size_t dim_bord = (ei_size_t){dim.width+2*bord,dim.height+2*bord};
+    ei_point_t pos_deb_b = widget->screen_location.top_left;
+    ei_size_t dim_bord = widget->screen_location.size;
+    ei_point_t bords[4] = {pos_deb_b, (ei_point_t){pos_deb_b.x+dim_bord.width, pos_deb_b.y},
+                           (ei_point_t){pos_deb_b.x+dim_bord.width, pos_deb_b.y+dim_bord.height},
+                           (ei_point_t){pos_deb_b.x, pos_deb_b.y+dim_bord.height}};
+    ei_color_t black = {0,0,0,255};
 
 
+    ei_point_t pos_deb = (ei_point_t){pos_deb_b.x + bord,pos_deb_b.y + bord };
+    ei_size_t dim = (ei_size_t){dim_bord.width - 2*bord,dim_bord.height - 2*bord};
+    ei_point_t points[4] = {pos_deb, (ei_point_t){pos_deb.x+dim.width, pos_deb.y},
+                            (ei_point_t){pos_deb.x+dim.width, pos_deb.y+dim.height},
+                            (ei_point_t){pos_deb.x, pos_deb.y+dim.height}};
+    ei_color_t white = {255,255,255,255};
+
+
+    ei_draw_polygon(surface,bords,4,black,clipper);
+    ei_draw_polygon(pick_surface,bords,4,*widget->pick_color,clipper);
+
+    ei_draw_polygon(surface,points,4,white,clipper);
+    ei_draw_polygon(pick_surface,points,4,*widget->pick_color,clipper);
+
+
+
+    ei_rect_t* clip_enfant = trouve_inter_rect(*widget->content_rect, *clipper);
+    ei_impl_widget_draw_children(widget, surface, pick_surface, clip_enfant);
+    free(clip_enfant);
+
+    if (entry->text) {
+        ei_point_t where;
+        //where = place_text(widget, entry->text, entry->text_font, ei_anc_northeast);
+        where.x = widget->content_rect->top_left.x+2;
+        where.y = widget->content_rect->top_left.y;
+
+        //curseur[0]= where;
+        //curseur[1]= (ei_point_t){where.x, where.y + widget->requested_size.height};
+
+        ei_rect_t* clipper_pour_text;
+        char* debut_text = entry->text + entry->pos;
+        if(widget->parent != NULL) {
+            clipper_pour_text = trouve_inter_rect(*widget->content_rect, *widget->parent->content_rect);
+        }else {
+            clipper_pour_text = widget->content_rect;
+        }
+        if(curseur[0].x == widget->content_rect->top_left.x + widget->content_rect->size.width-2) {
+            ei_drawentry_text(surface, &where, debut_text, entry->text_font, entry->text_color, clipper_pour_text);
+        }
+        else {
+            ei_draw_text(surface, &where, debut_text, entry->text_font, entry->text_color, clipper_pour_text);
+        }
+
+        free(clipper_pour_text);
+
+    }
+
+    ei_draw_polyline(surface,curseur,2,black,clipper);
+
+
+    if (widget->next_sibling != NULL) {
+        widget->next_sibling->wclass->drawfunc(widget->next_sibling, surface, pick_surface, clipper);
+    }
     hw_surface_unlock(surface);
     hw_surface_unlock(pick_surface);
     // ei_linked_rect_t* clipp = (ei_linked_rect_t*) clipper;
 
 
-    printf("\nAH AH, fonction draw_toplevel appélee");
+    printf("\nAH AH, fonction draw_entry appélee");
 }
 
 void setdefaultsfunc_entry(ei_widget_t widget) {
-    // fonction chargée d'initialisée les valeurs par défauts d'un toplevel
+    // fonction chargée d'initialisée les valeurs par défauts d'un entry
 
     // les autres parametres non commun aux autres:
     // on fait d'abord un transcriptage avant de les utiliser
@@ -746,6 +824,11 @@ void setdefaultsfunc_entry(ei_widget_t widget) {
     entry->color = ei_default_background_color;
     entry->text_font = ei_default_font;
     entry->text_color = ei_font_default_color;
+    entry->text = calloc(100,sizeof(char));
+    //strcpy(entry->text, "bonjour monsieur Victor m");
+    entry->pos = 0;
+    entry->focus = false;
+    entry->ind_cur = -1;
 }
 
 void geomnotifyfunc_entry(ei_widget_t widget) {
@@ -762,5 +845,3 @@ ei_widgetclass_t* init_entry_classe() {
     classe_entry->next = NULL;
     return classe_entry;
 }
-
-*/

@@ -79,6 +79,8 @@ ei_point_t* concatenation_tab(ei_point_t* tab1, int32_t taille1, ei_point_t* tab
     return tableau;
 }
 
+
+
 ei_arc_t* rounded_frame(int32_t rayon, ei_rect_t rectangle)
 {
     int	width = rectangle.size.width;
@@ -777,9 +779,8 @@ void free_place_text( ei_point_t* point ){ free(point);}
 
 void free_place_img( ei_rect_ptr_t rect ){ free(rect);}
 
-
 void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anchor){
-    //agit sur l'image à dessiner sur le widget en fonction de l'anchor
+
     if (img_anchor == ei_anc_northeast) {
         if (source->size.width > widget->requested_size.width) {
             source->top_left.x = source->size.width - widget->requested_size.width;
@@ -823,23 +824,14 @@ void compare_rect(ei_widget_t widget, ei_rect_ptr_t source, ei_anchor_t img_anch
         }
     }
 
-    if (img_anchor == ei_anc_south){
-
-    }
     if (img_anchor == ei_anc_north){
 
     }
-    if (img_anchor == ei_anc_west){
-
-    }
-    if (img_anchor == ei_anc_east){
-
-    }
 
 
 
 
-    //source->top_left = ei_point_neg(source->top_left);
+    source->top_left = ei_point_neg(source->top_left);
 
 }
 
@@ -871,7 +863,7 @@ void delete_widget(ei_widget_t widget) {
             }
 
             // Libérer la mémoire du widget
-
+/*
             ei_event_binding* event_bind;
             event_bind = EVENT_BINDINGS;
 
@@ -882,7 +874,7 @@ void delete_widget(ei_widget_t widget) {
                 } else {
                     event_bind = event_bind->next;
                 }
-            }
+            }*/
             free(widget);
             return;
         }

@@ -180,11 +180,26 @@ typedef struct ei_impl_toplevel_t{
     ei_size_ptr_t  	min_size;
 }ei_impl_toplevel_t;
 
+typedef struct	ei_impl_entry_t {
+    ei_impl_widget_t widget;
+    int requested_char_size;
+    ei_color_t color;
+    int border_width;
+    ei_font_t text_font;
+    ei_color_t    text_color;
+    //ajout perso
+    char* text;
+    int pos;
+    int ind_cur;
+    bool focus;
+}ei_impl_entry_t;
 
 // on va ajouter dans ce fichier, l'instanciation  de nos classes
 ei_widgetclass_t* init_toplevel_classe(void);
 ei_widgetclass_t* init_button_classe(void );
 ei_widgetclass_t* init_frame_classe(void );
+ei_widgetclass_t* init_entry_classe(void);
+
 ei_geometrymanager_t*  init_placeur(void);
 extern ei_widgetclass_t* liste_des_classe;
 extern ei_surface_t root_window;
@@ -251,18 +266,38 @@ ei_widget_t get_widget_from_pick_color(ei_color_t pick_color);
  * telles que le type d'événement, le widget ou l'étiquette, le rappel associé
  * et les paramètres utilisateur.
  */
-typedef struct ei_event_binding {
-    ei_eventtype_t event_type;
+typedef struct traitant_t {
+    //ei_eventtype_t evenement;
     ei_widget_t widget;
     ei_tag_t tag;
     ei_callback_t callback;
     void* user_param;
-    struct ei_event_binding* next;
-}ei_event_binding;
-bool execute_traitant(ei_event_t* event,ei_event_binding traitant);
-extern   ei_event_binding* EVENT_BINDINGS;
+    struct traitant_t* next;
+}traitant_t;
 
-extern ei_surface_t offscreen;
+// on cree aussi une structure de transcriptage d'un évènement
+typedef struct event_with_callback {
+    ei_eventtype_t event;
+    traitant_t* liste_des_traitants;
+    struct event_with_callback* next;
+}event_with_callback;
+
+extern event_with_callback* liste_des_events_enregistres;
+bool execute_traitant(ei_event_t* event, traitant_t traitant);
+traitant_t* trouve_traitant(ei_eventtype_t eventtype);
+ei_color_t* get_pick_screen_color(ei_point_t pos_souris);
+ei_widget_t get_widget_from_pick_color(ei_color_t pick_color);
+
+
+
+
+extern ei_point_t* curseur;
+bool bouton_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool bouton_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool toplevel_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool toplevel_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool toplevel_handler_2(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool toplevel_redimension(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
 
 extern bool top_toplevel;
 extern bool btm_toplevel;
@@ -275,12 +310,13 @@ typedef struct link_widget {
     struct link_widget* next;
 }link_widget;
 extern link_widget* liste_des_widgets;
-bool bouton_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
-bool bouton_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
-bool toplevel_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
-bool toplevel_handler_1(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
-bool toplevel_handler_2(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
-bool toplevel_redimension(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool events_button(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+
+bool events_toplevel_down(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool events_toplevel_place(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+bool entry_handler(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
+
+// bool ei_app_should_quit(ei_widget_t widget, ei_event_t* event, ei_user_param_t user_param);
 
 extern ei_point_t pos_mouse;
 
@@ -299,6 +335,15 @@ ei_widget_t pick_recursive(ei_widget_t widget, ei_color_t* color);
 void move_widget_to_end(ei_widget_t widget);
 void append_widget(ei_widget_t parent, ei_widget_t widget);
 
+void	ei_drawentry_text	(ei_surface_t		surface,
+                              const ei_point_t*	where,
+                              ei_const_string_t	text,
+                              ei_font_t		font,
+                              ei_color_t		color,
+                              const ei_rect_t*	clipper );
+
+void remove_letter(char* str, int index);
+void insert_char(char* str, char char_to_insert, int index, int max_len);
 //strcmp
 bool compare_widget_class_name_and_tag(ei_widgetclass_name_t name, char *tag);
 #endif

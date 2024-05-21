@@ -64,3 +64,8 @@ const ei_color_t*	ei_widget_get_pick_color	(ei_widget_t		widget) {
 const ei_size_t*	ei_widget_get_requested_size	(ei_widget_t		widget) {
     return &widget->requested_size;
 }
+
+void	 		ei_widget_set_requested_size	(ei_widget_t		widget,
+                                                 ei_size_t 		requested_size) {
+    widget->requested_size = requested_size;
+}
